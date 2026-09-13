@@ -3,6 +3,9 @@
 // NGUOI LAM: BAN (LEADER)
 // ============================================
 
+// === CAU HINH API ===
+// Neu backend chay tren may khac, doi localhost thanh IP may do
+// Vi du: const API_BASE = 'http://192.168.1.5:8080/api';
 const API_BASE = 'http://localhost:8080/api';
 
 // Ham GET
