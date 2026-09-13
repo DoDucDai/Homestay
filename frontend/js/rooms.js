@@ -1,6 +1,6 @@
 // ============================================
 // rooms.js - XU LY TRANG QUAN LY PHONG
-// NGUOI LAM: BAN (LEADER)
+// NGUOI LAM: DUC DAI (LEADER) (LEADER)
 // API BACKEND: DUC DAI
 //   GET    /api/rooms         -> lay danh sach phong
 //   POST   /api/rooms         -> them phong moi

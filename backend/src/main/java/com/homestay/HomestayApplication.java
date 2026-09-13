@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
  * DIEM KHOI DAU CUA BACKEND
- * NGUOI LAM: DUC DAI
+ * NGUOI LAM: DUC DAI (LEADER)
  *
  * Cach chay:
  * 1. Mo terminal trong thu muc backend/

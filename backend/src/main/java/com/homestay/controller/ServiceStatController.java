@@ -16,7 +16,7 @@ public class ServiceStatController {
     // Return: [ { serviceId, serviceName, unitPrice, status } ]
     @GetMapping("/services")
     public List<Map<String, Object>> getAllServices() {
-        // TODO: Duc Dai viet
+        // TODO: Ð?c Ð?i (Leader) vi?t
         // SELECT * FROM Services ORDER BY service_name
         return new ArrayList<>();
     }
@@ -26,7 +26,7 @@ public class ServiceStatController {
     // Return: { "success": true }
     @PostMapping("/services")
     public Map<String, Object> createService(@RequestBody Map<String, Object> body) {
-        // TODO: Duc Dai viet
+        // TODO: Ð?c Ð?i (Leader) vi?t
         // INSERT INTO Services (service_name, unit_price, status) VALUES (?,?,?)
         return Map.of("success", false, "message", "Chua implement");
     }
@@ -36,7 +36,7 @@ public class ServiceStatController {
     // Return: { "success": true }
     @PutMapping("/services/{id}")
     public Map<String, Object> updateService(@PathVariable int id, @RequestBody Map<String, Object> body) {
-        // TODO: Duc Dai viet
+        // TODO: Ð?c Ð?i (Leader) vi?t
         // UPDATE Services SET service_name=?, unit_price=?, status=? WHERE service_id=?
         return Map.of("success", false, "message", "Chua implement");
     }
@@ -45,7 +45,7 @@ public class ServiceStatController {
     // Return: { "success": true }
     @DeleteMapping("/services/{id}")
     public Map<String, Object> deleteService(@PathVariable int id) {
-        // TODO: Duc Dai viet
+        // TODO: Ð?c Ð?i (Leader) vi?t
         // DELETE FROM Services WHERE service_id=?
         return Map.of("success", false, "message", "Chua implement");
     }
@@ -56,7 +56,7 @@ public class ServiceStatController {
     // Return: { totalRooms, availableRooms, totalCustomers, totalBookingsThisMonth, revenueThisMonth }
     @GetMapping("/statistics/overview")
     public Map<String, Object> getOverview() {
-        // TODO: Duc Dai viet API, Long + Hung viet SQL query
+        // TODO: Ð?c Ð?i (Leader) vi?t API, Long + Hung viet SQL query
         // Query 1 - Long viet: SELECT COUNT(*) total, SUM(CASE WHEN status=N'Trá»‘ng' THEN 1 ELSE 0 END) available FROM Rooms
         // Query 2 - Hung viet: SELECT COUNT(*) FROM Customers
         // Query 3 - Long viet: SELECT COUNT(*) FROM Bookings WHERE MONTH(created_at)=MONTH(GETDATE())
@@ -68,7 +68,7 @@ public class ServiceStatController {
     // Return: [ { paymentId, customerName, roomCode, paidAt, grandTotal } ]
     @GetMapping("/statistics/revenue")
     public List<Map<String, Object>> getRevenue(@RequestParam int month, @RequestParam int year) {
-        // TODO: Duc Dai viet API, Hung viet SQL query
+        // TODO: Ð?c Ð?i (Leader) vi?t API, Hung viet SQL query
         // SELECT p.*, c.full_name, r.room_code
         //   FROM Payments p
         //   JOIN Bookings b ON p.booking_id = b.booking_id

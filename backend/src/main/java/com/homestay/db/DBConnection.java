@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 /**
  * Ket noi SQL Server bang JDBC
- * NGUOI LAM: DUC DAI
+ * NGUOI LAM: DUC DAI (LEADER)
  *
  * Config duoc doc tu file .env o thu muc goc du an.
  * Neu khong co .env, dung gia tri mac dinh trong application.properties.

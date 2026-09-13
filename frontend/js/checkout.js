@@ -1,6 +1,6 @@
-﻿// ============================================
+// ============================================
 // checkout.js - XU LY TRANG CHECK-OUT VA THANH TOAN
-// NGUOI LAM: BAN (LEADER)
+// NGUOI LAM: DUC DAI (LEADER) (LEADER)
 // API BACKEND: BAN (LEADER)
 //   GET  /api/bookings?status=CheckedIn  -> phong dang co khach
 //   POST /api/checkout/{bookingId}       -> check-out + tinh tien + tao hoa don

@@ -1,6 +1,6 @@
-﻿// ============================================
+// ============================================
 // customers.js - XU LY TRANG KHACH HANG
-// NGUOI LAM: BAN (LEADER)
+// NGUOI LAM: DUC DAI (LEADER) (LEADER)
 // API BACKEND: DUC DAI
 //   GET    /api/customers
 //   POST   /api/customers

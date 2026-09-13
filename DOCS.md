@@ -27,16 +27,16 @@ homestay-app/
 │   │   ├── services.html
 │   │   └── statistics.html
 │   │
-│   └── js/               ← XỬ LÝ LOGIC (Leader + từng người tùy module)
+│   └── js/               ← XỬ LÝ LOGIC (Đức Đại)
 │       ├── api.js         ← HÀM FETCH DÙNG CHUNG – ĐỌC KỸ PHẦN 3
-│       ├── auth.js        ← Xử lý đăng nhập (Leader)
-│       ├── rooms.js       ← Xử lý trang phòng (Leader)
-│       ├── customers.js   ← Xử lý trang khách hàng (Leader)
-│       ├── bookings.js    ← Xử lý trang booking (Leader)
-│       ├── checkin.js     ← Xử lý trang check-in (Leader)
-│       ├── checkout.js    ← Xử lý trang check-out (Leader)
-│       ├── services.js    ← Xử lý trang dịch vụ (Leader)
-│       └── statistics.js  ← Xử lý trang thống kê (Leader)
+│       ├── auth.js        ← Xử lý đăng nhập (Đức Đại)
+│       ├── rooms.js       ← Xử lý trang phòng (Đức Đại)
+│       ├── customers.js   ← Xử lý trang khách hàng (Đức Đại)
+│       ├── bookings.js    ← Xử lý trang booking (Đức Đại)
+│       ├── checkin.js     ← Xử lý trang check-in (Đức Đại)
+│       ├── checkout.js    ← Xử lý trang check-out (Đức Đại)
+│       ├── services.js    ← Xử lý trang dịch vụ (Đức Đại)
+│       └── statistics.js  ← Xử lý trang thống kê (Đức Đại)
 │
 ├── backend/
 │   ├── pom.xml            ← Khai báo thư viện Java (không cần sửa)
@@ -45,7 +45,7 @@ homestay-app/
 │       │   ├── HomestayApplication.java   ← Điểm chạy của backend (không sửa)
 │       │   ├── db/
 │       │   │   └── DBConnection.java      ← Kết nối SQL Server (không sửa)
-│       │   └── controller/               ← API ENDPOINTS (Đức Đại + Leader)
+│       │   └── controller/               ← API ENDPOINTS (Đức Đại)
 │       │       ├── AuthController.java
 │       │       ├── RoomController.java
 │       │       ├── CustomerController.java
@@ -195,10 +195,10 @@ const user = checkLogin();
 ### Booking / Checkin / Checkout
 | Method | URL | Mô tả | Người làm |
 |---|---|---|---|
-| GET | `/api/bookings?status=X` | Lấy booking theo trạng thái | Leader |
-| POST | `/api/bookings` | Tạo booking mới | Leader |
+| GET | `/api/bookings?status=X` | Lấy booking theo trạng thái | Đức Đại |
+| POST | `/api/bookings` | Tạo booking mới | Đức Đại |
 | PUT | `/api/checkin/{id}` | Thực hiện check-in | Đức Đại |
-| POST | `/api/checkout/{id}` | Thực hiện check-out + tạo hóa đơn | Leader |
+| POST | `/api/checkout/{id}` | Thực hiện check-out + tạo hóa đơn | Đức Đại |
 
 ### Services
 | Method | URL | Mô tả | Người làm |

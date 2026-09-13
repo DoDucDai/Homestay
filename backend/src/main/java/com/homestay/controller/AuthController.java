@@ -15,7 +15,7 @@ public class AuthController {
     // Return: { "success": true, "user": { "userId": 1, "username": "...", "fullName": "...", "role": "admin" } }
     @PostMapping("/login")
     public Map<String, Object> login(@RequestBody Map<String, Object> body) {
-        // TODO: Duc Dai viet
+        // TODO: Ð?c Ð?i (Leader) vi?t
         // 1. Lay username, password tu body
         // 2. SELECT * FROM Users WHERE username=? AND password=?
         // 3. Neu co ket qua -> tra ve { success: true, user: {...} }

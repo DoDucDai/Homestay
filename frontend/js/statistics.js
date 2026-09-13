@@ -1,6 +1,6 @@
-﻿// ============================================
+// ============================================
 // statistics.js - XU LY TRANG THONG KE
-// NGUOI LAM: BAN (LEADER)
+// NGUOI LAM: DUC DAI (LEADER) (LEADER)
 // SQL QUERY: LONG + HUNG
 // API BACKEND: DUC DAI
 //   GET /api/statistics/overview   -> tong hop: phong, khach, booking, doanh thu

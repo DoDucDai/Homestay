@@ -14,7 +14,7 @@ public class RoomController {
     // Return: [ { roomId, roomCode, roomName, roomType, price, status, description } ]
     @GetMapping
     public List<Map<String, Object>> getAllRooms() {
-        // TODO: Duc Dai viet
+        // TODO: Ð?c Ð?i (Leader) vi?t
         // SELECT * FROM Rooms ORDER BY room_code
         return new ArrayList<>();
     }
@@ -24,7 +24,7 @@ public class RoomController {
     // Return: { "success": true, "message": "Them phong thanh cong" }
     @PostMapping
     public Map<String, Object> createRoom(@RequestBody Map<String, Object> body) {
-        // TODO: Duc Dai viet
+        // TODO: Ð?c Ð?i (Leader) vi?t
         // INSERT INTO Rooms (room_code, room_name, room_type, price, description) VALUES (?,?,?,?,?)
         return Map.of("success", false, "message", "Chua implement");
     }
@@ -34,7 +34,7 @@ public class RoomController {
     // Return: { "success": true }
     @PutMapping("/{id}")
     public Map<String, Object> updateRoom(@PathVariable int id, @RequestBody Map<String, Object> body) {
-        // TODO: Duc Dai viet
+        // TODO: Ð?c Ð?i (Leader) vi?t
         // UPDATE Rooms SET room_name=?, room_type=?, price=?, status=?, description=? WHERE room_id=?
         return Map.of("success", false, "message", "Chua implement");
     }
@@ -43,7 +43,7 @@ public class RoomController {
     // Return: { "success": true }
     @DeleteMapping("/{id}")
     public Map<String, Object> deleteRoom(@PathVariable int id) {
-        // TODO: Duc Dai viet
+        // TODO: Ð?c Ð?i (Leader) vi?t
         // DELETE FROM Rooms WHERE room_id=?
         return Map.of("success", false, "message", "Chua implement");
     }

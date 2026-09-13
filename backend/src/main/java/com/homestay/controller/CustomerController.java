@@ -14,7 +14,7 @@ public class CustomerController {
     // Return: [ { customerId, fullName, cccd, phone, email, address } ]
     @GetMapping
     public List<Map<String, Object>> getAllCustomers() {
-        // TODO: Duc Dai viet
+        // TODO: Ð?c Ð?i (Leader) vi?t
         // SELECT * FROM Customers ORDER BY full_name
         return new ArrayList<>();
     }
@@ -24,7 +24,7 @@ public class CustomerController {
     // Return: { "success": true }
     @PostMapping
     public Map<String, Object> createCustomer(@RequestBody Map<String, Object> body) {
-        // TODO: Duc Dai viet
+        // TODO: Ð?c Ð?i (Leader) vi?t
         // INSERT INTO Customers (full_name, cccd, phone, email, address) VALUES (?,?,?,?,?)
         return Map.of("success", false, "message", "Chua implement");
     }
@@ -34,7 +34,7 @@ public class CustomerController {
     // Return: { "success": true }
     @PutMapping("/{id}")
     public Map<String, Object> updateCustomer(@PathVariable int id, @RequestBody Map<String, Object> body) {
-        // TODO: Duc Dai viet
+        // TODO: Ð?c Ð?i (Leader) vi?t
         // UPDATE Customers SET full_name=?, phone=?, email=?, address=? WHERE customer_id=?
         return Map.of("success", false, "message", "Chua implement");
     }
@@ -43,7 +43,7 @@ public class CustomerController {
     // Return: { "success": true }
     @DeleteMapping("/{id}")
     public Map<String, Object> deleteCustomer(@PathVariable int id) {
-        // TODO: Duc Dai viet
+        // TODO: Ð?c Ð?i (Leader) vi?t
         // DELETE FROM Customers WHERE customer_id=?
         return Map.of("success", false, "message", "Chua implement");
     }

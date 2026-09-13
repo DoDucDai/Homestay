@@ -1,6 +1,6 @@
 // ============================================
 // auth.js - XU LY DANG NHAP / DANG XUAT
-// NGUOI LAM: BAN (LEADER)
+// NGUOI LAM: DUC DAI (LEADER) (LEADER)
 // API BACKEND: DUC DAI -> POST /api/auth/login
 // ============================================
 

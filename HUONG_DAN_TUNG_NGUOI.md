@@ -288,15 +288,17 @@ git push
 ---
 ---
 
-# 👤 ĐỨC ĐẠI – Backend Java (Login, Room, Customer, Checkin, Services)
+# 👤 ĐỨC ĐẠI (LEADER) – Backend Java & Toàn bộ Frontend JS
 
 ## Công cụ cần cài
 - IntelliJ IDEA (hoặc VS Code + Extension Pack for Java)
 - JDK 17
 - Maven
 
-## Nhiệm vụ của Đức Đại
-Vào các file Controller, điền code vào các hàm có `// TODO: Duc Dai viet`
+## Nhiệm vụ của Đức Đại (Leader)
+- **Backend:** Code tất cả API trong thư mục `controller/` (Login, Room, Customer, Checkin, Checkout, Services, Statistics).
+- **Frontend:** Code toàn bộ file `.js` trong `frontend/js/`.
+- **Tích hợp:** Hỗ trợ các bạn test, ghép nối các phần.
 
 ---
 
@@ -455,34 +457,13 @@ Body (JSON): { "roomCode": "P999", "roomName": "Test", "price": 100000 }
 1. AuthController.java     → login (LÀM TRƯỚC TIÊN để test đăng nhập)
 2. RoomController.java     → CRUD phòng (module mẫu)
 3. CustomerController.java → CRUD khách hàng
-4. BookingController.java  → chỉ làm hàm checkIn() (PUT /api/checkin/{id})
+4. BookingController.java  → Đặt phòng, checkin, checkout
 5. ServiceStatController.java → CRUD services + gọi query của Long/Hưng
 ```
 
 ---
 
-## BƯỚC 6 – Push Code
-
-```bash
-git pull
-git add backend/
-git commit -m "Duc Dai: Hoan thien AuthController va RoomController"
-git push
-```
-
----
----
-
-# 👤 LEADER – Backend khó + JavaScript toàn bộ Frontend
-
-## Nhiệm vụ của Leader (làm nhiều nhất)
-- **BE Java:** Booking API, Checkout/Payment API, Statistics API
-- **FE JS:** Toàn bộ file `.js` trong `frontend/js/`
-- **Tích hợp:** Kiểm tra end-to-end, review code Đức Đại
-
----
-
-## BƯỚC 1 – Làm Backend Phần Booking
+## BƯỚC 6 – Code Backend Phần Booking
 
 File: `BookingController.java`
 
@@ -582,7 +563,7 @@ public Map<String, Object> createBooking(@RequestBody Map<String, Object> body) 
 
 ---
 
-## BƯỚC 2 – Làm Backend Phần Checkout
+## BƯỚC 7 – Code Backend Phần Checkout
 
 ```java
 @PostMapping("/checkout/{bookingId}")
@@ -651,7 +632,7 @@ public Map<String, Object> checkOut(@PathVariable int bookingId, @RequestBody Ma
 
 ---
 
-## BƯỚC 3 – Làm JavaScript (sau khi Đức Đại xong API)
+## BƯỚC 8 – Làm JavaScript
 
 ### Cấu trúc chuẩn cho mỗi file JS:
 
@@ -752,28 +733,28 @@ async function confirmDelete(id) {
 
 ---
 
-## BƯỚC 4 – Thứ Tự Làm JS
+## BƯỚC 9 – Thứ Tự Làm JS
 
 ```
 1. api.js      ← Đã xong, không cần sửa
 2. auth.js     ← Đã xong
-3. rooms.js    ← Làm đầu tiên (sau khi Đức Đại xong RoomController)
+3. rooms.js    ← Làm đầu tiên
 4. customers.js← Tương tự rooms.js
-5. bookings.js ← Sau khi tự làm xong Booking API
-6. checkin.js  ← Sau khi Đức Đại xong Checkin API
-7. checkout.js ← Sau khi tự làm xong Checkout API
-8. services.js ← Sau khi Đức Đại xong Services API
-9. statistics.js ← Cuối cùng
+5. bookings.js ← Đặt phòng
+6. checkin.js  ← Check-in
+7. checkout.js ← Trả phòng
+8. services.js ← Dịch vụ
+9. statistics.js ← Thống kê
 ```
 
 ---
 
-## BƯỚC 5 – Push Code
+## BƯỚC 10 – Push Code
 
 ```bash
 git pull
 git add .
-git commit -m "Leader: Hoan thien BookingController + rooms.js + customers.js"
+git commit -m "Duc Dai (Leader): Hoan thien Backend va JS"
 git push
 ```
 

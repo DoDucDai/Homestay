@@ -9,8 +9,7 @@ Dự án thực tập – Hệ thống quản lý Homestay
 
 | Thành viên | Vai trò |
 |---|---|
-| Leader | Backend khó (Booking, Checkout, Statistics) + JS toàn bộ FE |
-| Đức Đại | Backend Java (Login, Room, Customer, Checkin, Services) |
+| Đức Đại (Leader) | Backend Java Spring Boot (tất cả API) + JavaScript toàn bộ Frontend |
 | Sỹ Đại | Frontend HTML + CSS (tất cả các trang) |
 | Long | Database SQL Server (Rooms, Bookings, Services) + query thống kê |
 | Hưng | Database SQL Server (Users, Customers, Payments) + query thống kê |
@@ -109,9 +108,9 @@ Mở trực tiếp file `frontend/pages/login.html` bằng trình duyệt.
 | POST | `/api/auth/login` | Đăng nhập | Đức Đại |
 | GET/POST/PUT/DELETE | `/api/rooms` | CRUD phòng | Đức Đại |
 | GET/POST/PUT/DELETE | `/api/customers` | CRUD khách hàng | Đức Đại |
-| GET/POST | `/api/bookings` | Booking + kiểm tra phòng trống | Leader |
+| GET/POST | `/api/bookings` | Booking + kiểm tra phòng trống | Đức Đại |
 | PUT | `/api/checkin/{id}` | Check-in | Đức Đại |
-| POST | `/api/checkout/{id}` | Check-out + tính tiền | Leader |
+| POST | `/api/checkout/{id}` | Check-out + tính tiền | Đức Đại |
 | GET/POST/PUT/DELETE | `/api/services` | CRUD dịch vụ | Đức Đại |
 | GET | `/api/statistics/overview` | Thống kê tổng hợp | Đức Đại (SQL: Long+Hưng) |
 | GET | `/api/statistics/revenue` | Doanh thu theo tháng | Đức Đại (SQL: Hưng) |

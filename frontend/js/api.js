@@ -1,6 +1,6 @@
 // ============================================
 // api.js - HAM FETCH DUNG CHUNG CHO TOAN BO PROJECT
-// NGUOI LAM: BAN (LEADER)
+// NGUOI LAM: DUC DAI (LEADER) (LEADER)
 // ============================================
 
 // === CAU HINH API ===
