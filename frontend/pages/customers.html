@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Khách Hàng - Homestay Management</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<!-- ================================================
+     TRANG QUAN LY KHACH HANG
+     NGUOI LAM HTML/CSS: SY DAI
+     NGUOI LAM JS: BAN (LEADER) -> xem file js/customers.js
+     ================================================ -->
+
+<div class="wrapper">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+        <div class="logo">🏠 Homestay</div>
+        <ul>
+            <li><a href="rooms.html">🛏 Quản lý Phòng</a></li>
+            <li><a href="customers.html" class="active">👤 Khách hàng</a></li>
+            <li><a href="bookings.html">📅 Booking</a></li>
+            <li><a href="checkin.html">✅ Check-in</a></li>
+            <li><a href="checkout.html">💰 Check-out</a></li>
+            <li><a href="services.html">🛎 Dịch vụ</a></li>
+            <li><a href="statistics.html">📊 Thống kê</a></li>
+            <li><a href="#" id="logout-btn">🚪 Đăng xuất</a></li>
+        </ul>
+    </nav>
+
+    <!-- NOI DUNG CHINH -->
+    <div class="main-content">
+        <h1 class="page-title">👤 Quản Lý Khách Hàng</h1>
+
+        <div class="card">
+            <button class="btn btn-success" onclick="openAddModal()">+ Thêm khách hàng</button>
+            <input type="text" id="search-input" placeholder="Tìm theo tên hoặc CCCD..." style="padding:8px; margin-left:10px; border:1px solid #ccc; border-radius:5px;">
+        </div>
+
+        <div id="alert-message" class="alert" style="display:none;"></div>
+
+        <div class="card">
+            <table id="customers-table">
+                <thead>
+                    <tr>
+                        <th>Mã KH</th>
+                        <th>Họ tên</th>
+                        <th>CCCD / Passport</th>
+                        <th>Số điện thoại</th>
+                        <th>Email</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="customers-tbody">
+                    <tr><td colspan="6" style="text-align:center;">Đang tải dữ liệu...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL THEM / SUA KHACH HANG -->
+<div class="modal-overlay" id="customer-modal">
+    <div class="modal-box">
+        <h3 id="modal-title">Thêm Khách Hàng</h3>
+
+        <input type="hidden" id="customer-id">
+
+        <div class="form-group">
+            <label for="customer-name">Họ và tên *</label>
+            <input type="text" id="customer-name" placeholder="Nhập họ và tên">
+        </div>
+        <div class="form-group">
+            <label for="customer-cccd">CCCD / Passport *</label>
+            <input type="text" id="customer-cccd" placeholder="Số CCCD hoặc Hộ chiếu">
+        </div>
+        <div class="form-group">
+            <label for="customer-phone">Số điện thoại *</label>
+            <input type="text" id="customer-phone" placeholder="VD: 0901234567">
+        </div>
+        <div class="form-group">
+            <label for="customer-email">Email</label>
+            <input type="email" id="customer-email" placeholder="VD: khach@email.com">
+        </div>
+        <div class="form-group">
+            <label for="customer-address">Địa chỉ</label>
+            <input type="text" id="customer-address" placeholder="Địa chỉ thường trú">
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal()">Hủy</button>
+            <button class="btn btn-primary" onclick="saveCustomer()">Lưu</button>
+        </div>
+    </div>
+</div>
+
+<script src="../js/customers.js"></script>
+
+</body>
+</html>

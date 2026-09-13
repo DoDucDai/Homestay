@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check-in - Homestay Management</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<!-- ================================================
+     TRANG CHECK-IN
+     NGUOI LAM HTML/CSS: SY DAI
+     NGUOI LAM JS: BAN (LEADER) -> xem file js/checkin.js
+     ================================================ -->
+
+<div class="wrapper">
+
+    <nav class="sidebar">
+        <div class="logo">🏠 Homestay</div>
+        <ul>
+            <li><a href="rooms.html">🛏 Quản lý Phòng</a></li>
+            <li><a href="customers.html">👤 Khách hàng</a></li>
+            <li><a href="bookings.html">📅 Booking</a></li>
+            <li><a href="checkin.html" class="active">✅ Check-in</a></li>
+            <li><a href="checkout.html">💰 Check-out</a></li>
+            <li><a href="services.html">🛎 Dịch vụ</a></li>
+            <li><a href="statistics.html">📊 Thống kê</a></li>
+            <li><a href="#" id="logout-btn">🚪 Đăng xuất</a></li>
+        </ul>
+    </nav>
+
+    <div class="main-content">
+        <h1 class="page-title">✅ Check-in Khách</h1>
+
+        <div id="alert-message" class="alert" style="display:none;"></div>
+
+        <!-- Danh sach booking cho doi check-in -->
+        <div class="card">
+            <h3 style="margin-bottom:15px;">Booking chờ check-in</h3>
+            <table id="checkin-table">
+                <thead>
+                    <tr>
+                        <th>Mã booking</th>
+                        <th>Khách hàng</th>
+                        <th>Phòng</th>
+                        <th>Ngày nhận</th>
+                        <th>Ngày trả</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="checkin-tbody">
+                    <tr><td colspan="6" style="text-align:center;">Đang tải dữ liệu...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL XAC NHAN CHECK-IN -->
+<div class="modal-overlay" id="checkin-modal">
+    <div class="modal-box">
+        <h3>Xác nhận Check-in</h3>
+
+        <div id="checkin-info" style="background:#f0f4f8; padding:15px; border-radius:5px; margin-bottom:15px;">
+            <!-- JS se dien thong tin booking vao day -->
+        </div>
+
+        <div class="form-group">
+            <label>Xác nhận check-in cho khách hàng này?</label>
+            <p style="color:#e74c3c; font-size:13px;">* Sau khi xác nhận, trạng thái phòng sẽ chuyển sang "Đang sử dụng"</p>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal()">Hủy</button>
+            <button class="btn btn-success" onclick="confirmCheckin()">✅ Xác nhận Check-in</button>
+        </div>
+    </div>
+</div>
+
+<script src="../js/checkin.js"></script>
+
+</body>
+</html>

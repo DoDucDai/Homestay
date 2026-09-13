@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check-out & Thanh Toán - Homestay Management</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<!-- ================================================
+     TRANG CHECK-OUT VA THANH TOAN
+     NGUOI LAM HTML/CSS: SY DAI
+     NGUOI LAM JS: BAN (LEADER) -> xem file js/checkout.js
+     ================================================ -->
+
+<div class="wrapper">
+
+    <nav class="sidebar">
+        <div class="logo">🏠 Homestay</div>
+        <ul>
+            <li><a href="rooms.html">🛏 Quản lý Phòng</a></li>
+            <li><a href="customers.html">👤 Khách hàng</a></li>
+            <li><a href="bookings.html">📅 Booking</a></li>
+            <li><a href="checkin.html">✅ Check-in</a></li>
+            <li><a href="checkout.html" class="active">💰 Check-out</a></li>
+            <li><a href="services.html">🛎 Dịch vụ</a></li>
+            <li><a href="statistics.html">📊 Thống kê</a></li>
+            <li><a href="#" id="logout-btn">🚪 Đăng xuất</a></li>
+        </ul>
+    </nav>
+
+    <div class="main-content">
+        <h1 class="page-title">💰 Check-out & Thanh Toán</h1>
+
+        <div id="alert-message" class="alert" style="display:none;"></div>
+
+        <!-- Danh sach phong dang su dung -->
+        <div class="card">
+            <h3 style="margin-bottom:15px;">Phòng đang có khách (chờ check-out)</h3>
+            <table id="checkout-table">
+                <thead>
+                    <tr>
+                        <th>Mã booking</th>
+                        <th>Khách hàng</th>
+                        <th>Phòng</th>
+                        <th>Ngày nhận</th>
+                        <th>Ngày trả</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="checkout-tbody">
+                    <tr><td colspan="6" style="text-align:center;">Đang tải dữ liệu...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL HOA DON & THANH TOAN -->
+<div class="modal-overlay" id="checkout-modal">
+    <div class="modal-box" style="width:600px;">
+        <h3>🧾 Hóa Đơn Thanh Toán</h3>
+
+        <!-- Thong tin hoa don - JS dien vao -->
+        <div id="invoice-details" style="background:#f9f9f9; padding:15px; border-radius:5px; margin-bottom:15px; line-height:2;">
+            <table style="width:100%; border:none;">
+                <tr><td><strong>Mã hóa đơn:</strong></td>    <td id="inv-id">--</td></tr>
+                <tr><td><strong>Khách hàng:</strong></td>     <td id="inv-customer">--</td></tr>
+                <tr><td><strong>Phòng:</strong></td>          <td id="inv-room">--</td></tr>
+                <tr><td><strong>Ngày nhận:</strong></td>      <td id="inv-checkin">--</td></tr>
+                <tr><td><strong>Ngày trả:</strong></td>       <td id="inv-checkout">--</td></tr>
+                <tr><td><strong>Số đêm:</strong></td>         <td id="inv-nights">--</td></tr>
+                <tr><td><strong>Giá / đêm:</strong></td>      <td id="inv-price-per-night">--</td></tr>
+                <tr><td><strong>Tiền phòng:</strong></td>     <td id="inv-room-total">--</td></tr>
+                <tr><td><strong>Tiền dịch vụ:</strong></td>   <td id="inv-service-total">--</td></tr>
+                <tr style="font-size:18px; color:#e74c3c;">
+                    <td><strong>TỔNG CỘNG:</strong></td>
+                    <td><strong id="inv-grand-total">--</strong></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="form-group">
+            <label for="payment-method">Phương thức thanh toán</label>
+            <select id="payment-method">
+                <option value="Tiền mặt">Tiền mặt</option>
+                <option value="Chuyển khoản">Chuyển khoản</option>
+                <option value="Thẻ ngân hàng">Thẻ ngân hàng</option>
+            </select>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal()">Hủy</button>
+            <button class="btn btn-success" onclick="confirmCheckout()">✅ Xác nhận thanh toán & Check-out</button>
+        </div>
+    </div>
+</div>
+
+<script src="../js/checkout.js"></script>
+
+</body>
+</html>

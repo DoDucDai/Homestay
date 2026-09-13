@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Booking - Homestay Management</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<!-- ================================================
+     TRANG BOOKING
+     NGUOI LAM HTML/CSS: SY DAI
+     NGUOI LAM JS: BAN (LEADER) -> xem file js/bookings.js
+     ================================================ -->
+
+<div class="wrapper">
+
+    <nav class="sidebar">
+        <div class="logo">🏠 Homestay</div>
+        <ul>
+            <li><a href="rooms.html">🛏 Quản lý Phòng</a></li>
+            <li><a href="customers.html">👤 Khách hàng</a></li>
+            <li><a href="bookings.html" class="active">📅 Booking</a></li>
+            <li><a href="checkin.html">✅ Check-in</a></li>
+            <li><a href="checkout.html">💰 Check-out</a></li>
+            <li><a href="services.html">🛎 Dịch vụ</a></li>
+            <li><a href="statistics.html">📊 Thống kê</a></li>
+            <li><a href="#" id="logout-btn">🚪 Đăng xuất</a></li>
+        </ul>
+    </nav>
+
+    <div class="main-content">
+        <h1 class="page-title">📅 Quản Lý Booking</h1>
+
+        <div class="card">
+            <button class="btn btn-success" onclick="openAddModal()">+ Tạo booking mới</button>
+        </div>
+
+        <div id="alert-message" class="alert" style="display:none;"></div>
+
+        <div class="card">
+            <table id="bookings-table">
+                <thead>
+                    <tr>
+                        <th>Mã booking</th>
+                        <th>Khách hàng</th>
+                        <th>Phòng</th>
+                        <th>Ngày nhận</th>
+                        <th>Ngày trả</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="bookings-tbody">
+                    <tr><td colspan="7" style="text-align:center;">Đang tải dữ liệu...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL TAO BOOKING -->
+<div class="modal-overlay" id="booking-modal">
+    <div class="modal-box">
+        <h3 id="modal-title">Tạo Booking Mới</h3>
+
+        <input type="hidden" id="booking-id">
+
+        <div class="form-group">
+            <label for="booking-customer">Khách hàng *</label>
+            <select id="booking-customer">
+                <option value="">-- Chọn khách hàng --</option>
+                <!-- JS se dien vao -->
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="booking-room">Phòng *</label>
+            <select id="booking-room">
+                <option value="">-- Chọn phòng trống --</option>
+                <!-- JS se dien vao cac phong trong -->
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="booking-checkin-date">Ngày nhận phòng *</label>
+            <input type="date" id="booking-checkin-date">
+        </div>
+        <div class="form-group">
+            <label for="booking-checkout-date">Ngày trả phòng *</label>
+            <input type="date" id="booking-checkout-date">
+        </div>
+        <div class="form-group">
+            <label for="booking-note">Ghi chú</label>
+            <textarea id="booking-note" rows="2" placeholder="Yêu cầu đặc biệt..."></textarea>
+        </div>
+
+        <!-- Hien thi so tien du tinh -->
+        <div id="price-preview" style="background:#f0f4f8; padding:10px; border-radius:5px; display:none;">
+            <strong>Dự tính:</strong> <span id="estimated-nights">0</span> đêm × <span id="room-price-display">0</span> VNĐ = <strong id="total-price-display">0 VNĐ</strong>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal()">Hủy</button>
+            <button class="btn btn-primary" onclick="saveBooking()">Xác nhận booking</button>
+        </div>
+    </div>
+</div>
+
+<script src="../js/bookings.js"></script>
+
+</body>
+</html>
