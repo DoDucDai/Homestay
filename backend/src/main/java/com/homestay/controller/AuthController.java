@@ -1,15 +1,25 @@
-﻿package com.homestay.controller;
+package com.homestay.controller;
+
 import com.homestay.db.DBConnection;
 import org.springframework.web.bind.annotation.*;
-import java.sql.*; import java.util.*;
+import java.sql.*;
+import java.util.*;
 
-/** AUTH CONTROLLER - NGUOI LAM: DUC DAI */
-@RestController @RequestMapping("/api/auth") @CrossOrigin(origins = "*")
+@RestController
+@RequestMapping("/api/auth")
+@CrossOrigin(origins = "*")
 public class AuthController {
-    // POST /api/auth/login -> kiem tra username/password trong bang Users
+
+    // POST /api/auth/login
+    // Body: { "username": "...", "password": "..." }
+    // Return: { "success": true, "user": { "userId": 1, "username": "...", "fullName": "...", "role": "admin" } }
     @PostMapping("/login")
-    public Map<String,Object> login(@RequestBody Map<String,Object> body) {
-        // TODO: SELECT * FROM Users WHERE username=? AND password=?
+    public Map<String, Object> login(@RequestBody Map<String, Object> body) {
+        // TODO: Duc Dai viet
+        // 1. Lay username, password tu body
+        // 2. SELECT * FROM Users WHERE username=? AND password=?
+        // 3. Neu co ket qua -> tra ve { success: true, user: {...} }
+        // 4. Neu khong co -> tra ve { success: false, message: "Sai tai khoan hoac mat khau" }
         return Map.of("success", false, "message", "Chua implement");
     }
 }
