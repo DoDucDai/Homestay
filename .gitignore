@@ -32,3 +32,11 @@ Thumbs.db
 # ========================
 *.log
 logs/
+
+# ========================
+# Tai lieu ca nhan (khong commit)
+# ========================
+huong_dan_dai.md
+huong_dan_dai*
+HUONG_DAN_DAI.md
+HUONG_DAN_DAI*
