@@ -1,4 +1,4 @@
-﻿package com.homestay.controller;
+package com.homestay.controller;
 
 import com.homestay.db.DBConnection;
 import org.springframework.web.bind.annotation.*;

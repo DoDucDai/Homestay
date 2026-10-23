@@ -15,12 +15,55 @@ import java.sql.SQLException;
  */
 public class DBConnection {
 
-    // Doc tu bien moi truong (duoc nap tu file .env qua spring-dotenv)
-    private static final String DB_HOST = System.getenv("DB_HOST") != null ? System.getenv("DB_HOST") : "localhost";
-    private static final String DB_PORT = System.getenv("DB_PORT") != null ? System.getenv("DB_PORT") : "1433";
-    private static final String DB_NAME = System.getenv("DB_NAME") != null ? System.getenv("DB_NAME") : "HomestayDB";
-    private static final String DB_USER = System.getenv("DB_USER") != null ? System.getenv("DB_USER") : "sa";
-    private static final String DB_PASSWORD = System.getenv("DB_PASSWORD") != null ? System.getenv("DB_PASSWORD") : "123456";
+    private static final java.util.Map<String, String> ENV_FILE_VARS = loadEnvFile();
+
+    private static java.util.Map<String, String> loadEnvFile() {
+        java.util.Map<String, String> map = new java.util.HashMap<>();
+        java.io.File[] files = new java.io.File[] {
+            new java.io.File(".env"),
+            new java.io.File("../.env"),
+            new java.io.File("backend/.env")
+        };
+        for (java.io.File file : files) {
+            if (file.exists() && file.isFile()) {
+                try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.FileReader(file, java.nio.charset.StandardCharsets.UTF_8))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        line = line.trim();
+                        if (line.isEmpty() || line.startsWith("#") || !line.contains("=")) continue;
+                        int idx = line.indexOf('=');
+                        String k = line.substring(0, idx).trim();
+                        String v = line.substring(idx + 1).trim();
+                        if (v.startsWith("\"") && v.endsWith("\"") && v.length() >= 2) {
+                            v = v.substring(1, v.length() - 1);
+                        } else if (v.startsWith("'") && v.endsWith("'") && v.length() >= 2) {
+                            v = v.substring(1, v.length() - 1);
+                        }
+                        map.putIfAbsent(k, v);
+                    }
+                } catch (Exception ignored) {}
+            }
+        }
+        return map;
+    }
+
+    private static String getEnv(String key, String defaultValue) {
+        String val = System.getenv(key);
+        if (val != null && !val.trim().isEmpty()) return val;
+        val = System.getProperty(key);
+        if (val != null && !val.trim().isEmpty()) return val;
+        val = ENV_FILE_VARS.get(key);
+        if (val != null && !val.trim().isEmpty()) return val;
+        return defaultValue;
+    }
+
+    // Doc tu bien moi truong (duoc nap tu file .env)
+    private static final String DB_HOST = getEnv("DB_HOST", "localhost");
+    private static final String DB_PORT = getEnv("DB_PORT", "56537");
+    private static final String DB_NAME = getEnv("DB_NAME", "HomestayDB");
+    private static final String DB_USER = getEnv("DB_USER", "sa");
+    private static final String DB_PASSWORD = getEnv("DB_PASSWORD", "123456");
 
     private static final String DB_URL =
         "jdbc:sqlserver://" + DB_HOST + ":" + DB_PORT
