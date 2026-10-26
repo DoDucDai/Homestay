@@ -1,172 +1,99 @@
-// ============================================
-// rooms.js - XU LY TRANG QUAN LY PHONG
-// NGUOI LAM: DUC DAI (LEADER)
-// API BACKEND: DUC DAI
-//   GET    /api/rooms         -> lay danh sach phong
-//   POST   /api/rooms         -> them phong moi
-//   PUT    /api/rooms/{id}    -> cap nhat phong
-//   DELETE /api/rooms/{id}    -> xoa phong
-// ============================================
-
-// Kiem tra dang nhap ngay khi vao trang
 checkLogin();
-
-let currentRooms = [];
-
-// Khi trang load xong
-document.addEventListener('DOMContentLoaded', () => {
+let currentRooms = [], roomsLoadFailed = false, roomsVersion = 0, roomSaving = false;
+const roomPending = new Set();
+let roomSearchTimer, roomsBusinessDay = '';
+function roomAdmin() { return currentUser?.role === 'admin'; }
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!await checkLogin()) return;
+    document.getElementById('room-add-btn').hidden = !roomAdmin();
     loadRooms();
-    
-    // Su kien cho o tim kiem
-    const searchInput = document.getElementById('search-input');
-    if(searchInput) {
-        searchInput.addEventListener('input', function(e) {
-            const keyword = e.target.value.toLowerCase().trim();
-            const filtered = currentRooms.filter(r => 
-                r.roomCode.toLowerCase().includes(keyword) || 
-                r.roomName.toLowerCase().includes(keyword)
-            );
-            renderTable(filtered);
-        });
-    }
+    document.getElementById('search-input').addEventListener('input', () => {
+        clearTimeout(roomSearchTimer);
+        // Invalidate the older request immediately, before the debounce expires.
+        roomsVersion++; roomSearchTimer = setTimeout(loadRooms,250);
+    });
+    ['filter-type','filter-status'].forEach(id => document.getElementById(id).addEventListener('change',loadRooms));
+    window.addEventListener('focus',loadRooms);
+    document.addEventListener('visibilitychange',() => { if (!document.hidden) loadRooms(); });
+    setInterval(() => { if (!document.hidden && roomsBusinessDay !== vietnamToday()) loadRooms(); },30000);
 });
-
-// Goi API lay danh sach phong
 async function loadRooms() {
+    const version = ++roomsVersion, day = vietnamToday();
+    const params = new URLSearchParams();
+    for (const [key,id] of [['type','filter-type'],['status','filter-status'],['search','search-input']]) {
+        const value = document.getElementById(id).value.trim(); if (value) params.set(key,value);
+    }
+    tableState('rooms-tbody',6,'Đang tải phòng...');
     try {
-        currentRooms = await apiGet('/rooms');
-        renderTable(currentRooms);
+        const list = expectList(await apiGet('/rooms'+(params.size ? '?'+params : '')));
+        if (version !== roomsVersion) return;
+        currentRooms = list; roomsLoadFailed = false; roomsBusinessDay = day; renderTable(list);
     } catch (err) {
-        showAlert('Lỗi khi tải danh sách phòng!', 'error');
+        if (version !== roomsVersion) return;
+        currentRooms = []; roomsLoadFailed = true;
+        tableState('rooms-tbody',6,err.message || 'Không tải được danh sách phòng.'); showRequestError(err,'Lỗi tải phòng.');
     }
 }
-
-// Render data ra bang
 function renderTable(rooms) {
-    const tbody = document.getElementById('rooms-tbody');
-    if (!tbody) return;
-    
-    tbody.innerHTML = '';
-    
-    if (rooms.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Không tìm thấy phòng nào</td></tr>';
-        return;
-    }
-    
+    const body = document.getElementById('rooms-tbody'); body.replaceChildren();
+    if (!rooms.length) { tableState('rooms-tbody',6,'Không tìm thấy phòng phù hợp.'); return; }
     rooms.forEach(room => {
-        const tr = document.createElement('tr');
-        
-        // CSS badge trang thai
-        let statusBadge = 'bg-secondary';
-        if (room.status === 'Trống') statusBadge = 'bg-success';
-        else if (room.status === 'Đã đặt') statusBadge = 'bg-warning';
-        else if (room.status === 'Đang sử dụng') statusBadge = 'bg-danger';
-        
-        tr.innerHTML = `
-            <td><strong>${room.roomCode}</strong></td>
-            <td>${room.roomName}</td>
-            <td>${room.roomType}</td>
-            <td>${formatMoney(room.price)}</td>
-            <td><span class="badge ${statusBadge}">${room.status}</span></td>
-            <td>
-                <button class="btn btn-primary" onclick='openEditModal(${JSON.stringify(room).replace(/'/g, "&#39;")})'>Sửa</button>
-                <button class="btn btn-danger" onclick="deleteRoom(${room.roomId}, '${room.roomCode}')">Xóa</button>
-            </td>
-        `;
-        tbody.appendChild(tr);
+        const actions = roomAdmin() ? [actionButton('Sửa','btn btn-primary',() => openEditModal(room)),
+            actionButton(room.status === 'Bảo trì' ? 'Kích hoạt' : 'Bảo trì','btn btn-secondary',() => changeRoomStatus(room)),
+            actionButton('Xóa','btn btn-danger',() => deleteRoom(room.roomId,room.roomCode))] : [];
+        actions.forEach(button => { button.disabled = roomPending.has(room.roomId); });
+        appendTableRow(body,[textNode('strong',room.roomCode),room.roomName,room.roomType,formatMoney(room.price),
+            textNode('span',room.status,'badge '+({'Trống':'badge-available','Đã đặt':'badge-booked','Đang sử dụng':'badge-occupied','Bảo trì':'badge-maintenance'}[room.status] || ''))],actions);
     });
 }
-
-// Mo modal them moi
 function openAddModal() {
-    document.getElementById('modal-title').textContent = 'Thêm Phòng Mới';
-    document.getElementById('room-id').value = '';
-    document.getElementById('room-code').value = '';
-    document.getElementById('room-name').value = '';
-    document.getElementById('room-type').value = '';
-    document.getElementById('room-price').value = '';
-    document.getElementById('room-status').value = 'Trống';
-    document.getElementById('room-desc').value = '';
-    
+    if (!roomAdmin() || roomSaving) return;
+    document.getElementById('modal-title').textContent = 'Thêm phòng mới';
+    ['id','code','name','type','price','desc'].forEach(key => { document.getElementById('room-'+key).value = ''; });
     openModal('room-modal');
 }
-
-// Mo modal sua phong
 function openEditModal(room) {
-    document.getElementById('modal-title').textContent = 'Sửa Phòng';
-    document.getElementById('room-id').value = room.roomId;
-    document.getElementById('room-code').value = room.roomCode;
-    document.getElementById('room-name').value = room.roomName;
-    document.getElementById('room-type').value = room.roomType;
-    document.getElementById('room-price').value = room.price;
-    document.getElementById('room-status').value = room.status;
-    document.getElementById('room-desc').value = room.description || '';
-    
+    if (!roomAdmin() || roomSaving || roomPending.has(room.roomId)) return;
+    document.getElementById('modal-title').textContent = 'Sửa phòng';
+    for (const [key,value] of Object.entries({id:room.roomId,code:room.roomCode,name:room.roomName,type:room.roomType,price:room.price,desc:room.description || ''})) {
+        document.getElementById('room-'+key).value = String(value);
+    }
     openModal('room-modal');
 }
-
-// Luu phong (Them hoac Sua)
+function closeRoomModal() { if (!roomSaving) document.getElementById('room-modal').classList.remove('show'); }
 async function saveRoom() {
-    const id = document.getElementById('room-id').value;
-    const roomCode = document.getElementById('room-code').value.trim();
-    const roomName = document.getElementById('room-name').value.trim();
-    const roomType = document.getElementById('room-type').value;
-    const price = document.getElementById('room-price').value;
-    const status = document.getElementById('room-status').value;
-    const description = document.getElementById('room-desc').value.trim();
-    
-    // Validate
-    if (!roomCode || !roomName || !roomType || !price) {
-        showAlert('Vui lòng nhập đầy đủ thông tin có dấu *', 'error');
-        return;
-    }
-    
-    const data = {
-        roomCode, 
-        roomName, 
-        roomType, 
-        price: Number(price), 
-        status, 
-        description
-    };
-    
+    if (!roomAdmin() || roomSaving) return;
+    const get = key => document.getElementById('room-'+key).value.trim();
+    const id = get('id');
     try {
-        let res;
-        if (id) {
-            // Cap nhat (PUT)
-            res = await apiPut('/rooms/' + id, data);
-        } else {
-            // Them moi (POST)
-            res = await apiPost('/rooms', data);
-        }
-        
-        if (res.success !== false) {
-            showAlert(res.message || 'Lưu thành công!', 'success');
-            closeModal();
-            loadRooms(); // Tai lai bang sau khi luu
-        } else {
-            showAlert(res.message, 'error'); // Loi nghiep vu tu backend (VD: trung ma phong)
-        }
-    } catch (err) {
-        showAlert('Có lỗi xảy ra khi lưu phòng!', 'error');
+        const data = {roomCode:validText(get('code'),'Mã phòng',20),roomName:validText(get('name'),'Tên phòng',100),
+            roomType:validEnum(get('type'),['Single','Double','VIP','Family'],'Loại phòng'),price:validMoney(get('price'),'Giá phòng',1),description:validText(get('desc'),'Mô tả',500,false)};
+        roomSaving = true;
+        document.querySelectorAll('#room-modal input, #room-modal select, #room-modal textarea, #room-modal button').forEach(el => { el.disabled = true; });
+        const res = id ? await apiPut('/rooms/'+id,data) : await apiPost('/rooms',data);
+        if (res.success !== true) throw new Error(res.message || 'Chưa xác nhận lưu phòng.');
+        document.getElementById('room-modal').classList.remove('show'); showAlert(res.message || 'Đã lưu phòng.','success');
+    } catch (err) { showRequestError(err,'Không thể lưu phòng.'); }
+    finally {
+        roomSaving = false;
+        document.querySelectorAll('#room-modal input, #room-modal select, #room-modal textarea, #room-modal button').forEach(el => { el.disabled = false; });
+        loadRooms();
     }
 }
-
-// Xoa phong
-async function deleteRoom(id, code) {
-    if (!confirm(`Bạn có chắc chắn muốn xóa phòng [${code}] không?`)) {
-        return;
-    }
-    
-    try {
-        const res = await apiDelete('/rooms/' + id);
-        if (res.success !== false) {
-            showAlert(res.message || 'Xóa thành công!', 'success');
-            loadRooms(); // Tai lai bang
-        } else {
-            showAlert(res.message, 'error'); // Loi khoa ngoai tu backend
-        }
-    } catch (err) {
-        showAlert('Có lỗi xảy ra khi xóa phòng!', 'error');
-    }
+async function roomMutation(id,write) {
+    if (!roomAdmin() || roomPending.has(id)) return;
+    roomPending.add(id); roomsVersion++; renderTable(currentRooms);
+    try { const res = await write(); if (res.success !== true) throw new Error(res.message || 'Chưa xác nhận kết quả.'); showAlert(res.message || 'Đã cập nhật phòng.','success'); }
+    catch (err) { showRequestError(err,'Không thể cập nhật phòng.'); }
+    finally { roomPending.delete(id); await loadRooms(); }
+}
+async function changeRoomStatus(room) {
+    if (!roomAdmin() || roomPending.has(room.roomId)) return;
+    const status = room.status === 'Bảo trì' ? 'Trống' : 'Bảo trì';
+    if (!confirm((status === 'Bảo trì' ? 'Bật bảo trì phòng ' : 'Kích hoạt lại phòng ')+room.roomCode+'? Trạng thái sẽ được tính lại từ booking.')) return;
+    await roomMutation(room.roomId,() => apiPut('/rooms/'+room.roomId+'/status',{status}));
+}
+async function deleteRoom(id,code) {
+    if (!roomAdmin() || roomPending.has(id) || !confirm('Xóa phòng ['+code+']? Phòng có lịch sử đặt sẽ không thể xóa.')) return;
+    await roomMutation(id,() => apiDelete('/rooms/'+id));
 }

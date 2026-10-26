@@ -6,7 +6,11 @@
     <title>Dịch Vụ - Homestay Management</title>
     <link rel="stylesheet" href="../css/style.css">
 </head>
-<body>
+<body class="session-pending">
+<div id="session-status" class="session-status" role="status" aria-live="polite">
+    <span id="session-message">Đang kiểm tra phiên đăng nhập...</span>
+    <button id="session-retry" class="btn btn-secondary" hidden>Thử lại</button>
+</div>
 
 <!-- ================================================
      TRANG DICH VU
@@ -25,7 +29,7 @@
             <li><a href="checkin.html">✅ Check-in</a></li>
             <li><a href="checkout.html">💰 Check-out</a></li>
             <li><a href="services.html" class="active">🛎 Dịch vụ</a></li>
-            <li><a href="statistics.html">📊 Thống kê</a></li>
+            <li><a data-admin-only hidden href="statistics.html">📊 Thống kê</a></li>
             <li><a href="#" id="logout-btn">🚪 Đăng xuất</a></li>
         </ul>
     </nav>
@@ -34,7 +38,7 @@
         <h1 class="page-title">🛎 Quản Lý Dịch Vụ</h1>
 
         <div class="card">
-            <button class="btn btn-success" onclick="openAddModal()">+ Thêm dịch vụ</button>
+            <button class="btn btn-success" id="service-add-btn" data-admin-only hidden onclick="openAddModal()">+ Thêm dịch vụ</button>
         </div>
 
         <div id="alert-message" class="alert" style="display:none;"></div>
@@ -90,6 +94,7 @@
 
 <!-- JS tien ich chung -->
 <script src="../js/api.js"></script>
+<script src="../js/account.js"></script>
 <!-- JS xu ly -->
 <script src="../js/services.js"></script>
 

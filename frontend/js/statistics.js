@@ -1,85 +1,56 @@
-// ============================================
-// statistics.js - XU LY TRANG THONG KE
-// ============================================
-
 checkLogin();
-
-document.addEventListener('DOMContentLoaded', () => {
-    // Mac dinh set thang hien tai
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!await checkLogin()) return;
     const now = new Date();
     document.getElementById('stat-month').value = now.getMonth() + 1;
     document.getElementById('stat-year').value = now.getFullYear();
-    
-    loadOverview();
-    loadRevenue();
+    loadOverview(); loadRevenue();
 });
-
 async function loadOverview() {
+    const ids = ['stat-total-rooms', 'stat-total-customers', 'stat-total-bookings', 'stat-revenue'];
+    ids.forEach(id => { document.getElementById(id).textContent = '--'; });
+    tableState('room-status-tbody', 2, 'Đang tải dữ liệu...');
     try {
         const data = await apiGet('/statistics/overview');
-        
-        document.getElementById('stat-total-rooms').textContent = data.totalRooms || 0;
-        document.getElementById('stat-total-customers').textContent = data.totalCustomers || 0;
-        document.getElementById('stat-total-bookings').textContent = data.bookingsThisMonth || 0;
-        document.getElementById('stat-revenue').textContent = formatMoney(data.revenueThisMonth || 0);
-        
-        // Hien thi trang thai phong
-        const tbody = document.getElementById('room-status-tbody');
-        if (tbody) {
-            tbody.innerHTML = `
-                <tr><td>Trống</td><td><strong>${data.availableRooms || 0}</strong></td></tr>
-                <tr><td>Đã đặt</td><td><strong>${data.bookedRooms || 0}</strong></td></tr>
-                <tr><td>Đang sử dụng</td><td><strong>${data.occupiedRooms || 0}</strong></td></tr>
-                <tr><td>Bảo trì</td><td><strong>${data.maintenanceRooms || 0}</strong></td></tr>
-            `;
+        for (const key of ['totalRooms', 'totalCustomers', 'totalBookingsThisMonth', 'revenueThisMonth', 'availableRooms', 'bookedRooms', 'occupiedRooms', 'maintenanceRooms']) {
+            if (!Number.isFinite(data[key]) || data[key] < 0) throw new Error('Dữ liệu thống kê không hợp lệ.');
+        }
+        document.getElementById('stat-total-rooms').textContent = data.totalRooms;
+        document.getElementById('stat-total-customers').textContent = data.totalCustomers;
+        document.getElementById('stat-total-bookings').textContent = data.totalBookingsThisMonth;
+        document.getElementById('stat-revenue').textContent = formatMoney(data.revenueThisMonth);
+        const body = document.getElementById('room-status-tbody');
+        body.replaceChildren();
+        for (const [label, key] of [['Trống','availableRooms'],['Đã đặt','bookedRooms'],['Đang sử dụng','occupiedRooms'],['Bảo trì','maintenanceRooms']]) {
+            appendTableRow(body, [label, textNode('strong', data[key])]);
         }
     } catch (err) {
-        // Ignored
+        ids.forEach(id => { document.getElementById(id).textContent = '--'; });
+        tableState('room-status-tbody', 2, err.message || 'Không tải được thống kê.');
+        showRequestError(err, 'Không tải được thống kê.');
     }
 }
-
 async function loadRevenue() {
-    const month = document.getElementById('stat-month').value;
-    const year = document.getElementById('stat-year').value;
-    
+    tableState('revenue-tbody', 7, 'Đang tải dữ liệu...');
     try {
-        const list = await apiGet(`/statistics/revenue?month=${month}&year=${year}`);
-        const tbody = document.getElementById('revenue-tbody');
-        if (!tbody) return;
-        
-        tbody.innerHTML = '';
-        
-        if (!list || list.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Không có doanh thu trong tháng này</td></tr>';
-            return;
-        }
-        
-        let sum = 0;
+        const month = Number(document.getElementById('stat-month').value);
+        const year = Number(document.getElementById('stat-year').value);
+        if (!Number.isInteger(month) || month < 1 || month > 12 || !Number.isInteger(year) || year < 1 || year > 9999) throw new Error('Tháng cần từ 1–12, năm cần từ 1–9999.');
+        const list = expectList(await apiGet(`/statistics/revenue?month=${month}&year=${year}`));
+        const body = document.getElementById('revenue-tbody');
+        body.replaceChildren();
+        if (!list.length) { tableState('revenue-tbody', 7, 'Không có doanh thu trong tháng này'); return; }
+        let sum = 0n;
         list.forEach(inv => {
-            sum += (inv.grandTotal || 0);
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>HD${inv.paymentId || inv.bookingId}</td>
-                <td>${formatDate(inv.paidAt)}</td>
-                <td>${inv.customerName || ''}</td>
-                <td>${inv.roomCode || ''}</td>
-                <td>${formatMoney(inv.roomTotal)}</td>
-                <td>${formatMoney(inv.serviceTotal)}</td>
-                <td><strong>${formatMoney(inv.grandTotal)}</strong></td>
-            `;
-            tbody.appendChild(tr);
+            if (!Number.isSafeInteger(inv.grandTotal) || inv.grandTotal < 0) throw new Error('Số tiền báo cáo không hợp lệ.');
+            sum += BigInt(inv.grandTotal);
+            appendTableRow(body, ['HD' + (inv.paymentId || inv.bookingId), formatDate(inv.paidAt), inv.customerName || '', inv.roomCode || '',
+                formatMoney(inv.roomTotal), formatMoney(inv.serviceTotal), textNode('strong', formatMoney(inv.grandTotal))]);
         });
-        
-        // Hien thi tong cong
-        const trSum = document.createElement('tr');
-        trSum.style.backgroundColor = '#f1f1f1';
-        trSum.innerHTML = `
-            <td colspan="6" style="text-align:right;"><strong>TỔNG CỘNG TRONG THÁNG:</strong></td>
-            <td><strong style="color:red; font-size:16px;">${formatMoney(sum)}</strong></td>
-        `;
-        tbody.appendChild(trSum);
-        
+        const total = appendTableRow(body, [textNode('strong', 'TỔNG CỘNG TRONG THÁNG:'), textNode('strong', formatMoney(sum))]);
+        total.firstElementChild.colSpan = 6;
     } catch (err) {
-        showAlert('Lỗi khi tải báo cáo doanh thu', 'error');
+        tableState('revenue-tbody', 7, err.message || 'Không tải được báo cáo doanh thu.');
+        showRequestError(err, 'Không tải được báo cáo doanh thu.');
     }
 }

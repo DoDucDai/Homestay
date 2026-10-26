@@ -5,50 +5,35 @@
 checkLogin();
 let currentServices = [];
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!await checkLogin()) return;
     loadServices();
 });
 
 async function loadServices() {
     try {
-        currentServices = await apiGet('/services');
+        currentServices = expectList(await apiGet('/services'));
         renderTable(currentServices);
     } catch (err) {
-        showAlert('Lỗi khi tải danh sách dịch vụ!', 'error');
+        currentServices = [];
+        tableState('services-tbody', 5, err.message || 'Không tải được danh sách dịch vụ.');
+        showRequestError(err, 'Lỗi khi tải danh sách dịch vụ!');
     }
 }
 
 function renderTable(services) {
-    const tbody = document.getElementById('services-tbody');
-    if (!tbody) return;
-    
-    tbody.innerHTML = '';
-    
-    if (services.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Không tìm thấy dịch vụ nào</td></tr>';
-        return;
-    }
-    
-    services.forEach(service => {
-        const tr = document.createElement('tr');
-        
-        let statusBadge = service.status === 'Hoạt động' ? 'bg-success' : 'bg-secondary';
-        
-        tr.innerHTML = `
-            <td><strong>DV${service.serviceId}</strong></td>
-            <td>${service.serviceName}</td>
-            <td>${formatMoney(service.unitPrice)}</td>
-            <td><span class="badge ${statusBadge}">${service.status}</span></td>
-            <td>
-                <button class="btn btn-primary" onclick='openEditModal(${JSON.stringify(service).replace(/'/g, "&#39;")})'>Sửa</button>
-                <button class="btn btn-danger" onclick="deleteService(${service.serviceId}, '${service.serviceName}')">Xóa</button>
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
+    const tbody = document.getElementById('services-tbody'); if (!tbody) return;
+    tbody.replaceChildren();
+    if (!services.length) { tableState('services-tbody', 5, 'Không tìm thấy dịch vụ nào'); return; }
+    services.forEach(service => appendTableRow(tbody, [textNode('strong', 'DV' + service.serviceId), service.serviceName,
+        formatMoney(service.unitPrice), textNode('span', service.status, 'badge ' + (service.status === 'Hoạt động' ? 'bg-success' : 'bg-secondary'))], [
+        ...(currentUser?.role === 'admin' ? [actionButton('Sửa', 'btn btn-primary', () => openEditModal(service)),
+        actionButton('Xóa', 'btn btn-danger', () => deleteService(service.serviceId, service.serviceName))] : [])
+    ]));
 }
 
 function openAddModal() {
+    if (currentUser?.role !== 'admin') return;
     document.getElementById('modal-title').textContent = 'Thêm Dịch Vụ Mới';
     document.getElementById('service-id').value = '';
     document.getElementById('service-name').value = '';
@@ -58,6 +43,7 @@ function openAddModal() {
 }
 
 function openEditModal(service) {
+    if (currentUser?.role !== 'admin') return;
     document.getElementById('modal-title').textContent = 'Sửa Dịch Vụ';
     document.getElementById('service-id').value = service.serviceId;
     document.getElementById('service-name').value = service.serviceName;
@@ -67,6 +53,7 @@ function openEditModal(service) {
 }
 
 async function saveService() {
+    if (currentUser?.role !== 'admin') return;
     const id = document.getElementById('service-id').value;
     const serviceName = document.getElementById('service-name').value.trim();
     const unitPrice = document.getElementById('service-price').value;
@@ -80,6 +67,8 @@ async function saveService() {
     const data = { serviceName, unitPrice: Number(unitPrice), status };
     
     try {
+        validText(serviceName, 'Tên dịch vụ', 100); validMoney(unitPrice, 'Đơn giá');
+        validEnum(status, ['Hoạt động', 'Ngừng'], 'Trạng thái dịch vụ');
         let res;
         if (id) {
             res = await apiPut('/services/' + id, data);
@@ -95,11 +84,12 @@ async function saveService() {
             showAlert(res.message, 'error');
         }
     } catch (err) {
-        showAlert('Có lỗi xảy ra khi lưu!', 'error');
+        showRequestError(err, 'Có lỗi xảy ra khi lưu!');
     }
 }
 
 async function deleteService(id, name) {
+    if (currentUser?.role !== 'admin') return;
     if (!confirm(`Bạn có chắc chắn muốn xóa dịch vụ [${name}] không?`)) return;
     
     try {
@@ -111,6 +101,6 @@ async function deleteService(id, name) {
             showAlert(res.message, 'error');
         }
     } catch (err) {
-        showAlert('Có lỗi xảy ra khi xóa!', 'error');
+        showRequestError(err, 'Có lỗi xảy ra khi xóa!');
     }
 }

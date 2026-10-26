@@ -6,7 +6,11 @@
     <title>Check-in - Homestay Management</title>
     <link rel="stylesheet" href="../css/style.css">
 </head>
-<body>
+<body class="session-pending">
+<div id="session-status" class="session-status" role="status" aria-live="polite">
+    <span id="session-message">Đang kiểm tra phiên đăng nhập...</span>
+    <button id="session-retry" class="btn btn-secondary" hidden>Thử lại</button>
+</div>
 
 <!-- ================================================
      TRANG CHECK-IN
@@ -25,7 +29,7 @@
             <li><a href="checkin.html" class="active">✅ Check-in</a></li>
             <li><a href="checkout.html">💰 Check-out</a></li>
             <li><a href="services.html">🛎 Dịch vụ</a></li>
-            <li><a href="statistics.html">📊 Thống kê</a></li>
+            <li><a data-admin-only hidden href="statistics.html">📊 Thống kê</a></li>
             <li><a href="#" id="logout-btn">🚪 Đăng xuất</a></li>
         </ul>
     </nav>
@@ -34,6 +38,15 @@
         <h1 class="page-title">✅ Check-in Khách</h1>
 
         <div id="alert-message" class="alert" style="display:none;"></div>
+        <div class="card">
+            <p>Chỉ nhận phòng từ ngày nhận dự kiến đến trước ngày trả dự kiến (giờ Việt Nam). Phòng phải hết bảo trì và không còn khách khác đang ở.</p>
+            <p>Booking chưa đến ngày hoặc đã hết kỳ lưu trú cần được xử lý ở trang Booking; không thể nhận phòng tại đây.</p>
+            <button type="button" class="btn btn-secondary" onclick="loadPendingBookings()">Tải lại danh sách</button>
+        </div>
+        <div id="checkin-success" class="card" hidden>
+            <p id="checkin-success-message" role="status"></p>
+            <a href="checkout.html" class="btn btn-primary">Đến trang khách đang ở</a>
+        </div>
 
         <!-- Danh sach booking cho doi check-in -->
         <div class="card">
@@ -43,14 +56,16 @@
                     <tr>
                         <th>Mã booking</th>
                         <th>Khách hàng</th>
+                        <th>Điện thoại</th>
                         <th>Phòng</th>
                         <th>Ngày nhận</th>
                         <th>Ngày trả</th>
+                        <th>Ghi chú</th>
                         <th>Thao tác</th>
                     </tr>
                 </thead>
                 <tbody id="checkin-tbody">
-                    <tr><td colspan="6" style="text-align:center;">Đang tải dữ liệu...</td></tr>
+                    <tr><td colspan="8" style="text-align:center;">Đang tải dữ liệu...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -72,14 +87,16 @@
         </div>
 
         <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeModal()">Hủy</button>
-            <button class="btn btn-success" onclick="confirmCheckin()">✅ Xác nhận Check-in</button>
+            <button id="checkin-close-btn" type="button" class="btn btn-secondary" onclick="closeCheckinModal()">Đóng</button>
+            <button id="checkin-confirm-btn" type="button" class="btn btn-success" onclick="confirmCheckin()" disabled>✅ Xác nhận Check-in</button>
         </div>
+        <p id="checkin-status" role="status" aria-live="polite"></p>
     </div>
 </div>
 
 <!-- JS tien ich chung -->
 <script src="../js/api.js"></script>
+<script src="../js/account.js"></script>
 <!-- JS xu ly -->
 <script src="../js/checkin.js"></script>
 

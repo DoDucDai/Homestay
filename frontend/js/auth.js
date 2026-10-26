@@ -1,39 +1,21 @@
-// ============================================
-// auth.js - XU LY DANG NHAP / DANG XUAT
-// NGUOI LAM: DUC DAI (LEADER) (LEADER)
-// API BACKEND: DUC DAI -> POST /api/auth/login
-// ============================================
-
-document.getElementById('login-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
+const loginForm = document.getElementById('login-form');
+let loginSubmitting = false;
+if (loginForm) loginForm.addEventListener('submit', async event => {
+    event.preventDefault(); if (loginSubmitting) return;
     const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value.trim();
-
-    if (!username || !password) {
-        showLoginAlert('Vui lòng nhập đầy đủ thông tin!', 'error');
-        return;
-    }
-
+    const password = document.getElementById('password').value;
+    if (!username || !password) { showAlert('Vui lòng nhập tên đăng nhập và mật khẩu!', 'error'); return; }
+    loginSubmitting = true;
+    loginForm.querySelector('[type="submit"]').disabled = true;
     try {
-        // TODO: Duc Dai tao API POST /api/auth/login
-        // Gui { username, password } -> nhan ve { success, user }
-        const result = await apiPost('/auth/login', { username, password });
-
-        if (result.success) {
-            sessionStorage.setItem('currentUser', JSON.stringify(result.user));
-            window.location.href = 'rooms.html'; // Chuyen sang trang chinh
-        } else {
-            showLoginAlert('Sai tên đăng nhập hoặc mật khẩu!', 'error');
-        }
-    } catch (err) {
-        showLoginAlert('Không thể kết nối server. Kiểm tra lại backend!', 'error');
-    }
+        await apiPost('/auth/login', { username, password });
+        document.getElementById('password').value = '';
+        window.location.replace('rooms.html');
+    } catch (error) { showAlert(error.message || 'Không thể đăng nhập. Vui lòng thử lại!', 'error'); }
+    finally { loginSubmitting = false; loginForm.querySelector('[type="submit"]').disabled = false; }
 });
-
-function showLoginAlert(msg, type) {
-    const el = document.getElementById('alert-message');
-    el.textContent = msg;
-    el.className = `alert alert-${type}`;
-    el.style.display = 'block';
-}
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!loginForm) return;
+    if (new URLSearchParams(window.location.search).get('changed') === '1') showAlert('Đã đổi mật khẩu. Vui lòng đăng nhập lại!');
+    if (await checkLogin()) window.location.replace('rooms.html');
+});
