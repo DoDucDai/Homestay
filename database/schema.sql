@@ -19,6 +19,8 @@ CREATE TABLE Users (
     user_id    INT IDENTITY(1,1) PRIMARY KEY,
     username   NVARCHAR(50)  NOT NULL UNIQUE,
     password   NVARCHAR(255) NOT NULL,
+    password_scheme NVARCHAR(32) NOT NULL DEFAULT 'pbkdf2-v58',
+    auth_version INT NOT NULL DEFAULT 0,
     full_name  NVARCHAR(100) NOT NULL,
     role       NVARCHAR(20)  NOT NULL DEFAULT 'staff', -- admin / staff
     created_at DATETIME      DEFAULT GETDATE()
@@ -47,6 +49,7 @@ CREATE TABLE Customers (
     customer_id INT IDENTITY(1,1) PRIMARY KEY,
     full_name   NVARCHAR(100) NOT NULL,
     cccd        NVARCHAR(20)  NOT NULL UNIQUE,    -- So CCCD hoac Passport
+    document_type NVARCHAR(12) NOT NULL DEFAULT 'CCCD' CHECK (document_type IN ('CCCD','PASSPORT','LEGACY')),
     phone       NVARCHAR(15)  NOT NULL,
     email       NVARCHAR(100),
     address     NVARCHAR(200),
@@ -65,6 +68,8 @@ CREATE TABLE Bookings (
     checkout_date DATE          NOT NULL,
     status        NVARCHAR(30)  NOT NULL DEFAULT 'Confirmed', -- Confirmed / CheckedIn / CheckedOut / Cancelled
     note          NVARCHAR(500),
+    price_per_night DECIMAL(18,6) NOT NULL CHECK (price_per_night >= 0),
+    snapshot_estimated BIT NOT NULL DEFAULT 0,
     created_at    DATETIME      DEFAULT GETDATE(),
     CONSTRAINT CHK_Dates CHECK (checkout_date > checkin_date)
 );
@@ -89,6 +94,9 @@ CREATE TABLE Booking_Services (
     booking_id  INT           NOT NULL REFERENCES Bookings(booking_id),
     service_id  INT           NOT NULL REFERENCES Services(service_id),
     quantity    INT           NOT NULL DEFAULT 1 CHECK (quantity > 0),
+    service_name_snapshot NVARCHAR(100) NOT NULL,
+    unit_price_snapshot DECIMAL(18,6) NOT NULL CHECK (unit_price_snapshot >= 0),
+    snapshot_estimated BIT NOT NULL DEFAULT 0,
     total_price DECIMAL(12,0) NOT NULL  -- = unit_price * quantity
 );
 
@@ -104,7 +112,16 @@ CREATE TABLE Payments (
     grand_total     DECIMAL(12,0) NOT NULL,  -- Tong cong
     payment_method  NVARCHAR(50)  NOT NULL DEFAULT N'Tiền mặt',
     payment_status  NVARCHAR(30)  NOT NULL DEFAULT N'Đã thanh toán',
-    paid_at         DATETIME      DEFAULT GETDATE()
+    paid_at         DATETIME      DEFAULT GETDATE(),
+    invoice_snapshot NVARCHAR(MAX) NULL,
+    snapshot_estimated BIT NOT NULL DEFAULT 0,
+    reconciliation_warning NVARCHAR(500) NULL,
+    CONSTRAINT CHK_Payments_SnapshotJson CHECK (invoice_snapshot IS NULL OR ISJSON(invoice_snapshot) = 1),
+    CONSTRAINT UQ_Payments_Booking UNIQUE (booking_id)
 );
 
+GO
+
+-- CORE-02: overlap, occupancy and current-status queries.
+CREATE INDEX IX_Bookings_Room_Status_Dates ON dbo.Bookings(room_id,status,checkin_date,checkout_date);
 GO

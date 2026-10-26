@@ -1,22 +1,88 @@
 package com.homestay.controller;
 
 import com.homestay.db.DBConnection;
+import com.homestay.api.*;
 import org.springframework.web.bind.annotation.*;
 import java.sql.*;
+import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*")
+
 public class BookingController {
+
+    private final java.time.Clock clock;
+
+    public BookingController() { this(RoomSchedule.CLOCK); }
+    BookingController(java.time.Clock clock) { this.clock = clock; }
+
+    private Map<String, Object> inTransaction(RoomSchedule.Work work, String errorMessage) {
+        return RoomSchedule.transaction(work, errorMessage);
+    }
+
+    // Always lock Rooms before Bookings; the room lock serializes operations
+    // on different bookings for the same physical room as well.
+    private int lockBookingRoom(Connection conn, int bookingId, String expectedStatus) throws SQLException {
+        return lockBookingRoom(conn, bookingId, expectedStatus, true);
+    }
+
+    private int lockBookingRoom(Connection conn, int bookingId, String expectedStatus, boolean requireUsable) throws SQLException {
+        int roomId;
+        try (PreparedStatement stmt = conn.prepareStatement("SELECT room_id FROM Bookings WHERE booking_id = ?")) {
+            stmt.setInt(1, bookingId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (!rs.next()) throw ApiErrors.notFound("Không tìm thấy thông tin đặt phòng!");
+                roomId = rs.getInt("room_id");
+            }
+        }
+        RoomSchedule.LockedRoom room = RoomSchedule.lockRoom(conn, roomId);
+        if (requireUsable && "Bảo trì".equals(room.status())) {
+            throw new RoomSchedule.Conflict("Phòng đang bảo trì, không thể nhận hoặc trả phòng!");
+        }
+        try (PreparedStatement stmt = conn.prepareStatement(
+                "SELECT room_id, status FROM Bookings WITH (UPDLOCK, HOLDLOCK) WHERE booking_id = ?")) {
+            stmt.setInt(1, bookingId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (!rs.next()) throw ApiErrors.notFound("Không tìm thấy thông tin đặt phòng!");
+                if (rs.getInt("room_id") != roomId) throw new RoomSchedule.Conflict("Phòng đã thay đổi, vui lòng tải lại!");
+                if (!expectedStatus.equals(rs.getString("status"))) {
+                    throw new RoomSchedule.Conflict("Thao tác yêu cầu booking ở trạng thái " + expectedStatus + "!");
+                }
+            }
+        }
+        try (PreparedStatement stmt = conn.prepareStatement(
+                "SELECT booking_id FROM Bookings WHERE room_id = ? AND booking_id <> ? AND status = 'CheckedIn'")) {
+            stmt.setInt(1, roomId);
+            stmt.setInt(2, bookingId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (requireUsable && rs.next()) throw new RoomSchedule.Conflict("Phòng đang có booking khác lưu trú!");
+            }
+        }
+        try (PreparedStatement stmt = conn.prepareStatement("SELECT payment_id FROM Payments WHERE booking_id = ?")) {
+            stmt.setInt(1, bookingId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) throw new RoomSchedule.Conflict("Booking đã có hóa đơn, không thể thực hiện lại!");
+            }
+        }
+        return roomId;
+    }
+
+    private void transitionBooking(Connection conn, int bookingId, String from, String to) throws SQLException {
+        try (PreparedStatement stmt = conn.prepareStatement(
+                "UPDATE Bookings SET status = ? WHERE booking_id = ? AND status = ?")) {
+            stmt.setString(1, to);
+            stmt.setInt(2, bookingId);
+            stmt.setString(3, from);
+            if (stmt.executeUpdate() != 1) throw new RoomSchedule.Conflict("Trạng thái booking đã thay đổi, vui lòng tải lại!");
+        }
+    }
 
     private int parseInt(Object val, int defaultVal) {
         if (val == null) return defaultVal;
-        if (val instanceof Number n) return n.intValue();
         try {
-            return Integer.parseInt(val.toString().trim());
+            return new BigDecimal(val.toString().trim()).intValueExact();
         } catch (Exception e) {
             return defaultVal;
         }
@@ -25,12 +91,15 @@ public class BookingController {
     // GET /api/bookings?status=Confirmed
     @GetMapping("/bookings")
     public List<Map<String, Object>> getBookings(@RequestParam(required = false) String status) {
+        if(status!=null && !status.isBlank() && !status.equalsIgnoreCase("all")) {
+            Input.oneOf(status.trim(),Set.of("Confirmed","CheckedIn","CheckedOut","Cancelled"),"Trạng thái booking");
+        }
         List<Map<String, Object>> result = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder("""
             SELECT b.booking_id, b.customer_id, b.room_id, b.checkin_date, b.checkout_date, b.status, b.note, b.created_at,
                    c.full_name AS customer_name, c.phone, c.cccd,
-                   r.room_code, r.room_name, r.price, r.room_type
+                   r.room_code, r.room_name, b.price_per_night AS price, r.room_type
             FROM Bookings b
             JOIN Customers c ON b.customer_id = c.customer_id
             JOIN Rooms r ON b.room_id = r.room_id
@@ -71,337 +140,299 @@ public class BookingController {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw ApiErrors.databaseFailure(e);
         }
         return result;
+    }
+
+    @ExceptionHandler(RoomSchedule.InvalidDates.class)
+    @ResponseStatus(org.springframework.http.HttpStatus.BAD_REQUEST)
+    public Map<String, Object> invalidDates(RoomSchedule.InvalidDates error) {
+        return ApiErrors.guard(() -> {
+            return ApiErrors.from(error);
+
+
+        });
+    }
+
+    @GetMapping("/bookings/available-rooms")
+    public List<Map<String, Object>> getAvailableRooms(@RequestParam String checkin, @RequestParam String checkout) {
+        LocalDate today = RoomSchedule.today(clock);
+        RoomSchedule.Range range = RoomSchedule.range(checkin, checkout, today);
+        String sql = RoomSchedule.selectRooms() + " WHERE r.status<>N'Bảo trì' AND NOT ("
+                + RoomSchedule.unavailablePredicate() + ") ORDER BY r.room_code";
+        List<Map<String, Object>> rooms = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            RoomSchedule.bindToday(stmt, today);
+            RoomSchedule.bindRange(stmt, 3, range, today);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) rooms.add(RoomSchedule.roomRow(rs));
+            }
+        } catch (SQLException e) {
+            throw new RoomSchedule.QueryFailure(e);
+        }
+        return rooms;
+    }
+
+    @PutMapping("/bookings/{bookingId}/cancel")
+    public Map<String, Object> cancelBooking(@PathVariable int bookingId) {
+        return ApiErrors.guard(() -> {
+            Input.id(bookingId);
+            return inTransaction(conn -> {
+                // A cancellation must also work when a different guest occupies the room.
+                int roomId = lockBookingRoom(conn, bookingId, "Confirmed", false);
+                transitionBooking(conn, bookingId, "Confirmed", "Cancelled");
+                String roomStatus = RoomSchedule.refresh(conn, roomId, RoomSchedule.today(clock));
+                return Map.of("success", true, "message", "Đã hủy đặt phòng!", "roomStatus", roomStatus);
+            }, "Không thể hủy đặt phòng. Vui lòng tải lại để kiểm tra!");
+
+
+        });
     }
 
     // POST /api/bookings
     // Body: { "customerId": 1, "roomId": 2, "checkinDate": "2026-09-15", "checkoutDate": "2026-09-18", "note": "..." }
     @PostMapping("/bookings")
     public Map<String, Object> createBooking(@RequestBody Map<String, Object> body) {
-        int customerId = parseInt(body.get("customerId"), 0);
-        int roomId = parseInt(body.get("roomId"), 0);
-        String checkinDate = body.get("checkinDate") != null ? body.get("checkinDate").toString().trim() : "";
-        String checkoutDate = body.get("checkoutDate") != null ? body.get("checkoutDate").toString().trim() : "";
-        String note = body.get("note") != null ? body.get("note").toString().trim() : "";
+        return ApiErrors.guard(() -> {
+            int customerId = Input.integer(body,"customerId",1,Integer.MAX_VALUE);
+            int roomId = Input.integer(body,"roomId",1,Integer.MAX_VALUE);
+            String checkinDate = Input.text(body,"checkinDate",10,true,null);
+            String checkoutDate = Input.text(body,"checkoutDate",10,true,null);
+            String note = Input.text(body,"note",500,false,"");
 
-        if (customerId <= 0 || roomId <= 0 || checkinDate.isEmpty() || checkoutDate.isEmpty()) {
-            return Map.of("success", false, "message", "Vui lòng chọn khách hàng, phòng và ngày nhận/trả phòng!");
-        }
-
-        try {
-            LocalDate cin = LocalDate.parse(checkinDate.substring(0, 10));
-            LocalDate cout = LocalDate.parse(checkoutDate.substring(0, 10));
-            if (!cout.isAfter(cin)) {
-                return Map.of("success", false, "message", "Ngày trả phòng phải sau ngày nhận phòng!");
+            if (customerId <= 0 || roomId <= 0 || checkinDate.isEmpty() || checkoutDate.isEmpty()) {
+                return ApiErrors.bad("Vui lòng chọn khách hàng, phòng và ngày nhận/trả phòng!");
             }
-        } catch (Exception e) {
-            return Map.of("success", false, "message", "Định dạng ngày không hợp lệ (cần YYYY-MM-DD)!");
-        }
 
-        try (Connection conn = DBConnection.getConnection()) {
-            conn.setAutoCommit(false);
+            final RoomSchedule.Range range;
+            try {
+                range = RoomSchedule.range(checkinDate, checkoutDate, RoomSchedule.today(clock));
+            } catch (RoomSchedule.InvalidDates e) {
+                return ApiErrors.from(e);
+            }
 
-            // 1. Kiểm tra phòng có trạng thái 'Trống' không
-            String checkRoomSql = "SELECT status FROM Rooms WHERE room_id = ?";
-            try (PreparedStatement checkStmt = conn.prepareStatement(checkRoomSql)) {
-                checkStmt.setInt(1, roomId);
-                try (ResultSet rs = checkStmt.executeQuery()) {
-                    if (!rs.next()) {
-                        conn.rollback();
-                        return Map.of("success", false, "message", "Phòng không tồn tại!");
-                    }
-                    String currentStatus = rs.getString("status");
-                    if (!"Trống".equalsIgnoreCase(currentStatus)) {
-                        conn.rollback();
-                        return Map.of("success", false, "message", "Phòng này hiện không còn trống (Trạng thái: " + currentStatus + ")!");
+            return inTransaction(conn -> {
+                RoomSchedule.LockedRoom room = RoomSchedule.lockRoom(conn, roomId);
+                LocalDate today = RoomSchedule.today(clock);
+                RoomSchedule.requireAvailable(conn, roomId, range, today);
+                BigDecimal capturedPrice = BookingInvoiceSnapshot.money(room.price());
+                try (PreparedStatement stmt = conn.prepareStatement("SELECT customer_id FROM Customers WHERE customer_id=?")) {
+                    stmt.setInt(1, customerId);
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (!rs.next()) throw ApiErrors.notFound("Khách hàng không tồn tại!");
                     }
                 }
-            }
 
-            // 2. Thêm mới Booking
-            int newBookingId = 0;
-            String insertBookingSql = "INSERT INTO Bookings (customer_id, room_id, checkin_date, checkout_date, status, note) VALUES (?, ?, ?, ?, 'Confirmed', ?)";
-            try (PreparedStatement insertStmt = conn.prepareStatement(insertBookingSql, Statement.RETURN_GENERATED_KEYS)) {
-                insertStmt.setInt(1, customerId);
-                insertStmt.setInt(2, roomId);
-                insertStmt.setString(3, checkinDate);
-                insertStmt.setString(4, checkoutDate);
-                insertStmt.setString(5, note);
-                insertStmt.executeUpdate();
+                // 2. Thêm mới Booking
+                int newBookingId = 0;
+                String insertBookingSql = "INSERT INTO Bookings (customer_id, room_id, checkin_date, checkout_date, status, note, price_per_night) VALUES (?, ?, ?, ?, 'Confirmed', ?, ?)";
+                try (PreparedStatement insertStmt = conn.prepareStatement(insertBookingSql, Statement.RETURN_GENERATED_KEYS)) {
+                    insertStmt.setInt(1, customerId);
+                    insertStmt.setInt(2, roomId);
+                    insertStmt.setDate(3, java.sql.Date.valueOf(range.checkin()));
+                    insertStmt.setDate(4, java.sql.Date.valueOf(range.checkout()));
+                    insertStmt.setString(5, note);
+                    insertStmt.setBigDecimal(6, capturedPrice);
+                    insertStmt.executeUpdate();
 
-                try (ResultSet generatedKeys = insertStmt.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        newBookingId = generatedKeys.getInt(1);
+                    try (ResultSet generatedKeys = insertStmt.getGeneratedKeys()) {
+                        if (generatedKeys.next()) {
+                            newBookingId = generatedKeys.getInt(1);
+                        } else throw new SQLException("Booking key was not returned");
                     }
                 }
-            }
 
-            // 3. Cập nhật trạng thái phòng thành 'Đã đặt'
-            String updateRoomSql = "UPDATE Rooms SET status = N'Đã đặt' WHERE room_id = ?";
-            try (PreparedStatement updateStmt = conn.prepareStatement(updateRoomSql)) {
-                updateStmt.setInt(1, roomId);
-                updateStmt.executeUpdate();
-            }
+                RoomSchedule.refresh(conn, roomId, today);
 
-            conn.commit();
-            return Map.of("success", true, "message", "Tạo đặt phòng thành công!", "bookingId", newBookingId);
+                return Map.of("success", true, "message", "Tạo đặt phòng thành công!", "bookingId", newBookingId);
+            }, "Không thể tạo đặt phòng. Vui lòng thử lại!");
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return Map.of("success", false, "message", "Lỗi tạo đặt phòng: " + e.getMessage());
-        }
+
+        });
     }
 
     // PUT /api/checkin/{bookingId}
     @PutMapping("/checkin/{bookingId}")
     public Map<String, Object> checkIn(@PathVariable int bookingId) {
-        try (Connection conn = DBConnection.getConnection()) {
-            conn.setAutoCommit(false);
-
-            // Kiểm tra booking và lấy room_id
-            String findBookingSql = "SELECT room_id, status FROM Bookings WHERE booking_id = ?";
-            int roomId = 0;
-            try (PreparedStatement findStmt = conn.prepareStatement(findBookingSql)) {
-                findStmt.setInt(1, bookingId);
-                try (ResultSet rs = findStmt.executeQuery()) {
-                    if (!rs.next()) {
-                        conn.rollback();
-                        return Map.of("success", false, "message", "Không tìm thấy thông tin đặt phòng!");
-                    }
-                    roomId = rs.getInt("room_id");
-                }
-            }
-
-            // 1. Cập nhật booking sang CheckedIn
-            String updateBookingSql = "UPDATE Bookings SET status = 'CheckedIn' WHERE booking_id = ?";
-            try (PreparedStatement stmt = conn.prepareStatement(updateBookingSql)) {
-                stmt.setInt(1, bookingId);
-                stmt.executeUpdate();
-            }
-
-            // 2. Cập nhật trạng thái phòng sang 'Đang sử dụng'
-            String updateRoomSql = "UPDATE Rooms SET status = N'Đang sử dụng' WHERE room_id = ?";
-            try (PreparedStatement stmt = conn.prepareStatement(updateRoomSql)) {
-                stmt.setInt(1, roomId);
-                stmt.executeUpdate();
-            }
-
-            conn.commit();
-            return Map.of("success", true, "message", "Check-in thành công!");
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return Map.of("success", false, "message", "Lỗi Check-in: " + e.getMessage());
-        }
-    }
-
-    // GET /api/checkout/preview/{bookingId}
-    // Xem trước thông tin hóa đơn trước khi xác nhận thanh toán
-    @GetMapping("/checkout/preview/{bookingId}")
-    public Map<String, Object> previewCheckout(@PathVariable int bookingId) {
-        try (Connection conn = DBConnection.getConnection()) {
-            String sql = """
-                SELECT b.booking_id, b.checkin_date, b.checkout_date, b.room_id, b.status,
-                       c.full_name AS customer_name,
-                       r.room_code, r.room_name, r.price
-                FROM Bookings b
-                JOIN Customers c ON b.customer_id = c.customer_id
-                JOIN Rooms r ON b.room_id = r.room_id
-                WHERE b.booking_id = ?
-                """;
-
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, bookingId);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (!rs.next()) {
-                        return Map.of("success", false, "message", "Không tìm thấy thông tin đặt phòng!");
-                    }
-
-                    long price = rs.getLong("price");
-                    String checkinDate = rs.getString("checkin_date");
-                    String checkoutDate = rs.getString("checkout_date");
-
-                    LocalDate cin = LocalDate.parse(checkinDate.substring(0, 10));
-                    LocalDate cout = LocalDate.parse(checkoutDate.substring(0, 10));
-                    long nights = ChronoUnit.DAYS.between(cin, cout);
-                    if (nights <= 0) nights = 1;
-
-                    long roomTotal = price * nights;
-
-                    // Tiền dịch vụ
-                    long serviceTotal = 0;
-                    List<Map<String, Object>> services = new ArrayList<>();
-                    String svcSql = """
-                        SELECT s.service_name, bs.quantity, s.unit_price, bs.total_price
-                        FROM Booking_Services bs
-                        JOIN Services s ON bs.service_id = s.service_id
-                        WHERE bs.booking_id = ?
-                        """;
-                    try (PreparedStatement svcStmt = conn.prepareStatement(svcSql)) {
-                        svcStmt.setInt(1, bookingId);
-                        try (ResultSet svcRs = svcStmt.executeQuery()) {
-                            while (svcRs.next()) {
-                                Map<String, Object> svcRow = new LinkedHashMap<>();
-                                svcRow.put("serviceName", svcRs.getString("service_name"));
-                                svcRow.put("quantity", svcRs.getInt("quantity"));
-                                svcRow.put("unitPrice", svcRs.getLong("unit_price"));
-                                svcRow.put("totalPrice", svcRs.getLong("total_price"));
-                                services.add(svcRow);
-                                serviceTotal += svcRs.getLong("total_price");
-                            }
+        return ApiErrors.guard(() -> {
+            Input.id(bookingId);
+            return inTransaction(conn -> {
+                int roomId = lockBookingRoom(conn, bookingId, "Confirmed");
+                LocalDate today = RoomSchedule.today(clock);
+                try (PreparedStatement stmt = conn.prepareStatement("SELECT checkin_date,checkout_date FROM Bookings WHERE booking_id=?")) {
+                    stmt.setInt(1, bookingId);
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (!rs.next()) throw ApiErrors.notFound("Không tìm thấy booking!");
+                        if (today.isBefore(rs.getDate("checkin_date").toLocalDate())
+                                || !today.isBefore(rs.getDate("checkout_date").toLocalDate())) {
+                            throw new RoomSchedule.Conflict("Chỉ nhận phòng từ ngày nhận dự kiến đến trước ngày trả dự kiến!");
                         }
                     }
-
-                    long grandTotal = roomTotal + serviceTotal;
-
-                    Map<String, Object> res = new LinkedHashMap<>();
-                    res.put("success", true);
-                    res.put("bookingId", bookingId);
-                    res.put("customerName", rs.getString("customer_name"));
-                    res.put("roomCode", rs.getString("room_code"));
-                    res.put("roomName", rs.getString("room_name"));
-                    res.put("checkinDate", checkinDate);
-                    res.put("checkoutDate", checkoutDate);
-                    res.put("nights", nights);
-                    res.put("pricePerNight", price);
-                    res.put("roomTotal", roomTotal);
-                    res.put("serviceTotal", serviceTotal);
-                    res.put("grandTotal", grandTotal);
-                    res.put("services", services);
-                    return res;
                 }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Map.of("success", false, "message", "Lỗi: " + e.getMessage());
-        }
+                transitionBooking(conn, bookingId, "Confirmed", "CheckedIn");
+                RoomSchedule.refresh(conn, roomId, today);
+
+                return Map.of("success", true, "message", "Check-in thành công!");
+            }, "Không thể Check-in. Vui lòng thử lại!");
+
+
+        });
     }
 
-    // POST /api/checkout/{bookingId}
-    // Body: { "paymentMethod": "Tiền mặt" }
+    // Each order is a separate captured-price line, serialized with checkout.
+    @PostMapping("/bookings/{bookingId}/services")
+    public Map<String, Object> addServiceToBooking(@PathVariable int bookingId, @RequestBody(required = false) Map<String, Object> body) {
+        return ApiErrors.guard(() -> {
+            Input.id(bookingId);
+            final int serviceId=Input.integer(body,"serviceId",1,Integer.MAX_VALUE);
+            final int quantity=Input.integer(body,"quantity",1,10000);
+            return inTransaction(conn -> {
+                lockBookingRoom(conn, bookingId, "CheckedIn");
+                String serviceName;
+                BigDecimal unitPrice;
+                try (PreparedStatement stmt = conn.prepareStatement(
+                        "SELECT service_name,unit_price,status FROM Services WITH (HOLDLOCK) WHERE service_id=?")) {
+                    stmt.setInt(1, serviceId);
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (!rs.next()) throw ApiErrors.notFound("Không tìm thấy dịch vụ!");
+                        if (!"Hoạt động".equals(rs.getString("status"))) throw new RoomSchedule.Conflict("Dịch vụ đã ngừng hoạt động!");
+                        serviceName = rs.getString("service_name");
+                        unitPrice = BookingInvoiceSnapshot.money(rs.getBigDecimal("unit_price"));
+                    }
+                }
+                BigDecimal total = BookingInvoiceSnapshot.money(unitPrice.multiply(BigDecimal.valueOf(quantity)));
+                // Validate cumulative totals too, so several valid lines cannot make
+                // the final invoice exceed the Payments columns' supported range.
+                Map<String, Object> currentInvoice = BookingInvoiceSnapshot.build(conn, bookingId);
+                BookingInvoiceSnapshot.money(((BigDecimal) currentInvoice.get("serviceTotal")).add(total));
+                BookingInvoiceSnapshot.money(((BigDecimal) currentInvoice.get("grandTotal")).add(total));
+                try (PreparedStatement stmt = conn.prepareStatement("""
+                        INSERT INTO Booking_Services(booking_id,service_id,quantity,total_price,
+                            service_name_snapshot,unit_price_snapshot) VALUES(?,?,?,?,?,?)
+                        """, Statement.RETURN_GENERATED_KEYS)) {
+                    stmt.setInt(1, bookingId);
+                    stmt.setInt(2, serviceId);
+                    stmt.setInt(3, quantity);
+                    stmt.setBigDecimal(4, total);
+                    stmt.setString(5, serviceName);
+                    stmt.setBigDecimal(6, unitPrice);
+                    stmt.executeUpdate();
+                    try (ResultSet rs = stmt.getGeneratedKeys()) {
+                        if (!rs.next()) throw new SQLException("Service key was not returned");
+                        return Map.of("success", true, "message", "Đã thêm dịch vụ!", "bookingServiceId", rs.getInt(1),
+                                "serviceName", serviceName, "quantity", quantity, "unitPrice", unitPrice, "totalPrice", total);
+                    }
+                }
+            }, "Không thể thêm dịch vụ. Vui lòng tải lại để kiểm tra!");
+
+
+        });
+    }
+
+    @DeleteMapping("/bookings/services/{bookingServiceId}")
+    public Map<String, Object> removeServiceFromBooking(@PathVariable int bookingServiceId) {
+        return ApiErrors.guard(() -> {
+            Input.id(bookingServiceId);
+            return inTransaction(conn -> {
+                int bookingId;
+                // Resolve the owner without retaining a service-row lock. All writes
+                // take Rooms -> Bookings -> Booking_Services, like add and checkout.
+                try (PreparedStatement stmt = conn.prepareStatement("SELECT booking_id FROM Booking_Services WHERE id=?")) {
+                    stmt.setInt(1, bookingServiceId);
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (!rs.next()) throw ApiErrors.notFound("Không tìm thấy dòng dịch vụ hoặc dòng đã được xóa!");
+                        bookingId = rs.getInt("booking_id");
+                    }
+                }
+                lockBookingRoom(conn, bookingId, "CheckedIn");
+                try (PreparedStatement stmt = conn.prepareStatement(
+                        "SELECT booking_id FROM Booking_Services WITH (UPDLOCK,HOLDLOCK) WHERE id=?")) {
+                    stmt.setInt(1, bookingServiceId);
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (!rs.next()) throw ApiErrors.notFound("Dòng dịch vụ đã được xóa. Vui lòng tải lại!");
+                        if (rs.getInt("booking_id") != bookingId) {
+                            throw new RoomSchedule.Conflict("Thông tin dòng dịch vụ đã thay đổi. Vui lòng tải lại!");
+                        }
+                    }
+                }
+                try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM Booking_Services WHERE id=? AND booking_id=?")) {
+                    stmt.setInt(1, bookingServiceId);
+                    stmt.setInt(2, bookingId);
+                    if (stmt.executeUpdate() != 1) throw new RoomSchedule.Conflict("Không thể xóa dòng dịch vụ đã thay đổi!");
+                }
+                return Map.of("success", true, "message", "Đã xóa dịch vụ gọi nhầm!",
+                        "bookingServiceId", bookingServiceId, "bookingId", bookingId);
+            }, "Không thể xóa dịch vụ. Vui lòng tải lại để kiểm tra!");
+
+
+        });
+    }
+
+    @GetMapping("/checkout/preview/{bookingId}")
+    public Map<String, Object> previewCheckout(@PathVariable int bookingId) {
+        return ApiErrors.guard(() -> {
+            Input.id(bookingId);
+            return inTransaction(conn -> {
+                lockBookingRoom(conn, bookingId, "CheckedIn");
+                Map<String, Object> preview = BookingInvoiceSnapshot.build(conn, bookingId);
+                preview.put("success", true);
+                return preview;
+            }, "Không thể tải hóa đơn tạm tính. Vui lòng liên hệ người quản lý để kiểm tra dữ liệu giá!");
+
+
+        });
+    }
+
     @PostMapping("/checkout/{bookingId}")
     public Map<String, Object> checkOut(@PathVariable int bookingId, @RequestBody(required = false) Map<String, Object> body) {
-        String paymentMethod = "Tiền mặt";
-        if (body != null && body.get("paymentMethod") != null && !body.get("paymentMethod").toString().trim().isEmpty()) {
-            paymentMethod = body.get("paymentMethod").toString().trim();
-        }
+        return ApiErrors.guard(() -> {
+            Input.id(bookingId);
+            String paymentMethod=Input.oneOf(Input.text(body==null?Map.of():body,"paymentMethod",50,false,"Tiền mặt"),
+                    Set.of("Tiền mặt","Chuyển khoản","Thẻ ngân hàng"),"Phương thức thanh toán");
+            final String selectedPaymentMethod = paymentMethod;
+            return inTransaction(conn -> {
+                int roomId = lockBookingRoom(conn, bookingId, "CheckedIn");
+                Map<String, Object> invoice = BookingInvoiceSnapshot.build(conn, bookingId);
+                int paymentId = BookingInvoiceSnapshot.store(conn, invoice, selectedPaymentMethod);
+                transitionBooking(conn, bookingId, "CheckedIn", "CheckedOut");
+                RoomSchedule.refresh(conn, roomId, RoomSchedule.today(clock));
+                return Map.of("success", true, "message", "Check-out và thanh toán thành công!",
+                        "paymentId", paymentId, "invoice", invoice);
+            }, "Không thể thanh toán và Check-out. Vui lòng tải lại để kiểm tra trạng thái booking!");
 
-        try (Connection conn = DBConnection.getConnection()) {
-            conn.setAutoCommit(false);
 
-            // 1. Lấy thông tin booking & phòng
-            String infoSql = """
-                SELECT b.checkin_date, b.checkout_date, b.room_id, r.price, r.room_code, r.room_name,
-                       c.full_name AS customer_name
-                FROM Bookings b
-                JOIN Rooms r ON b.room_id = r.room_id
-                JOIN Customers c ON b.customer_id = c.customer_id
-                WHERE b.booking_id = ?
-                """;
+        });
+    }
 
-            int roomId = 0;
-            long price = 0;
-            String checkinDate = "";
-            String checkoutDate = "";
-            String customerName = "";
-            String roomCode = "";
+    @GetMapping("/payments")
+    public List<Map<String,Object>> getPayments(@RequestParam(required=false) Integer bookingId) {
+        if (bookingId != null) Input.id(bookingId);
+        List<Map<String,Object>> result = new ArrayList<>();
+        String sql = "SELECT payment_id,booking_id,paid_at,payment_method,grand_total FROM Payments WHERE payment_status=N'Đã thanh toán'"
+                + (bookingId == null ? "" : " AND booking_id=?") + " ORDER BY payment_id DESC";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            if (bookingId != null) stmt.setInt(1,bookingId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) result.add(Map.of("paymentId",rs.getInt("payment_id"),"bookingId",rs.getInt("booking_id"),
+                    "paidAt",rs.getTimestamp("paid_at").toLocalDateTime().toString(),"paymentMethod",rs.getString("payment_method"),
+                    "grandTotal",rs.getBigDecimal("grand_total")));
+            }
+        } catch (SQLException e) { throw ApiErrors.databaseFailure(e); }
+        return result;
+    }
 
-            try (PreparedStatement infoStmt = conn.prepareStatement(infoSql)) {
-                infoStmt.setInt(1, bookingId);
-                try (ResultSet rs = infoStmt.executeQuery()) {
-                    if (!rs.next()) {
-                        conn.rollback();
-                        return Map.of("success", false, "message", "Không tìm thấy booking!");
-                    }
-                    roomId = rs.getInt("room_id");
-                    price = rs.getLong("price");
-                    checkinDate = rs.getString("checkin_date");
-                    checkoutDate = rs.getString("checkout_date");
-                    customerName = rs.getString("customer_name");
-                    roomCode = rs.getString("room_code");
-                }
+    @GetMapping("/payments/{paymentId}")
+    public Map<String, Object> getPayment(@PathVariable int paymentId) {
+        return ApiErrors.guard(() -> {
+            Input.id(paymentId);
+            try (Connection conn = DBConnection.getConnection()) {
+                return BookingInvoiceSnapshot.read(conn, paymentId);
+            } catch (SQLException e) {
+                return ApiErrors.database(e);
             }
 
-            // 2. Tính số đêm và tiền phòng
-            LocalDate cin = LocalDate.parse(checkinDate.substring(0, 10));
-            LocalDate cout = LocalDate.parse(checkoutDate.substring(0, 10));
-            long nights = ChronoUnit.DAYS.between(cin, cout);
-            if (nights <= 0) nights = 1;
-            long roomTotal = price * nights;
 
-            // 3. Tính tiền dịch vụ
-            long serviceTotal = 0;
-            String svcSql = "SELECT ISNULL(SUM(total_price), 0) AS svc FROM Booking_Services WHERE booking_id = ?";
-            try (PreparedStatement svcStmt = conn.prepareStatement(svcSql)) {
-                svcStmt.setInt(1, bookingId);
-                try (ResultSet svcRs = svcStmt.executeQuery()) {
-                    if (svcRs.next()) {
-                        serviceTotal = svcRs.getLong("svc");
-                    }
-                }
-            }
-
-            long grandTotal = roomTotal + serviceTotal;
-
-            // 4. Tạo hóa đơn trong bảng Payments
-            int paymentId = 0;
-            String paymentSql = """
-                INSERT INTO Payments (booking_id, room_total, service_total, grand_total, payment_method, payment_status, paid_at)
-                VALUES (?, ?, ?, ?, ?, N'Đã thanh toán', GETDATE())
-                """;
-            try (PreparedStatement payStmt = conn.prepareStatement(paymentSql, Statement.RETURN_GENERATED_KEYS)) {
-                payStmt.setInt(1, bookingId);
-                payStmt.setLong(2, roomTotal);
-                payStmt.setLong(3, serviceTotal);
-                payStmt.setLong(4, grandTotal);
-                payStmt.setString(5, paymentMethod);
-                payStmt.executeUpdate();
-
-                try (ResultSet pks = payStmt.getGeneratedKeys()) {
-                    if (pks.next()) {
-                        paymentId = pks.getInt(1);
-                    }
-                }
-            }
-
-            // 5. Cập nhật trạng thái Booking và Room
-            String updateBookingSql = "UPDATE Bookings SET status = 'CheckedOut' WHERE booking_id = ?";
-            try (PreparedStatement stmt = conn.prepareStatement(updateBookingSql)) {
-                stmt.setInt(1, bookingId);
-                stmt.executeUpdate();
-            }
-
-            String updateRoomSql = "UPDATE Rooms SET status = N'Trống' WHERE room_id = ?";
-            try (PreparedStatement stmt = conn.prepareStatement(updateRoomSql)) {
-                stmt.setInt(1, roomId);
-                stmt.executeUpdate();
-            }
-
-            conn.commit();
-
-            Map<String, Object> invoice = new LinkedHashMap<>();
-            invoice.put("paymentId", paymentId);
-            invoice.put("bookingId", bookingId);
-            invoice.put("customerName", customerName);
-            invoice.put("roomCode", roomCode);
-            invoice.put("nights", nights);
-            invoice.put("pricePerNight", price);
-            invoice.put("roomTotal", roomTotal);
-            invoice.put("serviceTotal", serviceTotal);
-            invoice.put("grandTotal", grandTotal);
-            invoice.put("paymentMethod", paymentMethod);
-
-            Map<String, Object> res = new LinkedHashMap<>();
-            res.put("success", true);
-            res.put("message", "Check-out và thanh toán thành công!");
-            res.put("invoice", invoice);
-            return res;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Map.of("success", false, "message", "Lỗi thanh toán & check-out: " + e.getMessage());
-        }
+        });
     }
 }

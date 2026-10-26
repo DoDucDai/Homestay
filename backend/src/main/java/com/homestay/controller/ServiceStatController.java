@@ -1,189 +1,91 @@
 package com.homestay.controller;
 
 import com.homestay.db.DBConnection;
+import com.homestay.api.*;
 import org.springframework.web.bind.annotation.*;
 import java.sql.*;
 import java.util.*;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*")
 public class ServiceStatController {
-
-    private long parseLong(Object val, long defaultVal) {
-        if (val == null) return defaultVal;
-        if (val instanceof Number n) return n.longValue();
-        try {
-            return Long.parseLong(val.toString().trim());
-        } catch (Exception e) {
-            return defaultVal;
-        }
+    private final java.time.Clock clock;
+    public ServiceStatController() { this(RoomSchedule.CLOCK); }
+    ServiceStatController(java.time.Clock clock) { this.clock=clock; }
+    private record ServiceValues(String name,long price,String status) {}
+    private ServiceValues values(Map<String,Object> body) {
+        return new ServiceValues(Input.text(body,"serviceName",100,true,null),Input.money(body,"unitPrice",false),
+            Input.oneOf(Input.text(body,"status",20,false,"Hoạt động"),Set.of("Hoạt động","Ngừng"),"Trạng thái dịch vụ"));
     }
-
-    // ==================== SERVICES ====================
-
-    // GET /api/services
-    // Return: [ { serviceId, serviceName, unitPrice, status } ]
+    private Map<String,Object> row(ResultSet rs) throws SQLException {
+        Map<String,Object> result=new LinkedHashMap<>();result.put("serviceId",rs.getInt("service_id"));
+        result.put("serviceName",rs.getString("service_name"));result.put("unitPrice",rs.getBigDecimal("unit_price"));
+        result.put("status",rs.getString("status"));return result;
+    }
     @GetMapping("/services")
-    public List<Map<String, Object>> getAllServices() {
-        List<Map<String, Object>> result = new ArrayList<>();
-        String sql = "SELECT service_id, service_name, unit_price, status FROM Services ORDER BY service_id ASC";
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-
-            while (rs.next()) {
-                Map<String, Object> row = new LinkedHashMap<>();
-                row.put("serviceId", rs.getInt("service_id"));
-                row.put("serviceName", rs.getString("service_name"));
-                row.put("unitPrice", rs.getLong("unit_price"));
-                row.put("status", rs.getString("status"));
-                result.add(row);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+    public List<Map<String,Object>> getAllServices() {
+        List<Map<String,Object>> result=new ArrayList<>();
+        try(Connection conn=DBConnection.getConnection();PreparedStatement stmt=conn.prepareStatement("SELECT service_id,service_name,unit_price,status FROM Services ORDER BY service_id");ResultSet rs=stmt.executeQuery()) {
+            while(rs.next()) result.add(row(rs));
+        } catch(SQLException e) { throw ApiErrors.databaseFailure(e); }
         return result;
     }
-
-    // GET /api/services/{id}
     @GetMapping("/services/{id}")
-    public Map<String, Object> getServiceById(@PathVariable int id) {
-        String sql = "SELECT service_id, service_name, unit_price, status FROM Services WHERE service_id = ?";
+    public Map<String,Object> getServiceById(@PathVariable int id) {
+        return ApiErrors.guard(() -> {
+            Input.id(id);
+            try(Connection conn=DBConnection.getConnection();PreparedStatement stmt=conn.prepareStatement("SELECT service_id,service_name,unit_price,status FROM Services WHERE service_id=?")) {
+                stmt.setInt(1,id);try(ResultSet rs=stmt.executeQuery()) { if(rs.next()) return row(rs); }
+            } catch(SQLException e) { return ApiErrors.database(e); }
+            return ApiErrors.missing("Không tìm thấy dịch vụ!");
 
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    Map<String, Object> row = new LinkedHashMap<>();
-                    row.put("serviceId", rs.getInt("service_id"));
-                    row.put("serviceName", rs.getString("service_name"));
-                    row.put("unitPrice", rs.getLong("unit_price"));
-                    row.put("status", rs.getString("status"));
-                    return row;
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return Map.of("success", false, "message", "Không tìm thấy dịch vụ!");
+        });
     }
-
-    // POST /api/services
-    // Body: { "serviceName": "...", "unitPrice": 100000, "status": "Hoạt động" }
     @PostMapping("/services")
-    public Map<String, Object> createService(@RequestBody Map<String, Object> body) {
-        String serviceName = body.get("serviceName") != null ? body.get("serviceName").toString().trim() : "";
-        long unitPrice = parseLong(body.get("unitPrice"), 0);
-        String status = body.get("status") != null && !body.get("status").toString().trim().isEmpty()
-                ? body.get("status").toString().trim() : "Hoạt động";
+    public Map<String,Object> createService(@RequestBody Map<String,Object> body) {
+        return ApiErrors.guard(() -> {
+            ServiceValues value=values(body);
+            try(Connection conn=DBConnection.getConnection();PreparedStatement stmt=conn.prepareStatement("INSERT INTO Services(service_name,unit_price,status) VALUES(?,?,?)")) {
+                stmt.setString(1,value.name());stmt.setLong(2,value.price());stmt.setString(3,value.status());stmt.executeUpdate();
+                return Map.of("success",true,"message","Thêm dịch vụ thành công!");
+            } catch(SQLException e) { return ApiErrors.database(e); }
 
-        if (serviceName.isEmpty() || unitPrice < 0) {
-            return Map.of("success", false, "message", "Tên dịch vụ và đơn giá không hợp lệ!");
-        }
 
-        String checkSql = "SELECT COUNT(*) FROM Services WHERE service_name = ?";
-        String insertSql = "INSERT INTO Services (service_name, unit_price, status) VALUES (?, ?, ?)";
-
-        try (Connection conn = DBConnection.getConnection()) {
-            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-                checkStmt.setString(1, serviceName);
-                try (ResultSet rs = checkStmt.executeQuery()) {
-                    if (rs.next() && rs.getInt(1) > 0) {
-                        return Map.of("success", false, "message", "Tên dịch vụ đã tồn tại trong danh mục!");
-                    }
-                }
-            }
-
-            try (PreparedStatement stmt = conn.prepareStatement(insertSql)) {
-                stmt.setString(1, serviceName);
-                stmt.setLong(2, unitPrice);
-                stmt.setString(3, status);
-                stmt.executeUpdate();
-
-                return Map.of("success", true, "message", "Thêm dịch vụ thành công!");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return Map.of("success", false, "message", "Lỗi lưu dịch vụ: " + e.getMessage());
-        }
+        });
     }
-
-    // PUT /api/services/{id}
     @PutMapping("/services/{id}")
-    public Map<String, Object> updateService(@PathVariable int id, @RequestBody Map<String, Object> body) {
-        String serviceName = body.get("serviceName") != null ? body.get("serviceName").toString().trim() : "";
-        long unitPrice = parseLong(body.get("unitPrice"), 0);
-        String status = body.get("status") != null ? body.get("status").toString().trim() : "Hoạt động";
+    public Map<String,Object> updateService(@PathVariable int id,@RequestBody Map<String,Object> body) {
+        return ApiErrors.guard(() -> {
+            Input.id(id);ServiceValues value=values(body);
+            try(Connection conn=DBConnection.getConnection();PreparedStatement stmt=conn.prepareStatement("UPDATE Services SET service_name=?,unit_price=?,status=? WHERE service_id=?")) {
+                stmt.setString(1,value.name());stmt.setLong(2,value.price());stmt.setString(3,value.status());stmt.setInt(4,id);
+                if(stmt.executeUpdate()!=1) return ApiErrors.missing("Không tìm thấy dịch vụ!");
+                return Map.of("success",true,"message","Cập nhật dịch vụ thành công!");
+            } catch(SQLException e) { return ApiErrors.database(e); }
 
-        if (serviceName.isEmpty() || unitPrice < 0) {
-            return Map.of("success", false, "message", "Tên dịch vụ và đơn giá không được để trống!");
-        }
 
-        try (Connection conn = DBConnection.getConnection()) {
-            String checkSql = "SELECT COUNT(*) FROM Services WHERE service_name = ? AND service_id <> ?";
-            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-                checkStmt.setString(1, serviceName);
-                checkStmt.setInt(2, id);
-                try (ResultSet rs = checkStmt.executeQuery()) {
-                    if (rs.next() && rs.getInt(1) > 0) {
-                        return Map.of("success", false, "message", "Tên dịch vụ đã bị trùng với dịch vụ khác!");
-                    }
-                }
-            }
-
-            String updateSql = "UPDATE Services SET service_name = ?, unit_price = ?, status = ? WHERE service_id = ?";
-            try (PreparedStatement stmt = conn.prepareStatement(updateSql)) {
-                stmt.setString(1, serviceName);
-                stmt.setLong(2, unitPrice);
-                stmt.setString(3, status);
-                stmt.setInt(4, id);
-
-                int affected = stmt.executeUpdate();
-                if (affected > 0) {
-                    return Map.of("success", true, "message", "Cập nhật dịch vụ thành công!");
-                } else {
-                    return Map.of("success", false, "message", "Không tìm thấy dịch vụ để cập nhật!");
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return Map.of("success", false, "message", "Lỗi cập nhật dịch vụ: " + e.getMessage());
-        }
+        });
     }
-
-    // DELETE /api/services/{id}
     @DeleteMapping("/services/{id}")
-    public Map<String, Object> deleteService(@PathVariable int id) {
-        try (Connection conn = DBConnection.getConnection()) {
-            // Kiểm tra dịch vụ có đang được dùng trong Booking_Services không
-            String checkSql = "SELECT COUNT(*) FROM Booking_Services WHERE service_id = ?";
-            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-                checkStmt.setInt(1, id);
-                try (ResultSet rs = checkStmt.executeQuery()) {
-                    if (rs.next() && rs.getInt(1) > 0) {
-                        return Map.of("success", false, "message", "Không thể xóa dịch vụ đã có dữ liệu sử dụng trong đặt phòng!");
-                    }
+    public Map<String,Object> deleteService(@PathVariable int id) {
+        return ApiErrors.guard(() -> {
+            Input.id(id);
+            return RoomSchedule.transaction(conn -> {
+                try(PreparedStatement stmt=conn.prepareStatement("SELECT service_id FROM Services WITH(UPDLOCK,HOLDLOCK) WHERE service_id=?")) {
+                    stmt.setInt(1,id);try(ResultSet rs=stmt.executeQuery()) { if(!rs.next()) throw ApiErrors.notFound("Không tìm thấy dịch vụ!"); }
                 }
-            }
+                try(PreparedStatement stmt=conn.prepareStatement("SELECT id FROM Booking_Services WHERE service_id=?")) {
+                    stmt.setInt(1,id);try(ResultSet rs=stmt.executeQuery()) { if(rs.next()) throw new RoomSchedule.Conflict("Không thể xóa dịch vụ đã có dữ liệu sử dụng!"); }
+                }
+                try(PreparedStatement stmt=conn.prepareStatement("DELETE FROM Services WHERE service_id=?")) {
+                    stmt.setInt(1,id);if(stmt.executeUpdate()!=1) throw ApiErrors.notFound("Không tìm thấy dịch vụ!");
+                }
+                return Map.of("success",true,"message","Xóa dịch vụ thành công!");
+            },"Không thể xóa dịch vụ!");
 
-            String deleteSql = "DELETE FROM Services WHERE service_id = ?";
-            try (PreparedStatement stmt = conn.prepareStatement(deleteSql)) {
-                stmt.setInt(1, id);
-                int affected = stmt.executeUpdate();
-                if (affected > 0) {
-                    return Map.of("success", true, "message", "Xóa dịch vụ thành công!");
-                } else {
-                    return Map.of("success", false, "message", "Không tìm thấy dịch vụ để xóa!");
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return Map.of("success", false, "message", "Lỗi xóa dịch vụ: " + e.getMessage());
-        }
+
+        });
     }
 
     // ==================== STATISTICS ====================
@@ -192,79 +94,86 @@ public class ServiceStatController {
     // Return: { totalRooms, availableRooms, bookedRooms, occupiedRooms, maintenanceRooms, totalCustomers, totalBookingsThisMonth, revenueThisMonth }
     @GetMapping("/statistics/overview")
     public Map<String, Object> getOverview() {
-        Map<String, Object> result = new LinkedHashMap<>();
+        return ApiErrors.guard(() -> {
+            Map<String, Object> result = new LinkedHashMap<>();
 
-        try (Connection conn = DBConnection.getConnection()) {
-            // Query 1 - Thống kê phòng
-            String roomSql = """
-                SELECT
-                    COUNT(*) AS total_rooms,
-                    SUM(CASE WHEN status = N'Trống' THEN 1 ELSE 0 END) AS available_rooms,
-                    SUM(CASE WHEN status = N'Đã đặt' THEN 1 ELSE 0 END) AS booked_rooms,
-                    SUM(CASE WHEN status = N'Đang sử dụng' THEN 1 ELSE 0 END) AS occupied_rooms,
-                    SUM(CASE WHEN status = N'Bảo trì' THEN 1 ELSE 0 END) AS maintenance_rooms
-                FROM Rooms
-                """;
-            try (PreparedStatement stmt = conn.prepareStatement(roomSql);
-                 ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    result.put("totalRooms", rs.getInt("total_rooms"));
-                    result.put("availableRooms", rs.getInt("available_rooms"));
-                    result.put("bookedRooms", rs.getInt("booked_rooms"));
-                    result.put("occupiedRooms", rs.getInt("occupied_rooms"));
-                    result.put("maintenanceRooms", rs.getInt("maintenance_rooms"));
+            try (Connection conn = DBConnection.getConnection()) {
+                // Query 1 - Thống kê phòng
+                String roomSql = """
+                    SELECT
+                        COUNT(*) AS total_rooms,
+                        SUM(CASE WHEN status = N'Trống' THEN 1 ELSE 0 END) AS available_rooms,
+                        SUM(CASE WHEN status = N'Đã đặt' THEN 1 ELSE 0 END) AS booked_rooms,
+                        SUM(CASE WHEN status = N'Đang sử dụng' THEN 1 ELSE 0 END) AS occupied_rooms,
+                        SUM(CASE WHEN status = N'Bảo trì' THEN 1 ELSE 0 END) AS maintenance_rooms
+                    FROM (
+                    """ + RoomSchedule.selectRooms() + ") room_snapshot";
+                try (PreparedStatement stmt = conn.prepareStatement(roomSql)) {
+                    RoomSchedule.bindToday(stmt, RoomSchedule.today(clock));
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (rs.next()) {
+                            result.put("totalRooms", rs.getInt("total_rooms"));
+                            result.put("availableRooms", rs.getInt("available_rooms"));
+                            result.put("bookedRooms", rs.getInt("booked_rooms"));
+                            result.put("occupiedRooms", rs.getInt("occupied_rooms"));
+                            result.put("maintenanceRooms", rs.getInt("maintenance_rooms"));
+                        }
+                    }
                 }
+
+                // Query 2 - Tổng số khách hàng
+                String customerSql = "SELECT COUNT(*) AS total_customers FROM Customers";
+                try (PreparedStatement stmt = conn.prepareStatement(customerSql);
+                     ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        result.put("totalCustomers", rs.getInt("total_customers"));
+                    }
+                }
+
+                // Query 3 - Tổng số booking tháng này
+                String bookingSql = """
+                    SELECT COUNT(*) AS total_bookings_this_month
+                    FROM Bookings
+                    WHERE MONTH(created_at) = MONTH(GETDATE())
+                      AND YEAR(created_at)  = YEAR(GETDATE())
+                    """;
+                try (PreparedStatement stmt = conn.prepareStatement(bookingSql);
+                     ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        result.put("totalBookingsThisMonth", rs.getInt("total_bookings_this_month"));
+                    }
+                }
+
+                // Query 4 - Doanh thu tháng này
+                String revenueSql = """
+                    SELECT ISNULL(SUM(grand_total), 0) AS revenue_this_month
+                    FROM Payments
+                    WHERE MONTH(paid_at) = MONTH(GETDATE())
+                      AND YEAR(paid_at)  = YEAR(GETDATE())
+                      AND payment_status = N'Đã thanh toán'
+                    """;
+                try (PreparedStatement stmt = conn.prepareStatement(revenueSql);
+                     ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        result.put("revenueThisMonth", rs.getLong("revenue_this_month"));
+                    }
+                }
+
+            } catch (SQLException e) {
+                throw ApiErrors.databaseFailure(e);
             }
 
-            // Query 2 - Tổng số khách hàng
-            String customerSql = "SELECT COUNT(*) AS total_customers FROM Customers";
-            try (PreparedStatement stmt = conn.prepareStatement(customerSql);
-                 ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    result.put("totalCustomers", rs.getInt("total_customers"));
-                }
-            }
+            return result;
 
-            // Query 3 - Tổng số booking tháng này
-            String bookingSql = """
-                SELECT COUNT(*) AS total_bookings_this_month
-                FROM Bookings
-                WHERE MONTH(created_at) = MONTH(GETDATE())
-                  AND YEAR(created_at)  = YEAR(GETDATE())
-                """;
-            try (PreparedStatement stmt = conn.prepareStatement(bookingSql);
-                 ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    result.put("totalBookingsThisMonth", rs.getInt("total_bookings_this_month"));
-                }
-            }
 
-            // Query 4 - Doanh thu tháng này
-            String revenueSql = """
-                SELECT ISNULL(SUM(grand_total), 0) AS revenue_this_month
-                FROM Payments
-                WHERE MONTH(paid_at) = MONTH(GETDATE())
-                  AND YEAR(paid_at)  = YEAR(GETDATE())
-                  AND payment_status = N'Đã thanh toán'
-                """;
-            try (PreparedStatement stmt = conn.prepareStatement(revenueSql);
-                 ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    result.put("revenueThisMonth", rs.getLong("revenue_this_month"));
-                }
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return result;
+        });
     }
 
     // GET /api/statistics/revenue?month=9&year=2026
     // Return: [ { paymentId, customerName, roomCode, roomTotal, serviceTotal, grandTotal, paymentMethod, paidAt } ]
     @GetMapping("/statistics/revenue")
     public List<Map<String, Object>> getRevenue(@RequestParam int month, @RequestParam int year) {
+        if(month<1 || month>12 || year<1 || year>9999) throw ApiErrors.invalid("Tháng cần từ 1–12, năm cần từ 1–9999!");
         List<Map<String, Object>> result = new ArrayList<>();
 
         String sql = """
@@ -306,7 +215,7 @@ public class ServiceStatController {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw ApiErrors.databaseFailure(e);
         }
 
         return result;

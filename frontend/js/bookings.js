@@ -1,163 +1,239 @@
-// ============================================
-// bookings.js - XU LY TRANG BOOKING
-// ============================================
-
 checkLogin();
+let bookingRows = [];
+let bookingListVersion = 0;
+const cancellingBookings = new Set();
+let bookingModalOpen = false;
+let bookingSubmitting = false;
+let customerVersion = 0;
+let availabilityVersion = 0;
+let customersReady = false;
+let availableRange = '';
+let pendingRange = '';
+let pendingAvailability = null;
+let bookingCustomers = new Map();
+let bookingRooms = new Map();
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadBookings();
-    
-    // Khi mo modal thi can load ds khach hang va ds phong trong
-    document.getElementById('booking-room').addEventListener('change', calculateEstimate);
-    document.getElementById('booking-checkin-date').addEventListener('change', calculateEstimate);
-    document.getElementById('booking-checkout-date').addEventListener('change', calculateEstimate);
-});
-
+function dateRangeKey() {
+    return document.getElementById('booking-checkin-date').value + '|' + document.getElementById('booking-checkout-date').value;
+}
+function updateBookingControls() {
+    const room = bookingRooms.get(Number(document.getElementById('booking-room').value));
+    const customer = bookingCustomers.get(Number(document.getElementById('booking-customer').value));
+    let ready = bookingModalOpen && !bookingSubmitting && customersReady && availableRange === dateRangeKey() && !!availableRange && !!room && !!customer;
+    if (ready) {
+        try {
+            const checkin = document.getElementById('booking-checkin-date').value;
+            const checkout = document.getElementById('booking-checkout-date').value;
+            validBookingDates(checkin, checkout);
+            validMoney((Date.parse(checkout + 'T00:00:00Z') - Date.parse(checkin + 'T00:00:00Z')) / 86400000
+                * validMoney(room.price, 'Giá phòng', 1), 'Tiền phòng', 1);
+        } catch { ready = false; }
+    }
+    document.getElementById('booking-save-btn').disabled = !ready;
+    document.getElementById('booking-save-btn').textContent = bookingSubmitting ? 'Đang đặt phòng...' : 'Xác nhận booking';
+    for (const id of ['booking-close-btn', 'booking-customer', 'booking-checkin-date', 'booking-checkout-date', 'booking-note', 'booking-reload-btn']) {
+        document.getElementById(id).disabled = bookingSubmitting;
+    }
+    document.getElementById('booking-room').disabled = bookingSubmitting || !availableRange || !bookingRooms.size;
+    document.getElementById('booking-customer').disabled = bookingSubmitting || !customersReady;
+}
 async function loadBookings() {
+    const version = ++bookingListVersion;
+    tableState('bookings-tbody', 8, 'Đang tải booking...');
     try {
-        const bookings = await apiGet('/bookings');
-        renderTable(bookings);
+        const rows = expectList(await apiGet('/bookings'));
+        if (version !== bookingListVersion) return;
+        renderTable(rows);
     } catch (err) {
-        showAlert('Lỗi khi tải danh sách booking!', 'error');
+        if (version !== bookingListVersion) return;
+        bookingRows = [];
+        tableState('bookings-tbody', 8, err.message || 'Không tải được danh sách booking.');
+        showRequestError(err, 'Không tải được danh sách booking.');
     }
 }
-
 function renderTable(bookings) {
-    const tbody = document.getElementById('bookings-tbody');
-    if (!tbody) return;
-    
-    tbody.innerHTML = '';
-    
-    if (bookings.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Không có booking nào</td></tr>';
-        return;
-    }
-    
+    bookingRows = bookings;
+    const body = document.getElementById('bookings-tbody'); if (!body) return;
+    body.replaceChildren();
+    if (!bookings.length) { tableState('bookings-tbody', 8, 'Không có booking nào'); return; }
     bookings.forEach(b => {
-        const tr = document.createElement('tr');
-        
-        let statusBadge = 'bg-secondary';
-        if (b.status === 'Confirmed') statusBadge = 'bg-primary';
-        if (b.status === 'CheckedIn') statusBadge = 'bg-warning';
-        if (b.status === 'CheckedOut') statusBadge = 'bg-success';
-        
-        tr.innerHTML = `
-            <td><strong>BK${b.bookingId}</strong></td>
-            <td>${b.customerName || b.fullName || ''}</td>
-            <td>${b.roomCode || ''}</td>
-            <td>${formatDate(b.checkinDate)}</td>
-            <td>${formatDate(b.checkoutDate)}</td>
-            <td><span class="badge ${statusBadge}">${b.status}</span></td>
-            <td>${b.note || ''}</td>
-            <td>
-                <!-- Chi booking nao chua check-in moi duoc phep Huy/Xoa -->
-            </td>
-        `;
-        tbody.appendChild(tr);
+        const actions = [];
+        if (b.status === 'Confirmed') {
+            const cancel = actionButton(cancellingBookings.has(b.bookingId) ? 'Đang hủy...' : 'Hủy đặt phòng', 'btn btn-danger', () => cancelBooking(b.bookingId));
+            cancel.disabled = cancellingBookings.has(b.bookingId); actions.push(cancel);
+        }
+        appendTableRow(body, [textNode('strong', 'BK' + b.bookingId), b.customerName || b.fullName || '', b.roomCode || '',
+            formatDate(b.checkinDate), formatDate(b.checkoutDate), textNode('span', b.status, 'badge ' +
+                ({ Confirmed: 'bg-primary', CheckedIn: 'bg-warning', CheckedOut: 'bg-success' }[b.status] || 'bg-secondary')), b.note || ''], actions);
     });
 }
-
-async function openAddModal() {
-    document.getElementById('booking-customer').innerHTML = '<option value="">-- Đang tải --</option>';
-    document.getElementById('booking-room').innerHTML = '<option value="">-- Đang tải --</option>';
-    
-    openModal('booking-modal');
-    
-    // Load dropdown
+async function cancelBooking(bookingId) {
+    const row = bookingRows.find(b => b.bookingId === bookingId && b.status === 'Confirmed');
+    if (!row || cancellingBookings.has(bookingId)) return;
+    if (!confirm(`Hủy BK${bookingId} của khách ${row.customerName || ''}, phòng ${row.roomCode || ''}?`)) return;
+    cancellingBookings.add(bookingId); ++bookingListVersion; renderTable(bookingRows);
     try {
-        const customers = await apiGet('/customers');
-        const rooms = await apiGet('/rooms');
-        
-        // Render customers
-        let custHtml = '<option value="">-- Chọn khách hàng --</option>';
-        customers.forEach(c => {
-            custHtml += `<option value="${c.customerId}">${c.fullName} - ${c.cccd}</option>`;
-        });
-        document.getElementById('booking-customer').innerHTML = custHtml;
-        
-        // Render rooms (chi hien thi phong trong)
-        let roomHtml = '<option value="" data-price="0">-- Chọn phòng --</option>';
-        rooms.filter(r => r.status === 'Trống').forEach(r => {
-            roomHtml += `<option value="${r.roomId}" data-price="${r.price}">${r.roomCode} - ${r.roomName} (${formatMoney(r.price)})</option>`;
-        });
-        document.getElementById('booking-room').innerHTML = roomHtml;
-        
-        // Reset form
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('booking-checkin-date').value = today;
-        
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        document.getElementById('booking-checkout-date').value = tomorrow.toISOString().split('T')[0];
-        
-        document.getElementById('booking-note').value = '';
-        document.getElementById('price-preview').style.display = 'none';
-        
-    } catch (err) {
-        showAlert('Lỗi tải dữ liệu cho form đặt phòng!', 'error');
+        const result = await apiPut('/bookings/' + bookingId + '/cancel');
+        if (result.success !== true) throw new Error(result.message || 'Chưa xác nhận được việc hủy booking.');
+        showAlert(result.message || 'Đã hủy đặt phòng!');
+    } catch (err) { showRequestError(err, 'Không thể hủy booking.'); }
+    finally {
+        cancellingBookings.delete(bookingId);
+        await loadBookings();
+        if (bookingModalOpen && !bookingSubmitting) await refreshAvailableRooms(true);
     }
 }
-
-function calculateEstimate() {
-    const roomSelect = document.getElementById('booking-room');
+async function loadBookingCustomers() {
+    const version = ++customerVersion;
+    const select = document.getElementById('booking-customer');
+    const previous = select.value;
+    customersReady = false; bookingCustomers = new Map();
+    select.replaceChildren(selectOption('', '-- Đang tải khách hàng --'));
+    document.getElementById('booking-customer-status').textContent = 'Đang tải khách hàng...';
+    updateBookingControls();
+    try {
+        const rows = expectList(await apiGet('/customers'));
+        if (!bookingModalOpen || version !== customerVersion) return;
+        bookingCustomers = new Map(rows.map(c => [c.customerId, c]));
+        select.replaceChildren(selectOption('', rows.length ? '-- Chọn khách hàng --' : '-- Chưa có khách hàng --'));
+        rows.forEach(c => select.appendChild(selectOption(c.customerId, `${c.fullName} - ${c.cccd}`)));
+        if (bookingCustomers.has(Number(previous))) select.value = previous;
+        customersReady = true;
+        document.getElementById('booking-customer-status').textContent = rows.length ? '' : 'Chưa có khách hàng. Thêm khách hàng trước khi đặt phòng.';
+    } catch (err) {
+        if (!bookingModalOpen || version !== customerVersion) return;
+        select.replaceChildren(selectOption('', '-- Không tải được khách hàng --'));
+        document.getElementById('booking-customer-status').textContent = err.message || 'Không tải được khách hàng.';
+    } finally { if (bookingModalOpen && version === customerVersion) updateBookingControls(); }
+}
+function refreshAvailableRooms(force = false) {
+    if (!bookingModalOpen || bookingSubmitting) return Promise.resolve();
+    const key = dateRangeKey();
+    if (!force && key === pendingRange && pendingAvailability) return pendingAvailability;
+    if (!force && key === availableRange) { calculateEstimate(); updateBookingControls(); return Promise.resolve(); }
+    const version = ++availabilityVersion;
+    const select = document.getElementById('booking-room');
+    const previous = select.value;
+    availableRange = ''; pendingRange = ''; bookingRooms = new Map();
+    select.replaceChildren(selectOption('', '-- Chọn ngày hợp lệ trước --', 0));
+    document.getElementById('price-preview').style.display = 'none';
+    updateBookingControls();
     const checkin = document.getElementById('booking-checkin-date').value;
     const checkout = document.getElementById('booking-checkout-date').value;
-    
-    if (!roomSelect.value || !checkin || !checkout) {
-        document.getElementById('price-preview').style.display = 'none';
-        return;
-    }
-    
-    const d1 = new Date(checkin);
-    const d2 = new Date(checkout);
-    
-    let nights = (d2 - d1) / (1000 * 60 * 60 * 24);
-    if (nights <= 0) nights = 1; // It nhat 1 dem
-    
-    const option = roomSelect.options[roomSelect.selectedIndex];
-    const price = Number(option.getAttribute('data-price') || 0);
-    
-    document.getElementById('estimated-nights').textContent = nights;
-    document.getElementById('room-price-display').textContent = formatMoney(price);
-    document.getElementById('total-price-display').textContent = formatMoney(nights * price);
-    document.getElementById('price-preview').style.display = 'block';
+    try { validBookingDates(checkin, checkout); }
+    catch (err) { document.getElementById('booking-room-status').textContent = err.message; return Promise.resolve(); }
+    document.getElementById('booking-checkout-date').min = new Date(Date.parse(checkin + 'T00:00:00Z') + 86400000).toISOString().slice(0, 10);
+    document.getElementById('booking-room-status').textContent = 'Đang tìm phòng trống theo ngày...';
+    select.replaceChildren(selectOption('', '-- Đang tìm phòng --', 0));
+    pendingRange = key;
+    pendingAvailability = (async () => {
+        try {
+            const rooms = expectList(await apiGet('/bookings/available-rooms?checkin=' + encodeURIComponent(checkin) + '&checkout=' + encodeURIComponent(checkout)));
+            if (!bookingModalOpen || version !== availabilityVersion || key !== dateRangeKey()) return;
+            for (const room of rooms) {
+                if (!Number.isInteger(room.roomId) || room.roomId <= 0 || !Number.isSafeInteger(Number(room.price)) || Number(room.price) <= 0) throw new Error('Dữ liệu phòng trống không hợp lệ.');
+            }
+            bookingRooms = new Map(rooms.map(r => [r.roomId, r])); availableRange = key;
+            select.replaceChildren(selectOption('', rooms.length ? '-- Chọn phòng --' : '-- Không có phòng trống --', 0));
+            rooms.forEach(r => select.appendChild(selectOption(r.roomId, `${r.roomCode} - ${r.roomName} (${formatMoney(r.price)})`, r.price)));
+            if (bookingRooms.has(Number(previous))) select.value = previous;
+            document.getElementById('booking-room-status').textContent = rooms.length
+                ? `Có ${rooms.length} phòng phù hợp khoảng ngày đã chọn.` : 'Không có phòng trống trong khoảng ngày này. Vui lòng chọn ngày khác.';
+            calculateEstimate();
+        } catch (err) {
+            if (!bookingModalOpen || version !== availabilityVersion || key !== dateRangeKey()) return;
+            bookingRooms = new Map(); availableRange = '';
+            select.replaceChildren(selectOption('', '-- Không tải được phòng trống --', 0));
+            document.getElementById('booking-room-status').textContent = err.message || 'Không tải được phòng trống. Bấm Tải lại dữ liệu để thử lại.';
+        } finally {
+            if (version === availabilityVersion) {
+                pendingRange = ''; pendingAvailability = null;
+                if (bookingModalOpen) updateBookingControls();
+            }
+        }
+    })();
+    return pendingAvailability;
 }
-
+async function openAddModal() {
+    if (bookingSubmitting) return;
+    bookingModalOpen = true; ++customerVersion; ++availabilityVersion;
+    customersReady = false; availableRange = ''; pendingRange = ''; pendingAvailability = null;
+    bookingCustomers = new Map(); bookingRooms = new Map();
+    document.getElementById('booking-customer').replaceChildren(selectOption('', '-- Chọn khách hàng --'));
+    document.getElementById('booking-room').replaceChildren(selectOption('', '-- Chọn ngày --', 0));
+    document.getElementById('booking-checkin-date').value = vietnamToday();
+    document.getElementById('booking-checkin-date').min = vietnamToday();
+    document.getElementById('booking-checkout-date').value = vietnamToday(1);
+    document.getElementById('booking-note').value = '';
+    document.getElementById('booking-status').textContent = '';
+    document.getElementById('price-preview').style.display = 'none';
+    openModal('booking-modal'); updateBookingControls();
+    await reloadBookingData();
+}
+function closeBookingModal() {
+    if (bookingSubmitting) return;
+    bookingModalOpen = false; ++customerVersion; ++availabilityVersion;
+    customersReady = false; availableRange = ''; pendingRange = ''; pendingAvailability = null;
+    bookingCustomers = new Map(); bookingRooms = new Map();
+    document.getElementById('price-preview').style.display = 'none'; updateBookingControls();
+    document.getElementById('booking-modal').classList.remove('show');
+}
+async function reloadBookingData() {
+    if (!bookingModalOpen || bookingSubmitting) return;
+    await Promise.all([loadBookingCustomers(), refreshAvailableRooms(true)]);
+}
+function calculateEstimate() {
+    const room = bookingRooms.get(Number(document.getElementById('booking-room').value));
+    const preview = document.getElementById('price-preview'); preview.style.display = 'none';
+    if (!room || availableRange !== dateRangeKey()) return;
+    try {
+        const checkin = document.getElementById('booking-checkin-date').value;
+        const checkout = document.getElementById('booking-checkout-date').value;
+        validBookingDates(checkin, checkout);
+        const nights = (Date.parse(checkout + 'T00:00:00Z') - Date.parse(checkin + 'T00:00:00Z')) / 86400000;
+        const price = validMoney(room.price, 'Giá phòng', 1);
+        const total = validMoney(nights * price, 'Tiền phòng', 1);
+        document.getElementById('estimated-nights').textContent = nights;
+        document.getElementById('room-price-display').textContent = formatMoney(price);
+        document.getElementById('total-price-display').textContent = formatMoney(total);
+        preview.style.display = 'block';
+    } catch (err) { document.getElementById('booking-status').textContent = err.message; }
+}
 async function saveBooking() {
-    const customerId = document.getElementById('booking-customer').value;
-    const roomId = document.getElementById('booking-room').value;
+    if (!bookingModalOpen || bookingSubmitting) return;
+    const customerId = Number(document.getElementById('booking-customer').value);
+    const roomId = Number(document.getElementById('booking-room').value);
     const checkinDate = document.getElementById('booking-checkin-date').value;
     const checkoutDate = document.getElementById('booking-checkout-date').value;
     const note = document.getElementById('booking-note').value.trim();
-    
-    if (!customerId || !roomId || !checkinDate || !checkoutDate) {
-        showAlert('Vui lòng nhập đầy đủ thông tin bắt buộc!', 'error');
-        return;
-    }
-    
-    if (new Date(checkinDate) >= new Date(checkoutDate)) {
-        showAlert('Ngày trả phòng phải sau ngày nhận phòng!', 'error');
-        return;
-    }
-    
-    const data = {
-        customerId: Number(customerId),
-        roomId: Number(roomId),
-        checkinDate,
-        checkoutDate,
-        note
-    };
-    
     try {
-        const res = await apiPost('/bookings', data);
-        if (res.success !== false) {
-            showAlert('Đặt phòng thành công!', 'success');
-            closeModal();
-            loadBookings();
-        } else {
-            showAlert(res.message, 'error');
-        }
+        validBookingDates(checkinDate, checkoutDate); validText(note, 'Ghi chú', 500, false);
+        if (!customersReady || availableRange !== dateRangeKey() || !availableRange || !bookingCustomers.has(customerId) || !bookingRooms.has(roomId)) throw new Error('Chờ tải xong dữ liệu và chọn khách hàng, phòng phù hợp.');
+        const room = bookingRooms.get(roomId);
+        const nights = (Date.parse(checkoutDate + 'T00:00:00Z') - Date.parse(checkinDate + 'T00:00:00Z')) / 86400000;
+        validMoney(nights * validMoney(room.price, 'Giá phòng', 1), 'Tiền phòng', 1);
+    } catch (err) { document.getElementById('booking-status').textContent = err.message; return; }
+    bookingSubmitting = true; updateBookingControls();
+    document.getElementById('booking-status').textContent = 'Đang tạo booking...';
+    try {
+        const result = await apiPost('/bookings', { customerId, roomId, checkinDate, checkoutDate, note });
+        if (result.success !== true) throw new Error(result.message || 'Chưa xác nhận được việc tạo booking.');
+        bookingSubmitting = false; closeBookingModal();
+        showAlert(result.message || 'Đặt phòng thành công!'); await loadBookings();
     } catch (err) {
-        showAlert('Có lỗi xảy ra khi tạo booking!', 'error');
-    }
+        bookingSubmitting = false;
+        document.getElementById('booking-status').textContent = err.message || 'Chưa xác nhận được kết quả. Kiểm tra danh sách trước khi thử lại.';
+        showRequestError(err, 'Không thể tạo booking.');
+        await Promise.all([loadBookings(), reloadBookingData()]);
+    } finally { bookingSubmitting = false; updateBookingControls(); }
 }
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!await checkLogin()) return;
+    loadBookings();
+    document.getElementById('booking-customer').addEventListener('change', updateBookingControls);
+    document.getElementById('booking-room').addEventListener('change', () => { calculateEstimate(); updateBookingControls(); });
+    for (const id of ['booking-checkin-date', 'booking-checkout-date']) {
+        document.getElementById(id).addEventListener('input', () => refreshAvailableRooms());
+        document.getElementById(id).addEventListener('change', () => refreshAvailableRooms());
+    }
+});

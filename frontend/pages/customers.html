@@ -6,7 +6,11 @@
     <title>Quản Lý Khách Hàng - Homestay Management</title>
     <link rel="stylesheet" href="../css/style.css">
 </head>
-<body>
+<body class="session-pending">
+<div id="session-status" class="session-status" role="status" aria-live="polite">
+    <span id="session-message">Đang kiểm tra phiên đăng nhập...</span>
+    <button id="session-retry" class="btn btn-secondary" hidden>Thử lại</button>
+</div>
 
 <!-- ================================================
      TRANG QUAN LY KHACH HANG
@@ -26,7 +30,7 @@
             <li><a href="checkin.html">✅ Check-in</a></li>
             <li><a href="checkout.html">💰 Check-out</a></li>
             <li><a href="services.html">🛎 Dịch vụ</a></li>
-            <li><a href="statistics.html">📊 Thống kê</a></li>
+            <li><a data-admin-only hidden href="statistics.html">📊 Thống kê</a></li>
             <li><a href="#" id="logout-btn">🚪 Đăng xuất</a></li>
         </ul>
     </nav>
@@ -37,7 +41,8 @@
 
         <div class="card">
             <button class="btn btn-success" onclick="openAddModal()">+ Thêm khách hàng</button>
-            <input type="text" id="search-input" placeholder="Tìm theo tên hoặc CCCD..." style="padding:8px; margin-left:10px; border:1px solid #ccc; border-radius:5px;">
+            <input type="search" id="search-input" aria-label="Tìm tên, giấy tờ hoặc số điện thoại" maxlength="100" placeholder="Tên, giấy tờ hoặc số điện thoại..." style="padding:8px; margin-left:10px; border:1px solid #ccc; border-radius:5px;">
+            <button class="btn btn-secondary" onclick="loadCustomers()">Tìm / Tải lại</button>
         </div>
 
         <div id="alert-message" class="alert" style="display:none;"></div>
@@ -71,34 +76,56 @@
 
         <div class="form-group">
             <label for="customer-name">Họ và tên *</label>
-            <input type="text" id="customer-name" placeholder="Nhập họ và tên">
+            <input type="text" id="customer-name" maxlength="100" placeholder="Nhập họ và tên">
+        </div>
+        <div class="form-group">
+            <label for="customer-document-type">Loại giấy tờ *</label>
+            <select id="customer-document-type">
+                <option value="CCCD">CCCD</option>
+                <option value="PASSPORT">Hộ chiếu</option>
+                <option value="LEGACY" disabled>Chưa xác định (dữ liệu cũ)</option>
+            </select>
+            <p id="customer-validation-warning" role="status"></p>
         </div>
         <div class="form-group">
             <label for="customer-cccd">CCCD / Passport *</label>
-            <input type="text" id="customer-cccd" placeholder="Số CCCD hoặc Hộ chiếu">
+            <input type="text" id="customer-cccd" maxlength="20" placeholder="Số CCCD hoặc Hộ chiếu">
         </div>
         <div class="form-group">
             <label for="customer-phone">Số điện thoại *</label>
-            <input type="text" id="customer-phone" placeholder="VD: 0901234567">
+            <input type="text" id="customer-phone" maxlength="15" placeholder="VD: 0901234567">
         </div>
         <div class="form-group">
             <label for="customer-email">Email</label>
-            <input type="email" id="customer-email" placeholder="VD: khach@email.com">
+            <input type="email" id="customer-email" maxlength="100" placeholder="VD: khach@email.com">
         </div>
         <div class="form-group">
             <label for="customer-address">Địa chỉ</label>
-            <input type="text" id="customer-address" placeholder="Địa chỉ thường trú">
+            <input type="text" id="customer-address" maxlength="200" placeholder="Địa chỉ thường trú">
         </div>
 
         <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeModal()">Hủy</button>
+            <button class="btn btn-secondary" onclick="closeCustomerModal()">Hủy</button>
             <button class="btn btn-primary" onclick="saveCustomer()">Lưu</button>
         </div>
     </div>
 </div>
 
+<div class="modal-overlay" id="customer-history-modal" role="dialog" aria-modal="true" aria-labelledby="history-title">
+    <div class="modal-box history-box">
+        <h3 id="history-title">Lịch sử lưu trú</h3>
+        <p id="history-status" role="status" aria-live="polite"></p>
+        <p>Tổng chi tiêu đã thanh toán: <strong id="history-total">--</strong></p>
+        <div class="history-table-scroll"><table>
+            <thead><tr><th>Booking</th><th>Phòng</th><th>Ngày nhận</th><th>Ngày trả</th><th>Số đêm</th><th>Trạng thái</th><th>Đã thu</th><th>Phương thức</th><th>Hóa đơn</th></tr></thead>
+            <tbody id="history-tbody"></tbody>
+        </table></div>
+        <div class="modal-footer"><button id="history-reload" class="btn btn-secondary">Tải lại</button><button class="btn btn-primary" onclick="closeCustomerHistory()">Đóng</button></div>
+    </div>
+</div>
 <!-- JS tien ich chung -->
 <script src="../js/api.js"></script>
+<script src="../js/account.js"></script>
 <!-- JS xu ly khach hang -->
 <script src="../js/customers.js"></script>
 

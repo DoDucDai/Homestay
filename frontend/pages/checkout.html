@@ -6,7 +6,11 @@
     <title>Check-out & Thanh Toán - Homestay Management</title>
     <link rel="stylesheet" href="../css/style.css">
 </head>
-<body>
+<body class="session-pending">
+<div id="session-status" class="session-status" role="status" aria-live="polite">
+    <span id="session-message">Đang kiểm tra phiên đăng nhập...</span>
+    <button id="session-retry" class="btn btn-secondary" hidden>Thử lại</button>
+</div>
 
 <!-- ================================================
      TRANG CHECK-OUT VA THANH TOAN
@@ -25,7 +29,7 @@
             <li><a href="checkin.html">✅ Check-in</a></li>
             <li><a href="checkout.html" class="active">💰 Check-out</a></li>
             <li><a href="services.html">🛎 Dịch vụ</a></li>
-            <li><a href="statistics.html">📊 Thống kê</a></li>
+            <li><a data-admin-only hidden href="statistics.html">📊 Thống kê</a></li>
             <li><a href="#" id="logout-btn">🚪 Đăng xuất</a></li>
         </ul>
     </nav>
@@ -37,7 +41,8 @@
 
         <!-- Danh sach phong dang su dung -->
         <div class="card">
-            <h3 style="margin-bottom:15px;">Phòng đang có khách (chờ check-out)</h3>
+            <h3 style="margin-bottom:15px;">Phòng đang có khách</h3>
+            <button class="btn btn-secondary" onclick="loadCheckedInBookings()">Tải lại khách đang ở</button>
             <table id="checkout-table">
                 <thead>
                     <tr>
@@ -54,18 +59,25 @@
                 </tbody>
             </table>
         </div>
+<section class="card payment-history">
+    <h3>Hóa đơn đã thu</h3>
+    <button class="btn btn-secondary" onclick="loadPayments()">Tải lại hóa đơn</button>
+    <table><thead><tr><th>Hóa đơn</th><th>Booking</th><th>Ngày thu</th><th>Phương thức</th><th>Tổng tiền</th><th>Thao tác</th></tr></thead>
+    <tbody id="payments-tbody"><tr><td colspan="6">Đang tải...</td></tr></tbody></table>
+</section>
     </div>
 </div>
 
 <!-- MODAL HOA DON & THANH TOAN -->
 <div class="modal-overlay" id="checkout-modal">
-    <div class="modal-box" style="width:600px;">
-        <h3>🧾 Hóa Đơn Thanh Toán</h3>
+    <div class="modal-box" style="width:800px;">
+        <p id="checkout-status" role="status" aria-live="polite"></p>
 
         <!-- Thong tin hoa don - JS dien vao -->
         <div id="invoice-details" style="background:#f9f9f9; padding:15px; border-radius:5px; margin-bottom:15px; line-height:2;">
+            <h3 id="invoice-title">Tạm tính</h3>
             <table style="width:100%; border:none;">
-                <tr><td><strong>Mã hóa đơn:</strong></td>    <td id="inv-id">--</td></tr>
+                <tr><td><strong>Mã chứng từ:</strong></td>    <td id="inv-id">--</td></tr>
                 <tr><td><strong>Khách hàng:</strong></td>     <td id="inv-customer">--</td></tr>
                 <tr><td><strong>Phòng:</strong></td>          <td id="inv-room">--</td></tr>
                 <tr><td><strong>Ngày nhận:</strong></td>      <td id="inv-checkin">--</td></tr>
@@ -79,9 +91,15 @@
                     <td><strong id="inv-grand-total">--</strong></td>
                 </tr>
             </table>
+            <h4>Bảng kê dịch vụ</h4>
+            <table><thead><tr><th>Dịch vụ</th><th>Số lượng</th><th>Đơn giá</th><th>Thành tiền</th><th class="no-print">Thao tác</th></tr></thead><tbody id="invoice-services"></tbody></table>
+            <p>Ngày thu: <span id="inv-paid-at">--</span></p>
+            <p>Phương thức: <span id="inv-method">--</span></p>
+            <p id="inv-warning" role="status"></p>
         </div>
-
-        <div class="form-group">
+        <button id="add-service-btn" class="btn btn-primary" onclick="openServiceModal()">+ Thêm dịch vụ</button>
+        <div class="form-group" id="payment-controls">
+            <p>Nhân viên xác nhận đã thu đủ tiền. Phương thức chỉ để ghi nhận, hệ thống chưa xác minh tiền về hoặc kết nối cổng thanh toán. Tiền phòng tính theo số đêm đã đặt.</p>
             <label for="payment-method">Phương thức thanh toán</label>
             <select id="payment-method">
                 <option value="Tiền mặt">Tiền mặt</option>
@@ -91,14 +109,26 @@
         </div>
 
         <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeModal()">Hủy</button>
-            <button class="btn btn-success" onclick="confirmCheckout()">✅ Xác nhận thanh toán & Check-out</button>
+            <button id="checkout-cancel-btn" class="btn btn-secondary" onclick="closeCheckoutModal()">Đóng</button>
+            <button id="invoice-print-btn" class="btn btn-primary" onclick="printInvoice()" disabled>In hóa đơn</button>
+            <button id="checkout-confirm-btn" class="btn btn-success" onclick="confirmCheckout()" disabled>✅ Xác nhận thanh toán & Check-out</button>
         </div>
     </div>
 </div>
 
+<div class="modal-overlay" id="service-modal" role="dialog" aria-modal="true" aria-labelledby="service-title">
+    <div class="modal-box">
+        <h3 id="service-title">Thêm dịch vụ cho khách đang ở</h3>
+        <p id="service-status" role="status" aria-live="polite"></p>
+        <div class="form-group"><label for="service-select">Dịch vụ</label><select id="service-select" onchange="updateServicePrice()"></select></div>
+        <div class="form-group"><label for="service-quantity">Số lượng (1–10000)</label><input id="service-quantity" type="number" min="1" max="10000" step="1" value="1" oninput="updateServicePrice()"></div>
+        <p id="service-price">--</p>
+        <div class="modal-footer"><button id="service-cancel-btn" class="btn btn-secondary" onclick="closeServiceModal()">Hủy</button><button id="service-save-btn" class="btn btn-success" onclick="addBookingService()" disabled>Thêm dịch vụ</button></div>
+    </div>
+</div>
 <!-- JS tien ich chung -->
 <script src="../js/api.js"></script>
+<script src="../js/account.js"></script>
 <!-- JS xu ly -->
 <script src="../js/checkout.js"></script>
 

@@ -183,6 +183,42 @@ table tbody tr:hover {
     display: flex;
 }
 
+[hidden] { display: none !important; }
+.session-pending .wrapper { visibility: hidden; }
+.session-pending .modal-overlay { display: none !important; }
+.session-status { padding: 24px; text-align: center; }
+.account-controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; padding: 16px 20px; background: white; border-radius: 8px; border: 1px solid #ddd; }
+.account-identity, .account-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.account-role { color: #555; font-size: 14px; }
+.history-box { width: 1150px; }
+.history-table-scroll { overflow-x: auto; }
+.history-table-scroll table { min-width: 900px; }
+@media (max-width: 768px) {
+    .wrapper .sidebar { display: block; position: static; width: auto; height: auto; }
+    .wrapper { display: block; }
+    .sidebar ul { display: flex; flex-wrap: wrap; gap: 4px; }
+    .sidebar .logo { margin-bottom: 12px; }
+}
+.modal-box { max-height: 90vh; overflow-y: auto; }
+#service-modal { z-index: 1100; }
+.card { overflow-x: auto; }
+.room-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.room-filters p { flex-basis: 100%; }
+button:disabled { opacity: .55; cursor: not-allowed; }
+#checkout-status, #service-status { margin: 12px 0; }
+@media print {
+    @page { size: A4; margin: 15mm; }
+    body > :not(#checkout-modal) { display: none !important; }
+    #checkout-modal { display: block !important; position: static; width: auto; height: auto; background: white; }
+    #checkout-modal .modal-box { width: 100% !important; max-width: none; max-height: none; overflow: visible; box-shadow: none; padding: 0; }
+    #checkout-modal .modal-box > :not(#invoice-details) { display: none !important; }
+    #invoice-details { background: white !important; color: black; padding: 0 !important; }
+    #invoice-details .no-print, #invoice-details td:last-child:empty { display: none; }
+    #invoice-details table { width: 100%; font-size: 11pt; }
+    #invoice-details tr { break-inside: avoid; }
+    #invoice-details thead { display: table-header-group; }
+}
+
 .modal-box {
     background: white;
     border-radius: 8px;

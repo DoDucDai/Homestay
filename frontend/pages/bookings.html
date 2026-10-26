@@ -6,7 +6,11 @@
     <title>Quản Lý Booking - Homestay Management</title>
     <link rel="stylesheet" href="../css/style.css">
 </head>
-<body>
+<body class="session-pending">
+<div id="session-status" class="session-status" role="status" aria-live="polite">
+    <span id="session-message">Đang kiểm tra phiên đăng nhập...</span>
+    <button id="session-retry" class="btn btn-secondary" hidden>Thử lại</button>
+</div>
 
 <!-- ================================================
      TRANG BOOKING
@@ -25,7 +29,7 @@
             <li><a href="checkin.html">✅ Check-in</a></li>
             <li><a href="checkout.html">💰 Check-out</a></li>
             <li><a href="services.html">🛎 Dịch vụ</a></li>
-            <li><a href="statistics.html">📊 Thống kê</a></li>
+            <li><a data-admin-only hidden href="statistics.html">📊 Thống kê</a></li>
             <li><a href="#" id="logout-btn">🚪 Đăng xuất</a></li>
         </ul>
     </nav>
@@ -49,11 +53,12 @@
                         <th>Ngày nhận</th>
                         <th>Ngày trả</th>
                         <th>Trạng thái</th>
+                        <th>Ghi chú</th>
                         <th>Thao tác</th>
                     </tr>
                 </thead>
                 <tbody id="bookings-tbody">
-                    <tr><td colspan="7" style="text-align:center;">Đang tải dữ liệu...</td></tr>
+                    <tr><td colspan="8" style="text-align:center;">Đang tải dữ liệu...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -68,46 +73,53 @@
         <input type="hidden" id="booking-id">
 
         <div class="form-group">
+            <label for="booking-checkin-date">Ngày nhận phòng *</label>
+            <input type="date" id="booking-checkin-date" required>
+        </div>
+        <div class="form-group">
+            <label for="booking-checkout-date">Ngày trả phòng *</label>
+            <input type="date" id="booking-checkout-date" required>
+            <p>Chọn khoảng ngày trước để tìm phòng. Ngày trả phải sau ngày nhận; ngày tính theo giờ Việt Nam.</p>
+        </div>
+        <div class="form-group">
             <label for="booking-customer">Khách hàng *</label>
             <select id="booking-customer">
                 <option value="">-- Chọn khách hàng --</option>
                 <!-- JS se dien vao -->
             </select>
+            <p id="booking-customer-status" role="status" aria-live="polite"></p>
         </div>
         <div class="form-group">
             <label for="booking-room">Phòng *</label>
-            <select id="booking-room">
+            <select id="booking-room" disabled>
                 <option value="">-- Chọn phòng trống --</option>
                 <!-- JS se dien vao cac phong trong -->
             </select>
-        </div>
-        <div class="form-group">
-            <label for="booking-checkin-date">Ngày nhận phòng *</label>
-            <input type="date" id="booking-checkin-date">
-        </div>
-        <div class="form-group">
-            <label for="booking-checkout-date">Ngày trả phòng *</label>
-            <input type="date" id="booking-checkout-date">
+            <p id="booking-room-status" role="status" aria-live="polite"></p>
+            <button id="booking-reload-btn" type="button" class="btn btn-secondary" onclick="reloadBookingData()">Tải lại dữ liệu</button>
         </div>
         <div class="form-group">
             <label for="booking-note">Ghi chú</label>
-            <textarea id="booking-note" rows="2" placeholder="Yêu cầu đặc biệt..."></textarea>
+            <textarea id="booking-note" rows="2" maxlength="500" placeholder="Yêu cầu đặc biệt..."></textarea>
         </div>
 
         <!-- Hien thi so tien du tinh -->
         <div id="price-preview" style="background:#f0f4f8; padding:10px; border-radius:5px; display:none;">
-            <strong>Dự tính:</strong> <span id="estimated-nights">0</span> đêm × <span id="room-price-display">0</span> VNĐ = <strong id="total-price-display">0 VNĐ</strong>
+            <strong>Tạm tính tiền phòng:</strong> <span id="estimated-nights">0</span> đêm × <span id="room-price-display">0 VNĐ</span> = <strong id="total-price-display">0 VNĐ</strong>
+            <p>Chưa gồm dịch vụ phát sinh. Giá được chốt khi tạo booking.</p>
         </div>
+        <p id="booking-status" role="status" aria-live="polite"></p>
 
         <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeModal()">Hủy</button>
-            <button class="btn btn-primary" onclick="saveBooking()">Xác nhận booking</button>
+            <button id="booking-close-btn" type="button" class="btn btn-secondary" onclick="closeBookingModal()">Đóng</button>
+            <button id="booking-save-btn" type="button" class="btn btn-primary" onclick="saveBooking()" disabled>Xác nhận booking</button>
         </div>
     </div>
 </div>
 
 <!-- JS tien ich chung -->
 <script src="../js/api.js"></script>
+<script src="../js/account.js"></script>
 <!-- JS xu ly -->
 <script src="../js/bookings.js"></script>
 
