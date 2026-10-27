@@ -1,0 +1,131 @@
+PHÂN CÔNG BỔ SUNG DỮ LIỆU DEMO VÀ KIỂM TRA HOMESTAY
+
+Mục tiêu: làm bộ dữ liệu đủ phong phú để demo tìm kiếm, phân trang, lịch phòng và báo cáo doanh thu. Hưng và Long chuẩn bị dữ liệu, truy vấn đọc và kết quả kiểm tra. Đại sẽ kiểm tra, nhập database, xử lý API, snapshot hóa đơn và tích hợp code.
+
+1. HƯNG — DỮ LIỆU KHÁCH HÀNG, DỊCH VỤ VÀ KIỂM TRA GIAO DIỆN
+
+A. Tạo 50 khách hàng giả lập trong customers.csv
+Các cột:
+customer_code,full_name,document_type,document_number,phone,email,address
+
+Yêu cầu:
+- Mã khách KH001 đến KH050, không trùng.
+- Có tên tiếng Việt đa dạng và một số khách trùng tên nhưng khác giấy tờ.
+- document_type dùng CCCD hoặc PASSPORT.
+- CCCD: đúng 12 chữ số. Hộ chiếu: 6–20 ký tự chữ/số, viết hoa.
+- Giấy tờ không trùng; điện thoại đúng 10 chữ số, bắt đầu bằng 0.
+- Có một số khách không có email hoặc địa chỉ, để trống ô tương ứng.
+- Email giả lập dùng miền example.com. Toàn bộ thông tin phải là dữ liệu tự tạo, không lấy thông tin cá nhân thật.
+
+B. Tạo 12 dịch vụ trong services.csv
+Các cột:
+service_code,service_name,unit_label,unit_price,status
+
+Yêu cầu:
+- Mã DV001 đến DV012, không trùng; tên dịch vụ không trùng.
+- Có dịch vụ nước uống, ăn sáng, giặt ủi, thuê xe, đưa đón... với giá hợp lý.
+- unit_label ghi đơn vị tính như chai, suất, kg, ngày, lượt. Đây là thông tin chuẩn bị để Đại xem xét sử dụng; không tự thêm cột database.
+- Giá là số nguyên VND, không dấu phân cách, không âm.
+- status dùng Hoạt động hoặc Ngừng; có ít nhất 2 dịch vụ Ngừng.
+
+C. Kiểm tra 15 tình huống trên giao diện khách hàng và dịch vụ hiện có
+- Bao gồm: thêm hợp lệ, sửa, tìm tên có dấu, tìm số giấy tờ, giấy tờ trùng, điện thoại sai, thiếu trường bắt buộc, kiểm tra phân quyền admin/staff và trường hợp danh sách rỗng.
+- Mỗi tình huống ghi: mã kiểm tra, tài khoản/vai trò, các bước, kết quả mong đợi, kết quả thực tế, Đạt/Lỗi.
+- Có lỗi thì ghi rõ cách tái hiện và chụp ảnh. Ghi đúng kết quả quan sát được; không đánh dấu Đạt khi chưa chạy.
+- Dùng database thử riêng, không sửa/xóa dữ liệu đang dùng của nhóm. Không cần nhập đủ 50 khách vào giao diện; bộ CSV sẽ do Đại nhập sau.
+- Ghi kết quả vào mục “Hưng — Kiểm tra khách hàng/dịch vụ” trong DOCS.md. Ảnh lỗi để trong thư mục cùng phần việc của mình.
+
+Đầu ra của Hưng:
+- contributions/hung/customers.csv
+- contributions/hung/services.csv
+- Mục kết quả kiểm tra trong DOCS.md; ảnh lỗi nếu có.
+
+2. LONG — DỮ LIỆU PHÒNG, BOOKING, THANH TOÁN VÀ TRUY VẤN KIỂM TRA
+
+A. Tạo 20 phòng trong rooms.csv
+Các cột:
+room_code,room_name,room_type,price,status,description
+
+Yêu cầu:
+- room_code duy nhất, ví dụ P101, P102.
+- room_type dùng Single, Double, VIP hoặc Family; có đủ cả 4 loại.
+- Giá là số nguyên VND lớn hơn 0; có mô tả tiếng Việt phù hợp.
+- status ban đầu dùng Trống hoặc Bảo trì, có 2 phòng Bảo trì.
+- Không tạo booking đang hoạt động hoặc tương lai cho phòng Bảo trì.
+- Trạng thái Đã đặt/Đang sử dụng sẽ do Đại xử lý theo booking khi tích hợp.
+
+B. Tạo 60 booking trong bookings.csv
+Các cột:
+booking_code,customer_code,room_code,checkin_date,checkout_date,status,price_per_night,created_at,note
+
+Yêu cầu:
+- Mã BK001 đến BK060; dùng đúng customer_code trong file Hưng và room_code trong file Long.
+- Phân bố: 40 CheckedOut, 10 Cancelled, 6 Confirmed, 4 CheckedIn.
+- CheckedOut đã kết thúc trước hoặc vào ngày chốt; Confirmed có ngày nhận sau ngày chốt; CheckedIn có ngày nhận không sau ngày chốt và ngày trả sau ngày chốt.
+- Ngày trả luôn sau ngày nhận, có booking 1 đêm và nhiều đêm.
+- Ngày tạo không sau ngày nhận phòng.
+- Có khách quay lại nhiều lần; có phòng được đặt nhiều lần vào các khoảng khác nhau.
+- Các booking không bị hủy của cùng phòng không được trùng khoảng ở. Ngày trả của booking trước được bằng ngày nhận của booking sau.
+- price_per_night là giá đã chốt cho booking, ghi số nguyên VND lớn hơn 0.
+
+C. Tạo dữ liệu sử dụng dịch vụ trong booking_services.csv
+Các cột:
+booking_code,service_code,quantity,unit_price_at_booking
+
+Yêu cầu:
+- Dùng đúng mã booking của Long và service_code của Hưng.
+- Có ít nhất 30 dòng, phân bố cho ít nhất 20 booking đã trả phòng; có booking dùng nhiều loại dịch vụ và booking không dùng dịch vụ.
+- Có thêm vài dòng cho booking CheckedIn để kiểm tra dịch vụ chưa thanh toán.
+- Không thêm dịch vụ cho Cancelled hoặc Confirmed; không chọn dịch vụ Ngừng.
+- Một cặp booking_code/service_code chỉ có một dòng; quantity là số nguyên dương.
+- unit_price_at_booking là giá đã chốt, số nguyên VND không âm. Đại sẽ xử lý các trường snapshot khi nhập.
+
+D. Tạo 40 thanh toán trong payments.csv
+Các cột:
+booking_code,room_total,service_total,grand_total,payment_method,paid_at
+
+Yêu cầu:
+- Mỗi booking CheckedOut có đúng 1 thanh toán; các trạng thái khác không có thanh toán.
+- room_total = số đêm × price_per_night.
+- service_total = tổng quantity × unit_price_at_booking của booking đó, bằng 0 nếu không dùng dịch vụ.
+- grand_total = room_total + service_total.
+- payment_method dùng Tiền mặt hoặc Chuyển khoản.
+- paid_at đặt vào ngày trả phòng; phân bố 40 thanh toán qua đủ 12 tháng, mỗi tháng ít nhất 1 thanh toán và tổng tiền các tháng có khác nhau.
+- Không cần tạo invoice_snapshot JSON hoặc ID thanh toán; Đại làm khi nhập dữ liệu.
+
+E. Viết queries_check.sql chỉ gồm truy vấn SELECT kiểm tra
+- Số lượng dòng của từng bảng.
+- Booking có ngày trả không sau ngày nhận.
+- Booking không bị hủy có lịch trùng nhau trong cùng phòng.
+- Tổng tiền hóa đơn không bằng tiền phòng cộng tiền dịch vụ.
+- Doanh thu đã thanh toán theo tháng và năm, dùng paid_at.
+- Truy vấn chạy trên schema hiện tại trong database thử đã có dữ liệu; việc kiểm tra và nhập bộ CSV mới sẽ do Đại xử lý.
+- Ghi cách chạy, ý nghĩa kết quả và kết quả thử thực tế vào mục “Long — Dữ liệu và truy vấn kiểm tra” trong DOCS.md. Không cần tạo API hay giao diện mới.
+
+Đầu ra của Long:
+- contributions/long/rooms.csv
+- contributions/long/bookings.csv
+- contributions/long/booking_services.csv
+- contributions/long/payments.csv
+- contributions/long/queries_check.sql
+- Mục hướng dẫn và kết quả thử trong DOCS.md.
+
+3. CÁCH PHỐI HỢP VÀ NỘP BÀI
+
+- Bước 1: Hưng chốt danh sách mã khách/dịch vụ, Long chốt mã phòng. Hai bạn gửi danh sách mã cho nhau trước khi Long tạo booking và dịch vụ sử dụng.
+- Bước 2: Long chọn và ghi rõ ngày chốt dữ liệu trong DOCS.md, ví dụ 2026-10-27. Tính trạng thái booking theo ngày này. Kỳ doanh thu gồm tháng có ngày chốt và 11 tháng trước đó; thanh toán trong tháng chốt không được sau ngày chốt.
+- Bước 3: Mỗi bạn nộp trước 5 dòng mẫu để Đại kiểm tra cấu trúc, sau đó hoàn thiện đủ số lượng.
+- CSV lưu UTF-8, dòng đầu là tên cột đúng như trên. Giá tiền không có dấu chấm/phẩy hoặc chữ VND. Ngày dùng YYYY-MM-DD; created_at và paid_at dùng YYYY-MM-DD HH:mm:ss theo giờ Việt Nam.
+- Giữ số điện thoại và giấy tờ dưới dạng văn bản để không mất số 0 đầu. Ô có dấu phẩy, dấu ngoặc kép hoặc xuống dòng phải được đặt trong ngoặc kép theo định dạng CSV.
+- Có thể soạn bằng bảng tính rồi xuất CSV. Chỉ nộp một bộ CSV cuối cùng, không nộp nhiều bản trùng nhau.
+- Mỗi bạn commit trực tiếp các file nguồn vào nhánh của mình; gửi Đại tên nhánh và mã commit. Không chỉ gửi ZIP hoặc ảnh chụp code.
+- Giữ các thay đổi trong thư mục contributions của mình và mục DOCS tương ứng. Đại sẽ tự lấy và kết hợp; hai bạn không cần merge vào main.
+- Phạm vi lần này là dữ liệu, truy vấn chỉ đọc và kiểm tra. Không thay schema, migration, seed gốc, tài khoản, API, xác thực hoặc snapshot hóa đơn.
+
+TIÊU CHÍ HOÀN THÀNH
+
+- Đủ số lượng, đủ cột, không trùng mã và không tham chiếu mã không tồn tại.
+- Dữ liệu hợp lý về ngày, trạng thái, lịch phòng và tiền.
+- Dữ liệu đều là giả lập; có thể dùng trực tiếp làm đầu vào để Đại nhập database.
+- Kết quả kiểm tra ghi rõ điều đã chạy và lỗi còn tồn tại.
+- Có commit để Đại lấy từng phần về dùng.
