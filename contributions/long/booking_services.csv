@@ -1,0 +1,6 @@
+booking_code,service_code,quantity,unit_price_at_booking
+BK001,DV001,2,50000
+BK001,DV002,1,100000
+BK002,DV003,3,30000
+BK003,DV001,1,50000
+BK004,DV002,2,100000
