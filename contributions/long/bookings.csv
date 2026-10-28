@@ -1,0 +1,6 @@
+booking_code,customer_code,room_code,checkin_date,checkout_date,status,price_per_night,created_at,note
+BK001,KH001,P101,2026-03-01,2026-03-03,CheckedOut,400000,2026-02-25 08:00:00,Khách đã trả phòng hoàn tất
+BK002,KH002,P102,2026-03-05,2026-03-08,CheckedOut,400000,2026-03-01 10:00:00,Khách thanh toán đủ
+BK003,KH003,P201,2026-03-10,2026-03-12,CheckedOut,600000,2026-03-08 14:00:00,Không phát sinh thêm
+BK004,KH004,P301,2026-03-15,2026-03-20,CheckedIn,1200000,2026-03-12 09:00:00,Khách đang lưu trú
+BK005,KH005,P202,2026-03-25,2026-03-28,Confirmed,600000,2026-03-20 11:00:00,Đã đặt cọc chờ nhận phòng
