@@ -1,0 +1,4 @@
+booking_code,room_total,service_total,grand_total,payment_method,paid_at
+BK001,800000,200000,1000000,Tiền mặt,2026-03-03 12:00:00
+BK002,1200000,90000,1290000,Chuyển khoản,2026-03-08 11:30:00
+BK003,1200000,50000,1250000,Tiền mặt,2026-03-12 12:30:00
