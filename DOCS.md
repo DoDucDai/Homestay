@@ -4218,3 +4218,14 @@ git push                          # 4. Push lên
 - **Deadline hàng tuần:** Cuối mỗi tuần (Vd: Tối Chủ Nhật) cả nhóm sẽ họp 15-30 phút để review xem tiến độ đến đâu.
 - **Quy tắc đẩy code:** Làm xong phần nào (dù nhỏ), commit và push lên GitHub ngay, đừng để dồn đến cuối tuần.
 - **Nếu gặp khó khăn (Stuck):** Không ôm việc, sau 2-3 tiếng không sửa được lỗi thì nhắn lên nhóm nhờ Leader hoặc các bạn khác hỗ trợ ngay.
+
+
+## Hưng — Kiểm tra khách hàng/dịch vụ (29/10/2026)
+
+Đại/Codex đã bổ sung 15 ca Chrome thật theo yêu cầu sửa phần việc, đạt 15/15 trên database QA riêng. Xem [bảng bước/kỳ vọng/thực tế](contributions/hung/UI_TESTS.md). Hai CSV cuối nằm đúng trong contributions/hung, đủ 50 khách/12 dịch vụ; không giữ bản trùng ở gốc.
+
+## Long — Dữ liệu và truy vấn kiểm tra (29/10/2026)
+
+Đã hoàn thiện 20 phòng, 60 booking, 52 dòng dịch vụ, 40 payment theo ngày chốt 29/10/2026; 40 CheckedOut, 10 Cancelled, 6 Confirmed, 4 CheckedIn. Doanh thu 11/2025–10/2026 là 70.680.000 VNĐ. [Hướng dẫn, đối soát tháng, cách nhập và kết quả thật](contributions/README.md). Truy vấn chỉ đọc dùng giá snapshot và lọc đã thanh toán; 7 nhóm SQL/import đạt, gồm rollback và chạy lại không trùng.
+
+HomestayDB trên máy Đại đã được sao lưu/kiểm tra phục hồi, nâng bằng migrations hiện có rồi nhập append-only. Dữ liệu cũ được giữ, hóa đơn legacy thiếu chi tiết có cảnh báo và không tự sửa tổng. Đây là hoàn thiện bởi Đại/Codex dựa trên các commit nguồn của Hưng và Long; không ghi nhận thay kết quả chưa chạy của hai bạn.
