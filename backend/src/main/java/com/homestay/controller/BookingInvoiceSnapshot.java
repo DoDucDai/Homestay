@@ -107,11 +107,17 @@ final class BookingInvoiceSnapshot {
     }
 
     static int store(Connection conn, Map<String, Object> invoice, String paymentMethod) throws SQLException {
+        return store(conn, invoice, paymentMethod, null);
+    }
+
+    // Manual imports can preserve paid_at; normal checkout keeps the SQL server timestamp.
+    static int store(Connection conn, Map<String, Object> invoice, String paymentMethod,
+                     java.time.LocalDateTime paidAt) throws SQLException {
         int paymentId;
         String insert = """
                 INSERT INTO Payments(booking_id,room_total,service_total,grand_total,payment_method,
                     payment_status,paid_at,snapshot_estimated,reconciliation_warning)
-                VALUES(?,?,?,?,?,N'Đã thanh toán',GETDATE(),?,?)
+                VALUES(?,?,?,?,?,N'Đã thanh toán',COALESCE(?,GETDATE()),?,?)
                 """;
         try (PreparedStatement stmt = conn.prepareStatement(insert, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, ((Number) invoice.get("bookingId")).intValue());
@@ -119,8 +125,9 @@ final class BookingInvoiceSnapshot {
             stmt.setBigDecimal(3, (BigDecimal) invoice.get("serviceTotal"));
             stmt.setBigDecimal(4, (BigDecimal) invoice.get("grandTotal"));
             stmt.setString(5, paymentMethod);
-            stmt.setBoolean(6, Boolean.TRUE.equals(invoice.get("snapshotEstimated")));
-            stmt.setString(7, (String) invoice.get("reconciliationWarning"));
+            stmt.setTimestamp(6, paidAt == null ? null : Timestamp.valueOf(paidAt));
+            stmt.setBoolean(7, Boolean.TRUE.equals(invoice.get("snapshotEstimated")));
+            stmt.setString(8, (String) invoice.get("reconciliationWarning"));
             stmt.executeUpdate();
             try (ResultSet rs = stmt.getGeneratedKeys()) {
                 if (!rs.next()) throw new SQLException("Payment key was not returned");
