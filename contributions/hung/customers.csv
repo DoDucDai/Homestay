@@ -1,0 +1,51 @@
+customer_code,full_name,document_type,document_number,phone,email,address
+KH001,Nguyễn Văn An,CCCD,001201004521,0912340001,an.nguyen@example.com,Hà Nội
+KH002,Trần Thị Bình,CCCD,079195008832,0912340002,binh.tran@example.com,TP. Hồ Chí Minh
+KH003,Lê Hoàng Cường,CCCD,048198002219,0912340003,cuong.le@example.com,Đà Nẵng
+KH004,Phạm Thị Dung,CCCD,046200007741,0912340004,dung.pham@example.com,Huế
+KH005,Hoàng Minh Đức,CCCD,056197003356,0912340005,,Nha Trang
+KH006,Vũ Thị Hạnh,CCCD,034199005518,0912340006,hanh.vu@example.com,Thái Bình
+KH007,Đặng Quốc Khánh,CCCD,019202001167,0912340007,khanh.dang@example.com,Thái Nguyên
+KH008,Bùi Thanh Lam,CCCD,037196009924,0912340008,lam.bui@example.com,
+KH009,Ngô Thị Mai,CCCD,031200004403,0912340009,mai.ngo@example.com,Hải Phòng
+KH010,Đỗ Văn Nam,CCCD,092198006672,0912340010,nam.do@example.com,Cần Thơ
+KH011,Nguyễn Văn An,CCCD,026203002285,0912340011,an.nguyen2@example.com,Vĩnh Phúc
+KH012,Trịnh Thị Oanh,CCCD,038199007719,0912340012,oanh.trinh@example.com,Thanh Hóa
+KH013,Lý Văn Phúc,CCCD,075195003846,0912340013,,Đồng Nai
+KH014,Dương Thị Quyên,CCCD,042201008150,0912340014,quyen.duong@example.com,Hà Tĩnh
+KH015,Phan Minh Quân,CCCD,068197001093,0912340015,quan.phan@example.com,Lâm Đồng
+KH016,Trần Thị Mai,CCCD,001204009367,0912340016,mai.tran@example.com,Hà Nội
+KH017,Võ Thanh Sơn,CCCD,080198005524,0912340017,son.vo@example.com,Long An
+KH018,Lương Thị Thảo,CCCD,024200002781,0912340018,thao.luong@example.com,Bắc Giang
+KH019,Hồ Đắc Thắng,CCCD,044196004438,0912340019,thang.ho@example.com,Quảng Bình
+KH020,Mai Thị Uyên,CCCD,051202006095,0912340020,uyen.mai@example.com,Quảng Ngãi
+KH021,Lê Minh Tuấn,CCCD,030199003312,0912340021,tuan.le@example.com,Hải Dương
+KH022,Cao Văn Vinh,CCCD,072195007869,0912340022,,Bà Rịa - Vũng Tàu
+KH023,Tạ Thị Xuân,CCCD,035203001546,0912340023,xuan.ta@example.com,Hà Nam
+KH024,Đinh Hải Yến,CCCD,027200008203,0912340024,yen.dinh@example.com,Bắc Ninh
+KH025,Chu Quang Anh,CCCD,008198002970,0912340025,quanganh.chu@example.com,Tuyên Quang
+KH026,Lê Minh Tuấn,CCCD,049201005627,0912340026,tuan.le2@example.com,Quảng Nam
+KH027,Nguyễn Thị Bích,CCCD,033197009184,0912340027,bich.nguyen@example.com,
+KH028,Phạm Gia Bảo,CCCD,001205003741,0912340028,bao.pham@example.com,Hà Nội
+KH029,Trần Đức Chiến,CCCD,087199006458,0912340029,chien.tran@example.com,Đồng Tháp
+KH030,Hà Thị Diệp,CCCD,014202001915,0912340030,diep.ha@example.com,Sơn La
+KH031,Lâm Ngọc Giang,CCCD,096196008572,0912340031,giang.lam@example.com,Cà Mau
+KH032,Kiều Văn Hải,CCCD,025198004039,0912340032,,Phú Thọ
+KH033,Nguyễn Hữu Hiếu,CCCD,040200007296,0912340033,hieu.nguyen@example.com,Nghệ An
+KH034,Lưu Thị Kim,CCCD,022197002863,0912340034,kim.luu@example.com,Quảng Ninh
+KH035,Mạc Văn Long,CCCD,004203009520,0912340035,long.mac@example.com,Cao Bằng
+KH036,Tô Thị Minh,CCCD,066199001187,0912340036,minh.to@example.com,Đắk Lắk
+KH037,Doãn Quốc Nghĩa,CCCD,052201006744,0912340037,nghia.doan@example.com,Bình Định
+KH038,Thái Thị Ngọc,CCCD,089195003401,0912340038,ngoc.thai@example.com,An Giang
+KH039,Văn Công Phát,CCCD,070198008968,0912340039,phat.van@example.com,Bình Phước
+KH040,Trương Thị Quỳnh,CCCD,015202004625,0912340040,quynh.truong@example.com,Yên Bái
+KH041,Emily Carter,PASSPORT,P90412837,0912340041,emily.carter@example.com,Hoa Kỳ
+KH042,Kim Min Jun,PASSPORT,M48213976,0912340042,minjun.kim@example.com,Hàn Quốc
+KH043,Nguyễn Đình Vũ,PASSPORT,C7821045,0912340043,vu.nguyen@example.com,Hà Nội
+KH044,Tanaka Yuki,PASSPORT,TK3920185,0912340044,yuki.tanaka@example.com,Nhật Bản
+KH045,Pierre Dubois,PASSPORT,19FR84521,0912340045,pierre.dubois@example.com,Pháp
+KH046,Lê Thị Hương,PASSPORT,B8830214,0912340046,huong.le@example.com,Đà Nẵng
+KH047,Anna Müller,PASSPORT,C01X66789,0912340047,anna.muller@example.com,Đức
+KH048,Wang Wei,PASSPORT,E56781234,0912340048,,Trung Quốc
+KH049,Oliver Brown,PASSPORT,523190ZA7,0912340049,oliver.brown@example.com,Anh
+KH050,Phạm Văn Toàn,PASSPORT,N5517026,0912340050,toan.pham@example.com,

@@ -1,0 +1,13 @@
+service_code,service_name,unit_label,unit_price,status
+DV001,Nước uống đóng chai,chai,10000,Hoạt động
+DV002,Ăn sáng,suất,80000,Hoạt động
+DV003,Giặt ủi,kg,30000,Hoạt động
+DV004,Thuê xe máy,ngày,150000,Hoạt động
+DV005,Đưa đón sân bay,lượt,200000,Hoạt động
+DV006,Spa & Massage,lượt,300000,Hoạt động
+DV007,Nước ngọt lon,lon,15000,Hoạt động
+DV008,Tour tham quan địa phương,lượt,250000,Hoạt động
+DV009,Thuê xe đạp,ngày,50000,Hoạt động
+DV010,Tiệc nướng BBQ,suất,180000,Hoạt động
+DV011,Karaoke,giờ,120000,Ngừng
+DV012,Thuê xe ô tô tự lái,ngày,800000,Ngừng
