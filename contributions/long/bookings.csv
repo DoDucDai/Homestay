@@ -2,5 +2,60 @@ booking_code,customer_code,room_code,checkin_date,checkout_date,status,price_per
 BK001,KH001,P101,2026-03-01,2026-03-03,CheckedOut,400000,2026-02-25 08:00:00,Khách đã trả phòng hoàn tất
 BK002,KH002,P102,2026-03-05,2026-03-08,CheckedOut,400000,2026-03-01 10:00:00,Khách thanh toán đủ
 BK003,KH003,P201,2026-03-10,2026-03-12,CheckedOut,600000,2026-03-08 14:00:00,Không phát sinh thêm
-BK004,KH004,P301,2026-03-15,2026-03-20,CheckedIn,1200000,2026-03-12 09:00:00,Khách đang lưu trú
-BK005,KH005,P202,2026-03-25,2026-03-28,Confirmed,600000,2026-03-20 11:00:00,Đã đặt cọc chờ nhận phòng
+BK004,KH004,P301,2026-10-28,2026-11-01,CheckedIn,1200000,2026-10-25 09:00:00,Khách demo đang lưu trú tại ngày chốt 2026-10-29
+BK005,KH005,P202,2026-11-03,2026-11-06,Confirmed,600000,2026-10-26 11:00:00,Booking demo tương lai so với ngày chốt
+BK006,KH001,P402,2025-11-04,2025-11-05,CheckedOut,550000,2025-11-01 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK007,KH002,P403,2025-12-04,2025-12-06,CheckedOut,1100000,2025-11-30 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK008,KH003,P404,2026-01-04,2026-01-07,CheckedOut,1400000,2025-12-30 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK009,KH004,P405,2026-02-04,2026-02-05,CheckedOut,350000,2026-01-29 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK010,KH005,P406,2026-03-04,2026-03-06,CheckedOut,550000,2026-02-25 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK011,KH006,P407,2026-04-04,2026-04-07,CheckedOut,1100000,2026-03-27 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK012,KH007,P408,2026-05-04,2026-05-05,CheckedOut,1400000,2026-04-25 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK013,KH008,P409,2026-06-04,2026-06-06,CheckedOut,350000,2026-06-01 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK014,KH009,P410,2026-07-04,2026-07-07,CheckedOut,550000,2026-06-30 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK015,KH010,P411,2026-08-04,2026-08-05,CheckedOut,1100000,2026-07-30 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK016,KH011,P412,2026-09-04,2026-09-06,CheckedOut,1400000,2026-08-29 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK017,KH012,P101,2026-10-04,2026-10-07,CheckedOut,400000,2026-09-27 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK018,KH013,P102,2025-11-10,2025-11-11,CheckedOut,400000,2025-11-02 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK019,KH014,P103,2025-12-10,2025-12-12,CheckedOut,450000,2025-12-01 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK020,KH015,P201,2026-01-10,2026-01-13,CheckedOut,600000,2026-01-07 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK021,KH016,P202,2026-02-10,2026-02-11,CheckedOut,600000,2026-02-06 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK022,KH017,P301,2026-03-10,2026-03-12,CheckedOut,1200000,2026-03-05 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK023,KH018,P401,2026-04-10,2026-04-13,CheckedOut,350000,2026-04-04 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK024,KH019,P402,2026-05-10,2026-05-11,CheckedOut,550000,2026-05-03 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK025,KH020,P403,2026-06-10,2026-06-12,CheckedOut,1100000,2026-06-02 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK026,KH021,P404,2026-07-10,2026-07-13,CheckedOut,1400000,2026-07-01 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK027,KH022,P405,2026-08-10,2026-08-11,CheckedOut,350000,2026-08-07 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK028,KH023,P406,2026-09-10,2026-09-12,CheckedOut,550000,2026-09-06 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK029,KH024,P407,2026-10-10,2026-10-13,CheckedOut,1100000,2026-10-05 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK030,KH025,P408,2025-11-16,2025-11-17,CheckedOut,1400000,2025-11-10 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK031,KH026,P409,2025-12-16,2025-12-18,CheckedOut,350000,2025-12-09 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK032,KH027,P410,2026-01-16,2026-01-19,CheckedOut,550000,2026-01-08 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK033,KH028,P411,2026-02-16,2026-02-17,CheckedOut,1100000,2026-02-07 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK034,KH029,P412,2026-03-16,2026-03-18,CheckedOut,1400000,2026-03-13 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK035,KH030,P101,2026-04-16,2026-04-19,CheckedOut,400000,2026-04-12 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK036,KH031,P102,2026-05-16,2026-05-17,CheckedOut,400000,2026-05-11 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK037,KH032,P103,2026-06-16,2026-06-18,CheckedOut,450000,2026-06-10 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK038,KH001,P201,2026-07-16,2026-07-19,CheckedOut,600000,2026-07-09 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK039,KH002,P202,2026-08-16,2026-08-17,CheckedOut,600000,2026-08-08 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK040,KH003,P301,2026-09-16,2026-09-18,CheckedOut,1200000,2026-09-07 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK041,KH004,P401,2026-10-16,2026-10-19,CheckedOut,350000,2026-10-13 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK042,KH005,P402,2025-11-22,2025-11-23,CheckedOut,550000,2025-11-18 09:00:00,Dữ liệu giả lập đã hoàn tất lưu trú
+BK043,KH033,P202,2026-10-02,2026-10-04,Cancelled,600000,2026-09-28 10:00:00,"Booking giả lập đã hủy, không thanh toán"
+BK044,KH034,P301,2026-10-03,2026-10-05,Cancelled,1200000,2026-09-29 10:00:00,"Booking giả lập đã hủy, không thanh toán"
+BK045,KH035,P401,2026-10-04,2026-10-06,Cancelled,350000,2026-09-30 10:00:00,"Booking giả lập đã hủy, không thanh toán"
+BK046,KH036,P402,2026-10-05,2026-10-07,Cancelled,550000,2026-10-01 10:00:00,"Booking giả lập đã hủy, không thanh toán"
+BK047,KH037,P403,2026-10-06,2026-10-08,Cancelled,1100000,2026-10-02 10:00:00,"Booking giả lập đã hủy, không thanh toán"
+BK048,KH038,P404,2026-10-07,2026-10-09,Cancelled,1400000,2026-10-03 10:00:00,"Booking giả lập đã hủy, không thanh toán"
+BK049,KH039,P405,2026-10-08,2026-10-10,Cancelled,350000,2026-10-04 10:00:00,"Booking giả lập đã hủy, không thanh toán"
+BK050,KH040,P406,2026-10-09,2026-10-11,Cancelled,550000,2026-10-05 10:00:00,"Booking giả lập đã hủy, không thanh toán"
+BK051,KH041,P407,2026-10-10,2026-10-12,Cancelled,1100000,2026-10-06 10:00:00,"Booking giả lập đã hủy, không thanh toán"
+BK052,KH042,P408,2026-10-11,2026-10-13,Cancelled,1400000,2026-10-07 10:00:00,"Booking giả lập đã hủy, không thanh toán"
+BK053,KH043,P404,2026-11-04,2026-11-06,Confirmed,1400000,2026-10-27 10:00:00,Booking giả lập chờ nhận phòng
+BK054,KH044,P405,2026-11-05,2026-11-08,Confirmed,350000,2026-10-27 10:00:00,Booking giả lập chờ nhận phòng
+BK055,KH045,P406,2026-11-06,2026-11-08,Confirmed,550000,2026-10-27 10:00:00,Booking giả lập chờ nhận phòng
+BK056,KH046,P407,2026-11-07,2026-11-10,Confirmed,1100000,2026-10-27 10:00:00,Booking giả lập chờ nhận phòng
+BK057,KH047,P408,2026-11-08,2026-11-10,Confirmed,1400000,2026-10-27 10:00:00,Booking giả lập chờ nhận phòng
+BK058,KH048,P401,2026-10-29,2026-10-31,CheckedIn,350000,2026-10-24 08:00:00,"Khách giả lập đang ở, dịch vụ chưa thanh toán"
+BK059,KH049,P402,2026-10-29,2026-11-01,CheckedIn,550000,2026-10-24 08:00:00,"Khách giả lập đang ở, dịch vụ chưa thanh toán"
+BK060,KH050,P403,2026-10-29,2026-11-02,CheckedIn,1100000,2026-10-24 08:00:00,"Khách giả lập đang ở, dịch vụ chưa thanh toán"
