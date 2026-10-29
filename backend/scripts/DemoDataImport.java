@@ -10,6 +10,7 @@ import java.security.MessageDigest;
 import java.util.*;
 
 /** Manual, append-only CSV demo import. No endpoints, schema changes or account edits. */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public final class DemoDataImport {
  static final ObjectMapper JSON=new ObjectMapper();
  static final String DATASET="DEMO-LH-20261029",PREFIX="["+DATASET+":";
