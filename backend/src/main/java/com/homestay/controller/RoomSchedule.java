@@ -87,11 +87,11 @@ final class RoomSchedule {
     // Two DATE parameters: <= today and > today. Only maintenance is manual.
     static String selectRooms() {
         return """
-            SELECT r.room_id,r.room_code,r.room_name,r.room_type,r.price,r.description,
+            SELECT r.room_id,r.room_code,r.room_name,r.room_type,r.price,r.hourly_price,r.description,
                 CASE WHEN r.status=N'Bảo trì' THEN N'Bảo trì'
                      WHEN EXISTS(SELECT 1 FROM Bookings b WHERE b.room_id=r.room_id AND b.status='CheckedIn') THEN N'Đang sử dụng'
                      WHEN EXISTS(SELECT 1 FROM Bookings b WHERE b.room_id=r.room_id AND b.status='Confirmed'
-                          AND b.checkin_date<=? AND b.checkout_date>?) THEN N'Đã đặt'
+                          AND COALESCE(b.checkin_at,CAST(b.checkin_date AS datetime2))<=? AND COALESCE(b.checkout_at,CAST(b.checkout_date AS datetime2))>?) THEN N'Đã đặt'
                      ELSE N'Trống' END AS status
             FROM Rooms r
             """;
@@ -102,6 +102,11 @@ final class RoomSchedule {
         stmt.setDate(2, java.sql.Date.valueOf(today));
     }
 
+    static void bindNow(PreparedStatement stmt, Clock clock) throws SQLException {
+        Timestamp now=Timestamp.valueOf(HourlyStay.now(clock));
+        stmt.setTimestamp(1,now);stmt.setTimestamp(2,now);
+    }
+
     static Map<String, Object> roomRow(ResultSet rs) throws SQLException {
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("roomId", rs.getInt("room_id"));
@@ -109,6 +114,7 @@ final class RoomSchedule {
         row.put("roomName", rs.getString("room_name"));
         row.put("roomType", rs.getString("room_type"));
         row.put("price", rs.getBigDecimal("price"));
+        row.put("hourlyPrice", rs.getBigDecimal("hourly_price"));
         row.put("description", rs.getString("description"));
         row.put("status", rs.getString("status"));
         return row;
@@ -140,7 +146,7 @@ final class RoomSchedule {
     static String unavailablePredicate() {
         return """
             EXISTS(SELECT 1 FROM Bookings b WHERE b.room_id=r.room_id AND
-                ((b.status IN ('Confirmed','CheckedIn') AND b.checkin_date<? AND b.checkout_date>?)
+                ((b.status IN ('Confirmed','CheckedIn') AND COALESCE(b.checkin_at,CAST(b.checkin_date AS datetime2))<? AND COALESCE(b.checkout_at,CAST(b.checkout_date AS datetime2))>?)
                  OR (b.status='CheckedIn' AND ?<=?)))
             """;
     }

@@ -17,6 +17,7 @@ function paid() { return {...preview(),paymentId:7,paymentMethod:'Tiền mặt',
     pending.resolve(preview()); await loading;
     assert.equal(e.el('checkout-confirm-btn').disabled,false); assert.equal(e.el('inv-grand-total').textContent,e.context.formatMoney(720000));
     assert.ok(e.el('invoice-services').textContent.includes(payload)); assert.match(e.el('invoice-title').textContent,/Tạm tính BK1/);
+    assert.equal(e.el('invoice-state').textContent,'Chưa thanh toán · Bản tạm tính');assert.equal(e.el('invoice-actions-header').hidden,false);
     pass('preview gates controls, shows captured prices, two waters plus rental and safe service names');
 
     const old=deferred(); e.context.apiGet=() => old.promise; const first=e.context.openCheckoutModal(1);
@@ -56,8 +57,11 @@ function paid() { return {...preview(),paymentId:7,paymentMethod:'Tiền mặt',
     await e.context.openCheckoutModal(1);e.context.apiPost=() => {postCount++;return pending.promise;};
     const checkout=e.context.confirmCheckout();await e.context.confirmCheckout();e.context.closeCheckoutModal();
     assert.equal(postCount,1);assert.equal(e.el('checkout-cancel-btn').disabled,true);
+    assert.equal(e.el('checkout-confirm-btn').getAttribute('aria-busy'),'true');
     pending.resolve({success:true,paymentId:7});await checkout;
     assert.equal(e.el('invoice-title').textContent,'Hóa đơn HD7');assert.equal(e.el('invoice-print-btn').disabled,false);assert.equal(e.el('checkout-confirm-btn').hidden,true);
+    assert.equal(e.el('invoice-state').textContent,'Đã thanh toán · Hóa đơn đã lưu');assert.equal(e.el('invoice-actions-header').hidden,true);
+    assert.equal(e.el('checkout-confirm-btn').getAttribute('aria-busy'),'false');
     e.context.printInvoice();e.context.printInvoice();assert.equal(e.context.printCount,2);assert.equal(postCount,1);
     e.context.closeCheckoutModal();await e.context.openPayment(7);assert.equal(e.el('inv-method').textContent,'Tiền mặt');
     pass('checkout submits once, fetches official snapshot, prints repeatedly without writes and reopens saved invoice');
@@ -74,10 +78,19 @@ function paid() { return {...preview(),paymentId:7,paymentMethod:'Tiền mặt',
     e.context.printInvoice();assert.equal(e.context.printCount,undefined);
     pass('unresolved checkout stays locked and preview cannot invoke invoice printing');
 
+    for (const id of ['bad','0','-1','9007199254740992','']) {
+        e=env('checkout');e.context.window.location.search='?paymentId='+id;e.context.checkLogin=async()=>true;
+        let opened=false;e.context.openPayment=()=>{opened=true;};await e.events.DOMContentLoaded();
+        assert.equal(opened,false);assert.match(e.el('alert-message').textContent,/Mã hóa đơn.*không hợp lệ/);
+    }
+    e=env('checkout');e.context.window.location.search='?paymentId=7';e.context.checkLogin=async()=>true;
+    let requestedPayment;e.context.openPayment=id=>{requestedPayment=id;};await e.events.DOMContentLoaded();assert.equal(requestedPayment,7);
+    pass('invoice links reject malformed or unsafe identifiers and keep valid paymentId navigation');
+
     e=env('rooms');const urls=[];pending=deferred();e.context.apiGet=url => {urls.push(url);return pending.promise;};
     e.el('filter-type').value='VIP';e.el('filter-status').value='Trống';e.el('search-input').value="O'Neil & P";
     const roomLoad=e.context.loadRooms();const params=new URLSearchParams(urls[0].split('?')[1]);
-    assert.equal(params.get('type'),'VIP');assert.equal(params.get('status'),'Trống');assert.equal(params.get('search'),"O'Neil & P");
+    assert.equal(params.get('type'),'VIP');assert.equal(params.get('status'),null);assert.equal(params.get('search'),"O'Neil & P");
     e.context.apiGet=async () => [];await e.context.loadRooms();pending.resolve([{roomId:1,roomCode:'Stale',roomName:'Old',price:1,status:'Trống'}]);await roomLoad;
     assert.ok(!e.el('rooms-tbody').textContent.includes('Stale'));
     pass('room filters combine in encoded server query and old requests cannot overwrite newer results');
@@ -95,6 +108,25 @@ function paid() { return {...preview(),paymentId:7,paymentMethod:'Tiền mặt',
     assert.equal(e.writes.length,1);assert.equal(e.writes[0].body.status,undefined);assert.equal(e.writes[0].body.price,300000);
     pass('room catalog edits omit derived status and retain money/text validation');
 
+    e=env('rooms');e.context.openAddModal();await e.context.saveRoom();
+    assert.equal(e.writes.length,0);assert.equal(e.el('room-code').focused,true);
+    for (const field of ['code','name','type','price']) {
+        assert.equal(e.el('room-'+field).getAttribute('aria-invalid'),'true');
+        assert.equal(e.el('room-'+field+'-error').hidden,false);
+    }
+    e.context.openEditModal({...room,roomCode:'P1',roomName:'Phòng đơn'});
+    assert.equal(e.el('room-code').getAttribute('aria-invalid'),'false');assert.equal(e.el('room-code-error').hidden,true);
+    pass('room validation links field errors, focuses the first invalid input and clears errors on reopening');
+
+    pending=deferred();let roomWrites=0;
+    e.context.apiPut=()=>{roomWrites++;return pending.promise;};
+    const roomSave=e.context.saveRoom();await e.context.saveRoom();
+    assert.equal(roomWrites,1);assert.equal(e.el('room-save-btn').getAttribute('aria-busy'),'true');
+    pending.reject(new Error('Mã phòng đã tồn tại'));await roomSave;
+    assert.equal(e.el('room-form-error').hidden,false);assert.match(e.el('room-form-error').textContent,/đã tồn tại/);
+    assert.equal(e.el('room-save-btn').getAttribute('aria-busy'),'false');
+    pass('room save blocks duplicate writes and retains a server error inside the editable form');
+
     for (const page of ['checkout','rooms']) {
         const html=fs.readFileSync(path.join(root,'../pages',page+'.html'),'utf8');
         const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]);assert.equal(ids.length,new Set(ids).size);
@@ -103,7 +135,7 @@ function paid() { return {...preview(),paymentId:7,paymentMethod:'Tiền mặt',
         for (const [,handler] of html.matchAll(/on(?:click|change|input)="(\w+)\(/g)) assert.equal(typeof e.context[handler]==='function' || typeof env(page).context[handler]==='function',true,handler);
         assert.ok(!html.includes('??'));
     }
-    const css=fs.readFileSync(path.join(root,'../css/style.css'),'utf8');assert.match(css,/@media print/);assert.match(css,/:not\(#invoice-details\)/);
+    const css=fs.readFileSync(path.join(root,'../css/invoice-print.css'),'utf8');assert.match(css,/@media print/);assert.match(css,/:not\(#invoice-details\)/);
     pass('HTML handlers/IDs match, Vietnamese labels survive and print CSS isolates invoice content');
     console.log('FE-02/03 frontend: '+passed+' groups passed (instrumented DOM/API).');
 })().catch(error => {console.error(error);process.exitCode=1;});

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Homestay — Mẫu thành phần giao diện sáng</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/components-preview.css">
+</head>
+<body class="session-pending">
+<div id="session-status" class="session-status" role="status" aria-live="polite"><span id="session-message">Đang kiểm tra phiên đăng nhập...</span><button id="session-retry" class="btn btn-secondary" hidden>Thử lại</button></div>
+<div class="wrapper"><main class="main-content component-preview">
+    <header class="preview-heading"><p class="eyebrow">HOMESTAY MANAGEMENT</p><h1>Giao diện sáng, nhất quán hơn</h1><p class="text-muted">Mẫu kiểm tra nút, biểu mẫu, trạng thái và bảng dùng chung. Không tạo hoặc thay đổi dữ liệu.</p></header>
+    <section class="card" aria-labelledby="buttons-title">
+        <div class="card-header"><h2 id="buttons-title">Thao tác rõ ràng</h2><span class="badge badge-info">Thành phần dùng chung</span></div>
+        <div class="toolbar">
+            <button class="btn btn-primary"><svg class="ui-icon" aria-hidden="true"><use href="/css/icons.svg#plus"></use></svg>Thêm booking</button>
+            <button class="btn btn-secondary">Xem chi tiết</button><button class="btn btn-success">Xác nhận nhận phòng</button>
+            <button class="btn btn-warning">Tạm ngừng</button><button class="btn btn-danger">Hủy booking</button><button class="btn btn-ghost">Quay lại</button>
+        </div>
+        <div class="toolbar"><button class="btn btn-primary" disabled>Chưa đủ thông tin</button><button class="btn btn-primary" disabled aria-busy="true"><span class="ui-spinner" aria-hidden="true"></span>Đang lưu...</button><button id="demo-modal-open" class="btn btn-secondary">Xem hộp xác nhận</button><button class="btn btn-secondary btn-icon" aria-label="Tìm kiếm"><svg class="ui-icon" aria-hidden="true"><use href="/css/icons.svg#search"></use></svg></button></div>
+        <div class="toolbar"><span class="badge badge-available">Trống</span><span class="badge badge-booked">Đã đặt</span><span class="badge badge-occupied">Đang sử dụng</span><span class="badge badge-maintenance">Bảo trì</span><span class="badge bg-success">Đã thanh toán</span><span class="badge bg-secondary">Đã hủy</span></div>
+    </section>
+    <div class="preview-grid">
+        <section class="card" aria-labelledby="form-title"><h2 id="form-title">Biểu mẫu dễ theo dõi</h2>
+            <div class="form-field"><label for="demo-name">Họ và tên</label><input id="demo-name" placeholder="Nhập họ và tên"><span class="form-help">Hiển thị đúng dấu tiếng Việt: Nguyễn, Trần, Đặng.</span></div>
+            <div class="form-grid"><div class="form-field"><label for="demo-type">Loại phòng</label><select id="demo-type"><option>Single</option><option>Double</option></select></div><div class="form-field"><label for="demo-date">Ngày nhận</label><input id="demo-date" type="date" value="2026-10-27"></div></div>
+            <div class="form-field"><label for="demo-phone">Số điện thoại</label><input id="demo-phone" value="12345" aria-invalid="true" aria-describedby="demo-phone-error"><span class="form-error" id="demo-phone-error">Nhập 10 chữ số, bắt đầu bằng 0.</span></div>
+            <div class="form-field"><label for="demo-loading">Phòng phù hợp</label><select id="demo-loading" disabled><option>Đang tải phòng trống...</option></select></div>
+            <div class="form-field"><label for="demo-note">Ghi chú</label><textarea id="demo-note" rows="2" placeholder="Yêu cầu đặc biệt..."></textarea></div>
+        </section>
+        <section class="card" aria-labelledby="states-title"><h2 id="states-title">Thông báo có ngữ cảnh</h2>
+            <div class="alert alert-success" role="status">Đã lưu thông tin khách hàng.</div><div class="alert alert-info" role="status">Chọn ngày để tìm phòng phù hợp.</div><div class="alert alert-warning">Kiểm tra lại thông tin trước khi xác nhận.</div><div class="alert alert-error" role="alert">Không tải được dữ liệu. Bạn có thể thử lại.</div>
+            <div class="loading-state" role="status"><span class="ui-spinner" aria-hidden="true"></span> Đang tải danh sách...</div>
+            <div class="skeleton" aria-hidden="true"></div><div class="empty-state">Không có booking khớp bộ lọc.</div>
+        </section>
+    </div>
+    <section class="card" aria-labelledby="table-title"><div class="card-header"><h2 id="table-title">Bảng rõ trạng thái và số tiền</h2><button class="btn btn-secondary">Xuất CSV</button></div>
+        <div class="table-scroll" tabindex="0" role="region" aria-label="Bảng booking minh họa, cuộn ngang nếu cần"><table><caption>Dữ liệu minh họa bố cục</caption><thead><tr><th scope="col">Booking</th><th scope="col">Khách hàng</th><th scope="col">Phòng</th><th scope="col">Trạng thái</th><th scope="col" class="text-money">Tạm tính</th></tr></thead><tbody>
+        <tr><td><strong>BK001</strong></td><td>Nguyễn Văn An</td><td>P101</td><td><span class="badge badge-info">Đã xác nhận</span></td><td class="text-money">600.000 VNĐ</td></tr>
+        <tr><td><strong>BK002</strong></td><td>Đặng Thị Mai</td><td>P102</td><td><span class="badge badge-warning">Đang lưu trú</span></td><td class="text-money">1.200.000 VNĐ</td></tr>
+        </tbody></table></div><nav class="pagination" aria-label="Phân trang minh họa"><button class="btn btn-secondary" disabled>Trang trước</button><span>Trang 1/1 · 2 dòng</span><button class="btn btn-secondary" disabled>Trang sau</button></nav>
+    </section>
+    <div id="alert-message" class="alert" role="status" hidden></div>
+</main></div>
+<script src="/js/api.js"></script><script src="/js/account.js"></script><script src="/js/components-preview.js"></script>
+</body></html>

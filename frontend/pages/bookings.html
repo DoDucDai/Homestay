@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Lý Booking - Homestay Management</title>
+    <title>Lịch đặt phòng - Homestay</title>
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/bookings.css">
 </head>
-<body class="session-pending">
+<body class="session-pending calendar-page">
+<a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
 <div id="session-status" class="session-status" role="status" aria-live="polite">
     <span id="session-message">Đang kiểm tra phiên đăng nhập...</span>
     <button id="session-retry" class="btn btn-secondary" hidden>Thử lại</button>
@@ -20,70 +22,90 @@
 
 <div class="wrapper">
 
-    <nav class="sidebar">
-        <div class="logo">🏠 Homestay</div>
-        <ul>
-            <li><a href="rooms.html">🛏 Quản lý Phòng</a></li>
-            <li><a href="customers.html">👤 Khách hàng</a></li>
-            <li><a href="bookings.html" class="active">📅 Booking</a></li>
-            <li><a href="checkin.html">✅ Check-in</a></li>
-            <li><a href="checkout.html">💰 Check-out</a></li>
-            <li><a href="services.html">🛎 Dịch vụ</a></li>
-            <li><a data-admin-only hidden href="statistics.html">📊 Thống kê</a></li>
-            <li><a href="#" id="logout-btn">🚪 Đăng xuất</a></li>
-        </ul>
-    </nav>
+    <nav id="app-sidebar" class="sidebar" aria-label="Điều hướng chính"></nav>
 
-    <div class="main-content">
-        <h1 class="page-title">📅 Quản Lý Booking</h1>
-
-        <div class="card">
-            <button class="btn btn-success" onclick="openAddModal()">+ Tạo booking mới</button>
-        </div>
-
-        <div id="alert-message" class="alert" style="display:none;"></div>
-
-        <div class="card">
+    <main id="main-content" class="main-content" tabindex="-1">
+        <header class="bookings-heading">
+            <div><p class="bookings-eyebrow">ĐẶT PHÒNG · <span data-property-label>Tất cả cơ sở</span></p>
+                <h1>Lịch đặt phòng</h1><p class="text-muted">Theo dõi từng khung giờ, khách đến và phòng sẵn sàng cho lượt đặt tiếp theo.</p></div>
+            <div class="heading-actions"><span id="calendar-sync" class="sync-status" role="status">Đang kết nối…</span>
+                <button id="calendar-export" class="btn btn-secondary" onclick="exportCalendar()" disabled>Xuất CSV</button>
+                <button class="btn btn-primary" onclick="openHourlyBooking()">+ Đặt phòng theo giờ</button></div>
+        </header>
+        <div id="alert-message" class="alert" role="status" aria-live="polite" style="display:none;"></div>
+        <section id="calendar-summary" class="calendar-summary" aria-label="Tóm tắt tình trạng hôm nay"></section>
+        <section class="calendar-toolbar" aria-label="Bộ lọc lịch phòng">
+            <label class="visually-hidden" for="booking-search">Tìm booking, khách hàng hoặc phòng</label>
+            <input id="booking-search" type="search" placeholder="Tìm phòng, tên khách, mã đặt…" maxlength="100">
+            <div id="calendar-types" class="filter-pills" aria-label="Loại phòng"></div>
+            <label class="visually-hidden" for="booking-status-filter">Trạng thái booking</label>
+            <select id="booking-status-filter"><option value="">Tất cả trạng thái</option><option value="Confirmed">Đã xác nhận</option><option value="CheckedIn">Đang ở</option><option value="CheckedOut">Đã trả phòng</option><option value="Cancelled">Đã hủy</option></select>
+            <div class="calendar-view-toggle" aria-label="Chế độ lịch"><button class="active" id="view-hours" onclick="setCalendarMode('hours')" aria-pressed="true">Theo giờ</button><button id="view-days" onclick="setCalendarMode('days')" aria-pressed="false">Nhiều ngày</button></div>
+            <div class="calendar-navigation"><button class="btn btn-secondary icon-button" aria-label="Khoảng trước" onclick="moveCalendar(-1)">‹</button><button class="btn btn-secondary" onclick="moveCalendar(0)">Hôm nay</button><button class="btn btn-secondary icon-button" aria-label="Khoảng tiếp theo" onclick="moveCalendar(1)">›</button><label class="visually-hidden" for="calendar-date">Ngày bắt đầu lịch</label><input id="calendar-date" type="date" aria-label="Ngày bắt đầu lịch"></div>
+        </section>
+        <div id="calendar-attention" class="calendar-attention" hidden><span id="calendar-attention-label"></span><button class="btn btn-ghost" onclick="setCalendarAttention('')">Bỏ lọc</button></div>
+        <section id="calendar-panel" class="calendar-panel" aria-labelledby="calendar-title">
+            <div class="calendar-panel-heading"><div><h2 id="calendar-title">Lịch phòng</h2><p id="calendar-range" class="text-muted">Đang tải dữ liệu…</p></div>
+                <div class="calendar-legend"><span><i class="legend-occupied"></i>Đang ở</span><span><i class="legend-confirmed"></i>Đã xác nhận</span><span><i class="legend-departure"></i>Đã trả phòng</span><span><i class="legend-maintenance"></i>Bảo trì</span></div>
+                <div class="calendar-panel-actions"><button class="btn btn-ghost" onclick="loadBookings()" aria-label="Đồng bộ lại lịch">↻ Làm mới</button><button id="calendar-expand" class="btn btn-secondary" onclick="toggleCalendarExpand()" aria-pressed="false">Mở rộng lịch</button></div></div>
+            <div id="calendar-error" class="calendar-error" role="status" hidden></div>
+            <div id="calendar-scroll" class="calendar-scroll" tabindex="0" role="region" aria-label="Lịch đặt phòng, cuộn ngang và dọc để xem đầy đủ"><div id="booking-calendar" class="booking-calendar"></div></div>
+            <div class="calendar-footnote"><span>Bấm lượt đặt để xem chi tiết · Bấm ô trống để đặt phòng</span><span>Giờ Việt Nam · Tự cập nhật mỗi 5 giây</span></div>
+        </section>
+        <details class="booking-history"><summary>Xem danh sách đặt phòng & lịch sử</summary>
+        <section class="card bookings-list" aria-labelledby="bookings-list-title">
+            <div class="card-header"><div><h2 id="bookings-list-title">Danh sách booking</h2>
+                <p id="bookings-result" class="text-muted" role="status" aria-live="polite">Đang tải booking…</p></div></div>
+            <div class="table-scroll" role="region" aria-label="Bảng booking, cuộn ngang để xem đầy đủ" tabindex="0">
             <table id="bookings-table">
+                <caption class="visually-hidden">Booking theo bộ lọc hiện tại, ngày lưu trú, trạng thái và thao tác hủy.</caption>
                 <thead>
                     <tr>
-                        <th>Mã booking</th>
-                        <th>Khách hàng</th>
-                        <th>Phòng</th>
-                        <th>Ngày nhận</th>
-                        <th>Ngày trả</th>
-                        <th>Trạng thái</th>
-                        <th>Ghi chú</th>
-                        <th>Thao tác</th>
+                        <th scope="col">Mã booking</th>
+                        <th scope="col">Khách hàng</th>
+                        <th scope="col">Phòng</th>
+                        <th scope="col">Ngày nhận</th>
+                        <th scope="col">Ngày trả</th>
+                        <th scope="col">Trạng thái</th>
+                        <th scope="col">Ghi chú</th>
+                        <th scope="col">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody id="bookings-tbody">
                     <tr><td colspan="8" style="text-align:center;">Đang tải dữ liệu...</td></tr>
                 </tbody>
             </table>
-        </div>
-    </div>
+            </div>
+<nav id="pager-bookings" class="pagination" aria-label="Phân trang danh sách booking" hidden></nav>
+        </section>
+        </details>
+    </main>
 </div>
 
 <!-- MODAL TAO BOOKING -->
 <div class="modal-overlay" id="booking-modal">
-    <div class="modal-box">
-        <h3 id="modal-title">Tạo Booking Mới</h3>
+    <div class="modal-box booking-editor">
+        <h3 id="modal-title">Đặt phòng theo đêm</h3>
+        <div class="booking-unit-switch"><span>Theo đêm</span><button id="booking-hour-switch" type="button" onclick="closeBookingModal(); openHourlyBooking()">Theo giờ</button></div>
+        <p class="booking-editor-intro text-muted">Chọn ngày để tìm phòng phù hợp, sau đó chọn khách hàng và kiểm tra tạm tính. Các trường có dấu * là bắt buộc.</p>
+        <form id="booking-form" novalidate onsubmit="event.preventDefault(); saveBooking()">
 
         <input type="hidden" id="booking-id">
 
-        <div class="form-group">
+        <h4>Thời gian lưu trú</h4>
+        <div class="form-grid"><div class="form-group">
             <label for="booking-checkin-date">Ngày nhận phòng *</label>
-            <input type="date" id="booking-checkin-date" required>
+            <input type="date" id="booking-checkin-date" required aria-describedby="booking-date-help booking-room-status">
         </div>
         <div class="form-group">
             <label for="booking-checkout-date">Ngày trả phòng *</label>
-            <input type="date" id="booking-checkout-date" required>
-            <p>Chọn khoảng ngày trước để tìm phòng. Ngày trả phải sau ngày nhận; ngày tính theo giờ Việt Nam.</p>
-        </div>
+            <input type="date" id="booking-checkout-date" required aria-describedby="booking-date-help booking-room-status">
+        </div></div>
+        <p id="booking-date-help" class="form-help booking-date-help">Ngày trả phải sau ngày nhận. Ngày tính theo giờ Việt Nam; phòng trống được tìm theo toàn bộ khoảng lưu trú.</p>
+        <h4>Khách hàng và phòng</h4>
         <div class="form-group">
             <label for="booking-customer">Khách hàng *</label>
-            <select id="booking-customer">
+            <select id="booking-customer" required aria-describedby="booking-customer-status">
                 <option value="">-- Chọn khách hàng --</option>
                 <!-- JS se dien vao -->
             </select>
@@ -91,7 +113,7 @@
         </div>
         <div class="form-group">
             <label for="booking-room">Phòng *</label>
-            <select id="booking-room" disabled>
+            <select id="booking-room" required disabled aria-describedby="booking-room-status">
                 <option value="">-- Chọn phòng trống --</option>
                 <!-- JS se dien vao cac phong trong -->
             </select>
@@ -100,28 +122,50 @@
         </div>
         <div class="form-group">
             <label for="booking-note">Ghi chú</label>
-            <textarea id="booking-note" rows="2" maxlength="500" placeholder="Yêu cầu đặc biệt..."></textarea>
+            <textarea id="booking-note" rows="2" maxlength="500" aria-describedby="booking-status" placeholder="Yêu cầu đặc biệt..."></textarea>
         </div>
 
         <!-- Hien thi so tien du tinh -->
-        <div id="price-preview" style="background:#f0f4f8; padding:10px; border-radius:5px; display:none;">
-            <strong>Tạm tính tiền phòng:</strong> <span id="estimated-nights">0</span> đêm × <span id="room-price-display">0 VNĐ</span> = <strong id="total-price-display">0 VNĐ</strong>
-            <p>Chưa gồm dịch vụ phát sinh. Giá được chốt khi tạo booking.</p>
+        <div id="price-preview" class="booking-estimate" aria-live="polite" style="display:none;">
+            <h4>Tạm tính tiền phòng</h4>
+            <dl><div><dt>Số đêm</dt><dd><span id="estimated-nights">0</span> đêm</dd></div>
+                <div><dt>Giá mỗi đêm</dt><dd id="room-price-display">0 VNĐ</dd></div>
+                <div><dt>Tiền phòng</dt><dd id="total-price-display">0 VNĐ</dd></div></dl>
+            <p class="form-help">Chưa gồm dịch vụ phát sinh. Giá được chốt khi tạo booking.</p>
         </div>
         <p id="booking-status" role="status" aria-live="polite"></p>
 
         <div class="modal-footer">
-            <button id="booking-close-btn" type="button" class="btn btn-secondary" onclick="closeBookingModal()">Đóng</button>
-            <button id="booking-save-btn" type="button" class="btn btn-primary" onclick="saveBooking()" disabled>Xác nhận booking</button>
+            <button data-modal-close id="booking-close-btn" type="button" class="btn btn-secondary" onclick="closeBookingModal()">Đóng</button>
+            <button id="booking-save-btn" type="submit" class="btn btn-primary" aria-busy="false" disabled>Xác nhận booking</button>
         </div>
+        </form>
     </div>
 </div>
 
+<div class="modal-overlay" id="hourly-booking-modal"><div class="modal-box booking-editor">
+    <h3>Đặt phòng theo giờ</h3><div class="booking-unit-switch"><button type="button" onclick="closeHourlyBooking(); openAddModal()">Theo đêm</button><span>Theo giờ</span></div>
+    <p class="booking-editor-intro text-muted">Chọn phòng và khung giờ lưu trú. Giá được chốt theo giờ khi xác nhận.</p>
+    <form id="hourly-booking-form" onsubmit="event.preventDefault(); saveHourlyBooking()">
+        <div class="form-grid"><div class="form-group"><label for="hourly-start">Nhận phòng *</label><input type="datetime-local" id="hourly-start" required></div><div class="form-group"><label for="hourly-end">Trả phòng *</label><input type="datetime-local" id="hourly-end" required></div></div>
+        <div class="form-group"><label for="hourly-room">Phòng *</label><select id="hourly-room" required></select></div>
+        <div class="form-group"><label for="hourly-customer">Khách hàng *</label><select id="hourly-customer" required></select><p class="form-help">Chưa có hồ sơ? Thêm khách hàng tại mục Khách hàng trước khi đặt.</p></div>
+        <div class="form-group"><label for="hourly-note">Ghi chú</label><textarea id="hourly-note" rows="2" maxlength="500"></textarea></div>
+        <p id="hourly-estimate" class="booking-estimate"></p><p id="hourly-status" class="form-help" role="status" aria-live="polite"></p>
+        <div class="modal-footer"><button type="button" data-modal-close class="btn btn-secondary" onclick="closeHourlyBooking()">Đóng</button><button id="hourly-save" type="submit" class="btn btn-primary" disabled>Xác nhận đặt theo giờ</button></div>
+    </form>
+</div></div>
+<div class="modal-overlay booking-detail-overlay" id="booking-detail-modal"><div class="modal-box booking-detail-box">
+    <div class="detail-heading"><div><p id="detail-code" class="bookings-eyebrow"></p><h3 id="detail-name">Chi tiết đặt phòng</h3></div><button class="btn btn-ghost icon-button" data-modal-close onclick="closeBookingDetail()" aria-label="Đóng chi tiết">×</button></div>
+    <div id="booking-detail-content"></div><p id="detail-message" role="status" aria-live="polite"></p><div id="booking-detail-actions" class="detail-actions"></div>
+</div></div>
 <!-- JS tien ich chung -->
 <script src="../js/api.js"></script>
+<script src="../js/shell.js"></script>
 <script src="../js/account.js"></script>
 <!-- JS xu ly -->
 <script src="../js/bookings.js"></script>
+<script src="../js/booking-calendar.js"></script>
 
 </body>
 </html>

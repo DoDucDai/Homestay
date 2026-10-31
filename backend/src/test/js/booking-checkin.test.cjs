@@ -24,6 +24,7 @@ class Element {
     replaceChildren(...nodes) { this.children=[];this._text='';this.selectedIndex=-1;this.append(...nodes); }
     addEventListener(name,fn) { (this.events[name]??=[]).push(fn); }
     getAttribute(name) { return name==='data-price' ? this.dataset.price : this.attributes[name]??null; }
+    setAttribute(name,value) { this.attributes[name]=String(value); }
     click() { if(!this.disabled) return Promise.all((this.events.click||[]).map(fn=>fn({preventDefault(){}}))); }
 }
 const today=new Date(Date.now()+7*3600000).toISOString().slice(0,10);
@@ -42,6 +43,7 @@ function env(module,handlers={}) {
         fetch:async()=>({ok:true,status:200,json:async()=>({success:true,user:{role:'admin'}})}),confirm:()=>true});
     vm.runInContext(fs.readFileSync(path.join(root,'js/api.js'),'utf8'),context);
     vm.runInContext(fs.readFileSync(path.join(root,'js/'+module+'.js'),'utf8'),context);
+    context.askConfirmation = async message => context.confirm(message);
     const defaultGet=endpoint=>endpoint==='/customers'?clone(server.customers):endpoint.startsWith('/bookings/available-rooms?')?clone(server.rooms)
         :endpoint==='/bookings?status=Confirmed'?clone(server.bookings.filter(b=>b.status==='Confirmed')):clone(server.bookings);
     context.apiGet=async endpoint=>{calls.push({method:'GET',endpoint});return handlers.get?handlers.get(endpoint,server,defaultGet):defaultGet(endpoint);};
@@ -116,8 +118,10 @@ const availableCalls=e=>e.calls.filter(call=>call.endpoint.startsWith('/bookings
     await e.context.openAddModal();e.select();const saving=e.context.saveBooking();await e.context.saveBooking();
     e.context.closeBookingModal();assert.equal(e.el('booking-modal').classes.has('show'),true);assert.equal(e.el('booking-close-btn').disabled,true);
     assert.equal(e.calls.filter(c=>c.method==='POST').length,1);
+    assert.equal(e.el('booking-save-btn').getAttribute('aria-busy'),'true');
     posting.resolve({success:true,bookingId:10});await saving;
     assert.equal(e.el('booking-modal').classes.has('show'),false);assert.equal(e.el('booking-save-btn').disabled,true);assert.ok(e.el('bookings-tbody').textContent.includes('BK10'));
+    assert.equal(e.el('booking-save-btn').getAttribute('aria-busy'),'false');
     pass('double submission is blocked and a successful create closes/reset form and reloads bookings');
 
     e=env('bookings',{post:async(endpoint,body,server)=>{server.rooms=[];server.bookings=[booking(20)];const error=new Error('Room just booked');error.status=409;throw error;}});
@@ -138,6 +142,8 @@ const availableCalls=e=>e.calls.filter(call=>call.endpoint.startsWith('/bookings
 
     const cancelling=defer();e=env('bookings',{put:async(endpoint,body,server)=>{const result=await cancelling.promise;server.bookings=server.bookings.map(row=>({...row,status:'Cancelled'}));return result;}});
     e.server.bookings=['Confirmed','CheckedIn','CheckedOut','Cancelled'].map((state,i)=>booking(i+1,state));e.context.renderTable(clone(e.server.bookings));
+    assert.deepEqual(e.el('bookings-tbody').children.map(row=>row.children[5].textContent),['Đã xác nhận','Đã nhận phòng','Đã trả phòng','Đã hủy']);
+    assert.deepEqual(e.server.bookings.map(row=>row.status),['Confirmed','CheckedIn','CheckedOut','Cancelled']);
     assert.equal(e.el('bookings-tbody').children[0].children.at(-1).children.length,1);
     assert.ok(e.el('bookings-tbody').children.slice(1).every(row=>row.children.at(-1).children.length===0));
     const cancel=e.context.cancelBooking(1);await e.context.cancelBooking(1);assert.equal(e.calls.filter(c=>c.method==='PUT').length,1);
@@ -158,16 +164,22 @@ const availableCalls=e=>e.calls.filter(call=>call.endpoint.startsWith('/bookings
     const table=e.el('checkin-tbody');assert.equal(table.children[0].children.length,8);
     assert.equal(table.children[0].children.at(-1).children[0].disabled,false);assert.equal(table.children[1].children.at(-1).children[0].disabled,true);
     assert.equal(table.children[2].children.at(-1).children[0].disabled,true);
+    const futureActions=table.children[1].children.at(-1);
+    assert.equal(futureActions.children[0].getAttribute('aria-describedby'),futureActions.children[1].id);
+    assert.equal(futureActions.children[1].textContent,'Chưa đến ngày nhận phòng.');
     e.context.doCheckin(2);assert.equal(e.el('checkin-modal').classes.has('show'),false);
     e.context.doCheckin(1);assert.ok(e.el('checkin-info').textContent.includes(guest.fullName));assert.equal(e.el('checkin-success').hidden,true);
+    assert.ok(e.el('checkin-info').textContent.includes('0901234567'));
     pass('check-in date eligibility is visible and valid selections open a safely rendered confirmation modal');
 
     const receiving=defer();e=env('checkin',{put:async(endpoint,body,server)=>{const result=await receiving.promise;server.bookings=[];return result;}});
     e.server.bookings=[booking()];e.context.renderTable(clone(e.server.bookings));e.context.doCheckin(1);
     const receivingPromise=e.context.confirmCheckin();await e.context.confirmCheckin();e.context.closeCheckinModal();
     assert.equal(e.calls.filter(c=>c.method==='PUT').length,1);assert.equal(e.el('checkin-close-btn').disabled,true);assert.equal(e.el('checkin-success').hidden,true);
+    assert.equal(e.el('checkin-confirm-btn').getAttribute('aria-busy'),'true');
     receiving.resolve({success:true});await receivingPromise;
     assert.equal(e.el('checkin-modal').classes.has('show'),false);assert.equal(e.el('checkin-success').hidden,false);assert.equal(e.el('checkin-confirm-btn').disabled,true);
+    assert.equal(e.el('checkin-confirm-btn').getAttribute('aria-busy'),'false');
     pass('double check-in is blocked and the services-navigation card appears only after confirmed success');
 
     e=env('checkin',{put:async()=>{const error=new Error('Room still occupied');error.status=409;throw error;}});
@@ -184,8 +196,12 @@ const availableCalls=e=>e.calls.filter(call=>call.endpoint.startsWith('/bookings
     for(const module of ['bookings','checkin']) {
         const source=fs.readFileSync(path.join(root,'js/'+module+'.js'),'utf8');const html=fs.readFileSync(path.join(root,'pages/'+module+'.html'),'utf8');
         for(const match of source.matchAll(/getElementById\('([^']+)'\)/g)) assert.ok(html.includes('id="'+match[1]+'"'),'Missing HTML ID '+match[1]);
-        const header=html.match(/<thead>([\s\S]*?)<\/thead>/)[1];assert.equal((header.match(/<th>/g)||[]).length,8);
-        for(const match of html.matchAll(/onclick="([A-Za-z]+)\(/g)) {const current=env(module);assert.equal(typeof current.context[match[1]],'function');}
+        const header=html.match(/<thead>([\s\S]*?)<\/thead>/)[1];assert.equal((header.match(/<th\b[^>]*>/g)||[]).length,8);
+        for(const match of html.matchAll(/onclick="([A-Za-z]+)\(/g)) {
+            const current=env(module);
+            if(module==='bookings')vm.runInContext(fs.readFileSync(path.join(root,'js/booking-calendar.js'),'utf8'),current.context);
+            assert.equal(typeof current.context[match[1]],'function','Missing click handler '+match[1]);
+        }
     }
     pass('HTML IDs, eight-column tables and static click handlers match the JavaScript');
     console.log('FE-01 frontend: '+passed+' groups passed (instrumented DOM/API).');

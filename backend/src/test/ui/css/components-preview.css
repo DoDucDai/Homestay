@@ -1,0 +1,9 @@
+/* Test fixture only; served under the existing /css resource rule. */
+.component-preview { margin: 0 auto; max-width: 1200px; padding: 32px; }
+.preview-heading { margin-bottom: 28px; }
+.preview-heading h1 { margin: 8px 0 12px; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .12em; color: var(--color-primary); }
+.preview-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 24px; }
+.preview-grid h2 { margin-bottom: 24px; }
+.table-scroll table { min-width: 650px; }
+@media (max-width: 767px) { .component-preview { padding: 16px; } .preview-grid { grid-template-columns: minmax(0,1fr); gap: 0; } }

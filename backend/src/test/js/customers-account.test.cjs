@@ -49,13 +49,16 @@ function accountEnv(handler) {
     const paidLink=e.el('history-tbody').children[0].children[8].children[0];assert.equal(paidLink.href,'checkout.html?paymentId=7');
     assert.equal(e.el('history-tbody').children[1].children[6].textContent,'Chưa thanh toán');
     assert.equal(e.el('history-total').textContent,e.context.formatMoney(620000n));
+    assert.equal(e.el('history-customer').textContent,'KH1 — '+payload);assert.equal(e.el('history-stays').textContent,'1');
     pass('history renders safe guest/room text, nights/status, paid totals and exact saved-invoice links');
 
     pending=deferred();e.context.apiGet=()=>pending.promise;const loading=e.context.openCustomerHistory(1);
     e.context.apiGet=async()=>({...history(2),bookings:[],totalPaid:'0'});await e.context.openCustomerHistory(2);pending.resolve(history());await loading;
     assert.match(e.el('history-title').textContent,/KH2/);assert.match(e.el('history-tbody').textContent,/chưa có lịch sử/);
+    assert.equal(e.el('history-stays').textContent,'0');
     pending=deferred();e.context.apiGet=()=>pending.promise;const closing=e.context.openCustomerHistory(1);e.context.closeCustomerHistory();pending.resolve(history());await closing;
     assert.equal(e.el('history-total').textContent,'--');
+    assert.equal(e.el('history-customer').textContent,'--');assert.equal(e.el('history-stays').textContent,'--');
     e.context.apiGet=async()=>{throw new Error('Not found');};await e.context.openCustomerHistory(999);assert.equal(e.el('history-status').textContent,'Not found');assert.equal(e.el('history-total').textContent,'--');
     pass('empty/missing history differs from loading failures; newer and closed modals ignore older responses');
 
@@ -70,10 +73,44 @@ function accountEnv(handler) {
     assert.equal(e.el('services-tbody').children[0].children.at(-1).children.length,0);await e.context.saveService();await e.context.deleteService(1,'Water');assert.equal(e.writes.length,0);
     pass('staff can edit/view customer history but has no customer delete or service catalog writes');
 
+    e=env('customers');e.context.openAddModal();e.el('customer-email').value='invalid';e.el('customer-address').value='x'.repeat(201);
+    await e.context.saveCustomer();assert.equal(e.writes.length,0);assert.equal(e.el('customer-name').focused,true);
+    for(const key of ['name','cccd','phone','email','address']) {
+        assert.equal(e.el('customer-'+key).getAttribute('aria-invalid'),'true');
+        assert.equal(e.el('customer-'+key+'-error').hidden,false);
+    }
+    e.context.openAddModal();assert.equal(e.el('customer-email-error').hidden,true);assert.equal(e.el('customer-email').getAttribute('aria-invalid'),'false');
+    pass('customer form reports each invalid field, focuses the first and clears prior errors on reopening');
+
+    const editable={customerId:1,fullName:'Guest',documentType:'PASSPORT',cccd:'AB123456',phone:'0901234567',email:'guest@example.test'};
+    e.context.openEditModal(editable);pending=deferred();let customerWrites=0;
+    e.context.apiPut=()=>{customerWrites++;return pending.promise;};const savingCustomer=e.context.saveCustomer();await e.context.saveCustomer();
+    assert.equal(customerWrites,1);assert.equal(e.el('customer-save-btn').getAttribute('aria-busy'),'true');
+    pending.resolve({success:false,message:'Duplicate document'});await savingCustomer;
+    assert.equal(e.el('customer-form-error').hidden,false);assert.equal(e.el('customer-form-error').textContent,'Duplicate document');
+    assert.equal(e.el('customer-save-btn').getAttribute('aria-busy'),'false');
+    e.context.openEditModal(editable);assert.equal(e.el('customer-form-error').hidden,true);
+    pass('customer saves block duplicate writes, preserve server errors inside the form and restore the save state');
+
+    e=env('customers');const customers=Array.from({length:45},(_,i)=>({...editable,customerId:i+1}));e.context.apiGet=async()=>customers;
+    await e.context.loadCustomers();assert.equal(e.el('customers-tbody').children.length,20);
+    e.el('pager-customers').children[2].events.click();e.el('pager-customers').children[2].events.click();assert.equal(e.el('customers-tbody').children.length,5);
+    let exported;e.context.downloadCsv=(file,columns,rows,ready)=>{exported={columns,rows,ready};};e.context.exportCustomers();
+    assert.equal(exported.rows.length,45);assert.equal(exported.columns.length,7);assert.equal(exported.ready,true);
+    e.context.apiGet=async()=>{throw Error('Offline');};await e.context.loadCustomers();e.context.exportCustomers();assert.equal(exported.ready,false);assert.equal(e.el('pager-customers').hidden,true);
+    pass('customer pagination keeps CSV complete on the last page and disables export after a failed reload');
+
     let a=accountEnv();await a.events.DOMContentLoaded();
     assert.equal(a.el('account-name').textContent,payload);assert.equal(a.el('account-role').textContent,'Quản trị viên');assert.equal(a.admin.hidden,false);assert.equal(a.body.classes.has('session-pending'),false);
     a.context.addAccountControls({fullName:'Staff',role:'staff'});assert.equal(a.admin.hidden,true);assert.equal(a.el('account-name').textContent,'Staff');assert.equal(a.main.children.filter(n=>n.id==='account-controls').length,1);
     pass('shared header renders server identity safely, updates role permissions and never duplicates controls');
+
+    a=accountEnv();await a.events.DOMContentLoaded();
+    a.el('account-info-link').events.click({preventDefault(){}});assert.equal(a.context.window.location.href,'account.html');
+    a.el('account-admin-link').events.click({preventDefault(){}});assert.equal(a.context.window.location.href,'account.html#quan-tri');
+    vm.runInContext('accountBusy=true',a.context);a.context.setAccountBusy(true);a.el('account-info-link').events.click({preventDefault(){}});assert.equal(a.context.window.location.href,'account.html#quan-tri');
+    vm.runInContext('accountBusy=false',a.context);a.context.setAccountBusy(false);a.context.addAccountControls({fullName:'Staff',role:'staff'});assert.equal(a.el('account-admin-link').hidden,true);
+    pass('profile/admin links navigate correctly, block navigation during writes and hide administration for staff');
 
     a=accountEnv();await a.events.DOMContentLoaded();a.el('account-change-btn').events.click();
     a.el('account-old-password').value='old';a.el('account-new-password').value='short';a.el('account-confirm-password').value='short';
@@ -81,7 +118,7 @@ function accountEnv(handler) {
     a.el('account-new-password').value='  New Password 123!  ';a.el('account-confirm-password').value='Mismatch';await submit(event);assert.match(a.el('account-password-error').textContent,/chưa khớp/);
     a.el('account-confirm-password').value='  New Password 123!  ';pending=deferred();let writes=0,body;
     a.context.apiPut=(url,data)=>{writes++;body=data;return pending.promise;};const saving=submit(event);await submit(event);
-    assert.equal(writes,1);assert.equal(a.el('account-password-cancel').disabled,true);assert.equal(body.newPassword,'  New Password 123!  ');
+    assert.equal(writes,1);assert.equal(a.el('account-password-cancel').disabled,true);assert.equal(a.el('account-new-toggle').disabled,true);assert.equal(a.el('account-password-form').getAttribute('aria-busy'),'true');assert.equal(body.newPassword,'  New Password 123!  ');
     pending.resolve({success:true});await saving;assert.equal(a.redirects[0],'login.html?changed=1');assert.equal(a.el('account-new-password').value,'');
     pass('password form validates length/match, preserves spaces, blocks duplicate writes and requires login after success');
 
@@ -118,10 +155,17 @@ function accountEnv(handler) {
 
     for(const page of ['rooms','customers','bookings','checkin','checkout','services','statistics']) {
         const html=fs.readFileSync(path.join(root,'../pages',page+'.html'),'utf8');assert.ok(html.indexOf('api.js')<html.indexOf('account.js'));
-        assert.match(html,/<body class="session-pending">/);assert.match(html,/data-admin-only hidden href="statistics.html"/);
+        assert.match(html,/<body class="[^"]*\bsession-pending\b[^"]*">/);assert.match(html,/id="app-sidebar"/);
+        assert.ok(html.indexOf('shell.js')>html.indexOf('api.js') && html.indexOf('shell.js')<html.indexOf('account.js'));
+        assert.match(html,/<main id="main-content"/);assert.match(html,/class="skip-link" href="#main-content"/);
         const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);assert.equal(ids.length,new Set(ids).size);
     }
     assert.ok(!fs.readFileSync(path.join(root,'../pages/login.html'),'utf8').includes('account.js'));
     pass('all protected pages load shared account controls after API helpers and start behind session verification');
+    a=accountEnv();await a.events.DOMContentLoaded();a.el('account-change-btn').events.click();a.el('account-new-password').value='  New Password 123!  ';a.el('account-new-toggle').events.click();
+    assert.equal(a.el('account-new-password').type,'text');assert.equal(a.el('account-new-toggle').getAttribute('aria-pressed'),'true');
+    a.el('account-password-cancel').events.click();assert.equal(a.el('account-new-password').value,'');assert.equal(a.el('account-new-password').type,'password');
+    a.el('account-change-btn').events.click();assert.equal(a.el('account-new-toggle').getAttribute('aria-pressed'),'false');assert.equal(a.el('account-password-error').hidden,true);
+    pass('closing/reopening the password form clears values, errors and visibility state');
     console.log('FE-04/05 frontend: '+passed+' groups passed (instrumented DOM/API).');
 })().catch(error=>{console.error(error);process.exitCode=1;});

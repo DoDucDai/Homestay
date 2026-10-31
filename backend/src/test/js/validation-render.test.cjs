@@ -9,7 +9,7 @@ function noHtml(element) {
 }
 (async () => {
     for (const [module, id, record, key, method] of [
-        ['rooms', 'rooms-tbody', { roomId: 1, roomCode: payload, roomName: payload, roomType: 'Single', price: 1, status: 'Trống' }, 'roomName', 'openEditModal'],
+        ['rooms', 'rooms-tbody', { roomId: 1, roomCode: payload, roomName: payload, roomType: 'Single', price: 1, status: 'Trống' }, 'roomName', 'openRoomStay'],
         ['customers', 'customers-tbody', { customerId: 1, fullName: payload, cccd: 'AB123456', documentType: 'PASSPORT', phone: '0901234567', email: payload, validationWarnings: [payload] }, 'fullName', 'openEditModal'],
         ['services', 'services-tbody', { serviceId: 1, serviceName: payload, unitPrice: 1, status: 'Hoạt động' }, 'serviceName', 'openEditModal'],
         ['bookings', 'bookings-tbody', { bookingId: 1, customerName: payload, roomCode: payload, checkinDate: '2026-10-26', checkoutDate: '2026-10-28', note: payload, status: 'Confirmed' }],
@@ -23,8 +23,9 @@ function noHtml(element) {
         assert.ok(body.textContent.includes(payload)); noHtml(body); assert.equal(current.context.pwned, undefined);
         if (method) {
             const actionCell = body.children[0].children.at(-1);
-            actionCell.children[0].events.click();
-            if (method === 'openEditModal') assert.equal(captured[0][key], record[key]);
+            const button = module === 'rooms' ? body.children[0] : actionCell.children[0];
+            button.events.click();
+            if (method === 'openEditModal' || method === 'openRoomStay') assert.equal(captured[0][key], record[key]);
             else if (method === 'doCheckin') assert.equal(captured[2], payload);
             else assert.equal(captured[0], 1);
         }

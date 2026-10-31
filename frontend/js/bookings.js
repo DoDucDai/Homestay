@@ -1,6 +1,7 @@
 checkLogin();
 let bookingRows = [];
 let bookingListVersion = 0;
+let bookingTableReady = false;
 const cancellingBookings = new Set();
 let bookingModalOpen = false;
 let bookingSubmitting = false;
@@ -31,15 +32,19 @@ function updateBookingControls() {
     }
     document.getElementById('booking-save-btn').disabled = !ready;
     document.getElementById('booking-save-btn').textContent = bookingSubmitting ? 'Đang đặt phòng...' : 'Xác nhận booking';
-    for (const id of ['booking-close-btn', 'booking-customer', 'booking-checkin-date', 'booking-checkout-date', 'booking-note', 'booking-reload-btn']) {
+    document.getElementById('booking-save-btn').setAttribute('aria-busy',String(bookingSubmitting));
+    for (const id of ['booking-close-btn', 'booking-customer', 'booking-checkin-date', 'booking-checkout-date', 'booking-note', 'booking-reload-btn', 'booking-hour-switch']) {
         document.getElementById(id).disabled = bookingSubmitting;
     }
     document.getElementById('booking-room').disabled = bookingSubmitting || !availableRange || !bookingRooms.size;
     document.getElementById('booking-customer').disabled = bookingSubmitting || !customersReady;
 }
 async function loadBookings() {
+    if (typeof loadCalendarData === 'function') return loadCalendarData(true);
     const version = ++bookingListVersion;
+    bookingTableReady = false;
     tableState('bookings-tbody', 8, 'Đang tải booking...');
+    document.getElementById('bookings-result').textContent = 'Đang tải booking…';
     try {
         const rows = expectList(await apiGet('/bookings'));
         if (version !== bookingListVersion) return;
@@ -47,30 +52,54 @@ async function loadBookings() {
     } catch (err) {
         if (version !== bookingListVersion) return;
         bookingRows = [];
+        document.getElementById('bookings-result').textContent = 'Chưa tải được danh sách. Hãy thử tải lại.';
         tableState('bookings-tbody', 8, err.message || 'Không tải được danh sách booking.');
         showRequestError(err, 'Không tải được danh sách booking.');
     }
 }
 function renderTable(bookings) {
     bookingRows = bookings;
+    bookingTableReady = true;
+    filterBookings();
+    if (typeof renderBookingCalendar === 'function') renderBookingCalendar();
+}
+// Adapted from Long's booking search/status UX; keep the existing API and business rules.
+function filterBookings() {
+    if (!bookingTableReady) return;
+    const query = document.getElementById('booking-search').value.trim().toLocaleLowerCase('vi');
+    const status = document.getElementById('booking-status-filter').value;
+    const filtered = bookingRows.filter(b => (!status || b.status === status) &&
+        (!query || ['BK' + b.bookingId, b.customerName || b.fullName || '', b.roomCode || '']
+            .some(value => String(value).toLocaleLowerCase('vi').includes(query))));
+    renderBookingRows(filtered);
+    if (typeof renderBookingCalendar === 'function') renderBookingCalendar();
+}
+function renderBookingRows(bookings) {
     const body = document.getElementById('bookings-tbody'); if (!body) return;
     body.replaceChildren();
-    if (!bookings.length) { tableState('bookings-tbody', 8, 'Không có booking nào'); return; }
-    bookings.forEach(b => {
+    document.getElementById('bookings-result').textContent = bookings.length+' booking theo bộ lọc · Tổng '+bookingRows.length+' booking';
+    if (!bookings.length) {
+        const filtered = document.getElementById('booking-search').value.trim() || document.getElementById('booking-status-filter').value;
+        tableState('bookings-tbody', 8, filtered ? 'Không có booking phù hợp. Hãy thay đổi từ khóa hoặc trạng thái.' : 'Chưa có booking trong danh sách.'); return;
+    }
+    pageRows('bookings', bookings, renderBookingRows).forEach(b => {
         const actions = [];
         if (b.status === 'Confirmed') {
             const cancel = actionButton(cancellingBookings.has(b.bookingId) ? 'Đang hủy...' : 'Hủy đặt phòng', 'btn btn-danger', () => cancelBooking(b.bookingId));
             cancel.disabled = cancellingBookings.has(b.bookingId); actions.push(cancel);
+            cancel.setAttribute('aria-label',cancel.textContent+' BK'+b.bookingId);
         }
         appendTableRow(body, [textNode('strong', 'BK' + b.bookingId), b.customerName || b.fullName || '', b.roomCode || '',
-            formatDate(b.checkinDate), formatDate(b.checkoutDate), textNode('span', b.status, 'badge ' +
+            bookingTime(b,'checkin'), bookingTime(b,'checkout'), textNode('span',
+                ({Confirmed:'Đã xác nhận',CheckedIn:'Đã nhận phòng',CheckedOut:'Đã trả phòng',Cancelled:'Đã hủy'}[b.status] || b.status), 'badge ' +
                 ({ Confirmed: 'bg-primary', CheckedIn: 'bg-warning', CheckedOut: 'bg-success' }[b.status] || 'bg-secondary')), b.note || ''], actions);
     });
 }
 async function cancelBooking(bookingId) {
     const row = bookingRows.find(b => b.bookingId === bookingId && b.status === 'Confirmed');
     if (!row || cancellingBookings.has(bookingId)) return;
-    if (!confirm(`Hủy BK${bookingId} của khách ${row.customerName || ''}, phòng ${row.roomCode || ''}?`)) return;
+    if (!await askConfirmation(`Hủy BK${bookingId} của khách ${row.customerName || ''}, phòng ${row.roomCode || ''}?`)) return;
+    if (cancellingBookings.has(bookingId)) return;
     cancellingBookings.add(bookingId); ++bookingListVersion; renderTable(bookingRows);
     try {
         const result = await apiPut('/bookings/' + bookingId + '/cancel');
@@ -229,7 +258,9 @@ async function saveBooking() {
 }
 document.addEventListener('DOMContentLoaded', async () => {
     if (!await checkLogin()) return;
-    loadBookings();
+    if (typeof initializeBookingCalendar === 'function') initializeBookingCalendar(); else loadBookings();
+    document.getElementById('booking-search').addEventListener('input', filterBookings);
+    document.getElementById('booking-status-filter').addEventListener('change', filterBookings);
     document.getElementById('booking-customer').addEventListener('change', updateBookingControls);
     document.getElementById('booking-room').addEventListener('change', () => { calculateEstimate(); updateBookingControls(); });
     for (const id of ['booking-checkin-date', 'booking-checkout-date']) {

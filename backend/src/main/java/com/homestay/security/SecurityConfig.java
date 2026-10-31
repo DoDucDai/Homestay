@@ -24,6 +24,7 @@ import java.sql.*;
 import java.util.*;
 
 @Configuration
+@DependsOn("databaseSettings")
 public class SecurityConfig {
     @Bean public PasswordEncoder passwordEncoder() { return PasswordHashing.encoder(); }
     @Bean public SecurityContextRepository contextRepository() { return new HttpSessionSecurityContextRepository(); }
@@ -36,13 +37,17 @@ public class SecurityConfig {
         provider.setUserDetailsService(accounts); provider.setPasswordEncoder(encoder);
         return new ProviderManager(provider);
     }
-    @Bean public ApplicationRunner checkAccountMigration() {
+    public ApplicationRunner checkAccountMigration() {return checkAccountMigration(new org.springframework.core.env.StandardEnvironment());}
+    @Bean public ApplicationRunner checkAccountMigration(org.springframework.core.env.Environment environment) {
         return args -> {
             try(Connection conn=DBConnection.getConnection();PreparedStatement stmt=conn.prepareStatement(
                     "SELECT password,password_scheme FROM Users");ResultSet rs=stmt.executeQuery()) {
                 while(rs.next()) {
                     if (!PasswordHashing.SCHEME.equals(rs.getString("password_scheme")) || !PasswordHashing.validHash(rs.getString("password"))) {
                         throw new IllegalStateException("Account password migration required. Stop writes and run scripts/migrate-passwords.ps1 after SQL migration 004.");
+                    }
+                    if(environment.acceptsProfiles(org.springframework.core.env.Profiles.of("prod")) && PasswordHashing.encoder().matches("123456",rs.getString("password"))) {
+                        throw new IllegalStateException("Production contains demo credentials. Change demo passwords in a private dev setup before enabling prod.");
                     }
                 }
             }
@@ -82,7 +87,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET,"/api/auth/csrf").permitAll()
                 .requestMatchers(HttpMethod.POST,"/api/auth/login").permitAll()
                 .requestMatchers("/api/auth/me","/api/auth/logout","/api/auth/change-password").hasAnyRole("ADMIN","STAFF")
-                .requestMatchers("/api/statistics/**","/pages/statistics.html").hasRole("ADMIN")
+                .requestMatchers("/api/statistics/**","/pages/statistics.html","/pages/rooms.html").hasRole("ADMIN")
+                .requestMatchers(request -> "/pages/customers.html".equals(request.getServletPath())
+                        && "admin".equals(request.getParameter("workspace"))).hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST,"/api/rooms","/api/services").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,"/api/rooms/**","/api/services/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE,"/api/rooms/**","/api/services/**","/api/customers/**").hasRole("ADMIN")

@@ -265,6 +265,11 @@ public class SecurityHttpSqlServerIT {
             require("staff".equals(user(staffLogin).get("role")),"Forged login role trusted");
             status(staff.get("/api/rooms"),200);status(staff.get("/api/services"),200);status(staff.get("/api/customers"),200);
             status(staff.get("/api/statistics/overview"),403);
+            status(staff.get("/pages/statistics.html"),403);
+            status(staff.get("/pages/rooms.html"),403);
+            status(staff.get("/pages/customers.html?workspace=admin"),403);
+            status(staff.get("/pages/customers.html"),200);
+            status(staff.get("/pages/account.html"),200);
             for(String path:List.of("/api/rooms","/api/services")) status(staff.write("POST",path,Map.of()),403);
             for(String path:List.of("/api/rooms/1","/api/services/1")) status(staff.write("PUT",path,Map.of()),403);
             status(staff.write("PUT","/api/rooms/1/status",Map.of("status","Bảo trì")),403);

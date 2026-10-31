@@ -45,7 +45,7 @@ public class RoomController {
         }
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query + " ORDER BY room_code")) {
-            RoomSchedule.bindToday(stmt, RoomSchedule.today(clock));
+            RoomSchedule.bindNow(stmt, clock);
             for (int i=0;i<values.size();i++) stmt.setString(i+3,values.get(i));
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) rooms.add(RoomSchedule.roomRow(rs));
@@ -76,7 +76,7 @@ public class RoomController {
             Input.id(id);
             try (Connection conn = DBConnection.getConnection();
                  PreparedStatement stmt = conn.prepareStatement(RoomSchedule.selectRooms() + " WHERE r.room_id=?")) {
-                RoomSchedule.bindToday(stmt, RoomSchedule.today(clock));
+                RoomSchedule.bindNow(stmt, clock);
                 stmt.setInt(3, id);
                 try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) return RoomSchedule.roomRow(rs);
@@ -95,6 +95,7 @@ public class RoomController {
             String name = Input.text(body,"roomName",100,true,null);
             String type = Input.oneOf(Input.text(body,"roomType",50,true,null),Set.of("Single","Double","VIP","Family"),"Loại phòng");
             long price = Input.money(body,"price",true);
+            Long hourly = body.get("hourlyPrice")==null ? null : Input.money(body,"hourlyPrice",true);
             String status = Input.text(body,"status",30,false,"Trống");
             String description = Input.text(body,"description",500,false,"");
             if (status.isEmpty()) status = "Trống";
@@ -105,13 +106,14 @@ public class RoomController {
                 return ApiErrors.bad("Phòng mới chỉ có thể Trống hoặc Bảo trì!");
             }
             try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(
-                    "INSERT INTO Rooms(room_code,room_name,room_type,price,status,description) VALUES(?,?,?,?,?,?)")) {
+                    "INSERT INTO Rooms(room_code,room_name,room_type,price,status,description,hourly_price) VALUES(?,?,?,?,?,?,?)")) {
                 stmt.setString(1,code);
                 stmt.setString(2,name);
                 stmt.setString(3,type);
                 stmt.setLong(4,price);
                 stmt.setString(5,status);
                 stmt.setString(6,description);
+                stmt.setObject(7,hourly,Types.DECIMAL);
                 stmt.executeUpdate();
                 return Map.of("success",true,"message","Thêm phòng thành công!");
             } catch (SQLException e) {
@@ -130,6 +132,7 @@ public class RoomController {
             String name = Input.text(body,"roomName",100,true,null);
             String type = Input.oneOf(Input.text(body,"roomType",50,true,null),Set.of("Single","Double","VIP","Family"),"Loại phòng");
             long price = Input.money(body,"price",true);
+            Long hourly = body.get("hourlyPrice")==null ? null : Input.money(body,"hourlyPrice",true);
             String requested=Input.text(body,"status",30,false,null);
             if(requested!=null) Input.oneOf(requested,Set.of("Trống","Bảo trì"),"Trạng thái phòng (chỉ Trống hoặc Bảo trì)");
             String description=Input.text(body,"description",500,false,"");
@@ -149,8 +152,8 @@ public class RoomController {
                     }
                 }
                 String query = code.isEmpty()
-                        ? "UPDATE Rooms SET room_name=?,room_type=?,price=?,status=?,description=? WHERE room_id=?"
-                        : "UPDATE Rooms SET room_code=?,room_name=?,room_type=?,price=?,status=?,description=? WHERE room_id=?";
+                        ? "UPDATE Rooms SET room_name=?,room_type=?,price=?,status=?,description=?,hourly_price=CASE WHEN ?=1 THEN ? ELSE hourly_price END WHERE room_id=?"
+                        : "UPDATE Rooms SET room_code=?,room_name=?,room_type=?,price=?,status=?,description=?,hourly_price=CASE WHEN ?=1 THEN ? ELSE hourly_price END WHERE room_id=?";
                 try (PreparedStatement stmt = conn.prepareStatement(query)) {
                     int index=1;
                     if (!code.isEmpty()) stmt.setString(index++,code);
@@ -159,6 +162,8 @@ public class RoomController {
                     stmt.setLong(index++,price);
                     stmt.setString(index++,status);
                     stmt.setString(index++,description);
+                    stmt.setInt(index++,body.containsKey("hourlyPrice")?1:0);
+                    stmt.setObject(index++,hourly,Types.DECIMAL);
                     stmt.setInt(index,id);
                     if (stmt.executeUpdate()!=1) throw new SQLException("Room update failed");
                 }

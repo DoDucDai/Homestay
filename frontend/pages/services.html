@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dịch Vụ - Homestay Management</title>
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/services.css">
 </head>
 <body class="session-pending">
+<a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
 <div id="session-status" class="session-status" role="status" aria-live="polite">
     <span id="session-message">Đang kiểm tra phiên đăng nhập...</span>
     <button id="session-retry" class="btn btn-secondary" hidden>Thử lại</button>
@@ -20,80 +22,86 @@
 
 <div class="wrapper">
 
-    <nav class="sidebar">
-        <div class="logo">🏠 Homestay</div>
-        <ul>
-            <li><a href="rooms.html">🛏 Quản lý Phòng</a></li>
-            <li><a href="customers.html">👤 Khách hàng</a></li>
-            <li><a href="bookings.html">📅 Booking</a></li>
-            <li><a href="checkin.html">✅ Check-in</a></li>
-            <li><a href="checkout.html">💰 Check-out</a></li>
-            <li><a href="services.html" class="active">🛎 Dịch vụ</a></li>
-            <li><a data-admin-only hidden href="statistics.html">📊 Thống kê</a></li>
-            <li><a href="#" id="logout-btn">🚪 Đăng xuất</a></li>
-        </ul>
-    </nav>
+    <nav id="app-sidebar" class="sidebar" aria-label="Điều hướng chính"></nav>
 
-    <div class="main-content">
-        <h1 class="page-title">🛎 Quản Lý Dịch Vụ</h1>
+    <main id="main-content" class="main-content" tabindex="-1">
+        <header class="services-heading">
+            <div><p class="services-eyebrow">DANH MỤC HOMESTAY</p><h1>Quản lý dịch vụ</h1>
+                <p class="text-muted">Quản lý tên, đơn giá và trạng thái cung cấp dịch vụ.</p></div>
+            <button class="btn btn-primary" id="service-add-btn" data-admin-only hidden onclick="openAddModal()">Thêm dịch vụ</button>
+        </header>
 
-        <div class="card">
-            <button class="btn btn-success" id="service-add-btn" data-admin-only hidden onclick="openAddModal()">+ Thêm dịch vụ</button>
-        </div>
+        <div id="alert-message" class="alert" role="status" aria-live="polite" style="display:none;"></div>
 
-        <div id="alert-message" class="alert" style="display:none;"></div>
-
-        <div class="card">
+        <section class="card services-list" aria-labelledby="services-list-title">
+            <div class="card-header"><div><h2 id="services-list-title">Danh sách dịch vụ</h2>
+                <p id="services-result" class="text-muted" role="status" aria-live="polite">Đang tải dịch vụ…</p></div>
+                <button class="btn btn-secondary" onclick="loadServices()">Tải lại</button></div>
+            <p class="services-note">Chỉ dịch vụ Hoạt động được chọn khi thêm dịch vụ cho khách đang ở. Dịch vụ đã có dữ liệu sử dụng không thể xóa.</p>
+            <div class="table-scroll" role="region" aria-label="Bảng dịch vụ, cuộn ngang để xem đầy đủ" tabindex="0">
             <table id="services-table">
+                <caption class="visually-hidden">Danh mục dịch vụ, đơn giá hiện tại và trạng thái cung cấp.</caption>
                 <thead>
                     <tr>
-                        <th>Mã DV</th>
-                        <th>Tên dịch vụ</th>
-                        <th>Đơn giá</th>
-                        <th>Trạng thái</th>
-                        <th>Thao tác</th>
+                        <th scope="col">Mã DV</th>
+                        <th scope="col">Tên dịch vụ</th>
+                        <th scope="col" class="text-money">Đơn giá</th>
+                        <th scope="col">Trạng thái</th>
+                        <th scope="col">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody id="services-tbody">
                     <tr><td colspan="5" style="text-align:center;">Đang tải dữ liệu...</td></tr>
                 </tbody>
             </table>
-        </div>
-    </div>
+            </div>
+<nav id="pager-services" class="pagination" aria-label="Phân trang danh mục dịch vụ" hidden></nav>
+        </section>
+    </main>
 </div>
 
 <!-- MODAL THEM / SUA DICH VU -->
 <div class="modal-overlay" id="service-modal">
-    <div class="modal-box">
+    <div class="modal-box service-editor">
         <h3 id="modal-title">Thêm Dịch Vụ</h3>
+        <p class="service-editor-intro text-muted">Các trường có dấu * là bắt buộc. Đơn giá được nhập bằng đồng Việt Nam.</p>
+        <form id="service-form" novalidate onsubmit="event.preventDefault(); saveService()">
+        <p id="service-form-error" class="form-error" role="alert" hidden></p>
 
         <input type="hidden" id="service-id">
 
         <div class="form-group">
             <label for="service-name">Tên dịch vụ *</label>
-            <input type="text" id="service-name" placeholder="VD: Thuê xe máy, Giặt ủi...">
+            <input type="text" id="service-name" maxlength="100" required aria-describedby="service-name-error" placeholder="VD: Thuê xe máy, Giặt ủi...">
+            <span id="service-name-error" class="form-error" hidden></span>
         </div>
         <div class="form-group">
             <label for="service-price">Đơn giá (VNĐ) *</label>
-            <input type="number" id="service-price" placeholder="VD: 100000" min="0">
+            <input type="number" id="service-price" placeholder="VD: 100000" min="0" max="999999999999" step="1" required aria-describedby="service-price-help service-price-error">
+            <span id="service-price-help" class="form-help">Số nguyên từ 0 đến 999.999.999.999 VNĐ.</span>
+            <span id="service-price-error" class="form-error" hidden></span>
         </div>
         <div class="form-group">
             <label for="service-status">Trạng thái</label>
-            <select id="service-status">
+            <select id="service-status" aria-describedby="service-status-help service-status-error">
                 <option value="Hoạt động">Hoạt động</option>
                 <option value="Ngừng">Ngừng</option>
             </select>
+            <span id="service-status-help" class="form-help">Chọn Ngừng để ngừng cung cấp dịch vụ.</span>
+            <span id="service-status-error" class="form-error" hidden></span>
         </div>
 
         <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeModal()">Hủy</button>
-            <button class="btn btn-primary" onclick="saveService()">Lưu</button>
+            <button type="button" data-modal-close id="service-cancel-btn" class="btn btn-secondary" onclick="closeServiceModal()">Hủy</button>
+            <button type="submit" id="service-save-btn" class="btn btn-primary">Lưu dịch vụ</button>
         </div>
+        </form>
     </div>
 </div>
 
 <!-- JS tien ich chung -->
 <script src="../js/api.js"></script>
+<script src="../js/shell.js"></script>
 <script src="../js/account.js"></script>
 <!-- JS xu ly -->
 <script src="../js/services.js"></script>

@@ -1,0 +1,45 @@
+const assert=require('node:assert/strict');
+const vm=require('node:vm');
+const {env,payload}=require('./frontend-test-env.cjs');
+const room={roomId:1,roomCode:'R1',roomName:payload,roomType:'Single',price:500000,hourlyPrice:70000,status:'Trống'};
+const customer={customerId:1,fullName:payload,phone:'0901234567'};
+const booking={bookingId:1,roomId:1,customerName:payload,billingUnit:'Hour',checkinAt:'2031-01-15T10:00',checkoutAt:'2031-01-15T11:01',status:'Confirmed'};
+let passed=0;const pass=s=>{passed++;console.log('PASS '+s);};
+function setup(rate=70000){
+ const e=env('rooms');e.context.vietnamNow=()=> '2031-01-15T10:00:00';
+ e.context.apiGet=async url=>url==='/rooms/1'?{...room,hourlyPrice:rate}:url==='/customers'?[customer]:url==='/bookings'?[]:[room];
+ return e;
+}
+(async()=>{
+ let e=setup();e.context.renderTable([room]);const tile=e.el('rooms-tbody').children[0];
+ assert.equal(tile.tagName,'BUTTON');assert.ok(tile.textContent.includes(payload));assert.ok(tile.textContent.includes('Còn trống'));
+ let opened;e.context.openRoomStay=r=>{opened=r;};tile.events.click();assert.equal(opened,room);
+ pass('room cards are keyboard buttons, preserve hostile text and open the selected room');
+ e=setup(null);await e.context.openRoomStay(room);assert.equal(e.el('stay-save').disabled,true);assert.match(e.el('stay-message').textContent,/Chưa khai báo/);
+ pass('unset hourly price blocks booking rather than inventing a rate');
+ e=setup();await e.context.openRoomStay(room);e.el('stay-customer').value='1';e.el('stay-checkin').value='2031-01-15T10:00';e.el('stay-checkout').value='2031-01-15T11:01';
+ e.context.updateStayEstimate();assert.match(e.el('stay-estimate').textContent,/2 giờ/);assert.match(e.el('stay-estimate').textContent,/140.000/);
+ e.el('stay-checkout').value='2031-01-15T10:00';await e.context.saveRoomStay();assert.equal(e.writes.length,0);
+ e.el('stay-checkout').value='2031-01-15T11:01';let resolve;e.context.apiPost=(endpoint,body)=>{e.writes.push({endpoint,body});return new Promise(r=>resolve=r);};
+ const saving=e.context.saveRoomStay();await e.context.saveRoomStay();e.context.closeRoomStay();assert.equal(e.writes.length,1);assert.equal(e.el('stay-close').disabled,true);
+ assert.equal(e.writes[0].body.billingUnit,'Hour');assert.equal(e.writes[0].body.checkinAt,'2031-01-15T10:00');resolve({success:true});await saving;
+ pass('hour estimate rounds up, zero interval is blocked and a pending booking cannot submit or close twice');
+ e=setup();await e.context.openRoomStay(room);e.el('stay-customer').value='1';e.el('stay-checkin').value='2031-01-15T10:00';e.el('stay-checkout').value='2031-01-15T11:01';
+ let calls=0;e.context.apiPost=async()=>{calls++;throw Error('Lost response');};await e.context.saveRoomStay();await e.context.saveRoomStay();assert.equal(calls,1);assert.equal(e.el('stay-save').disabled,true);assert.match(e.el('stay-message').textContent,/kiểm tra lịch/);
+ pass('uncertain booking result requires a fresh read and is never automatically repeated');
+ e=setup();vm.runInContext('roomBookings='+JSON.stringify([booking]),e.context);assert.equal(e.context.roomCardStatus(room)[0],'Đã đặt · Chưa nhận phòng');
+ vm.runInContext('roomBookings[0].status="CheckedIn"',e.context);assert.equal(e.context.roomCardStatus(room)[0],'Có khách đang ở');
+ vm.runInContext('roomBookings[0].status="CheckedOut"',e.context);assert.equal(e.context.roomCardStatus(room)[0],'Còn trống');
+ const p={bookingId:1,billingUnit:'Hour',checkinAt:'2031-01-15T10:00',checkoutAt:'2031-01-15T11:01',billedHours:2,pricePerHour:70000,roomTotal:140000,serviceTotal:0,grandTotal:140000,services:[]};
+ assert.equal(e.context.validStayInvoice(p,1),true);assert.equal(e.context.validStayInvoice({...p,billedHours:1},1),false);assert.equal(e.context.validStayInvoice({...p,grandTotal:1},1),false);
+ pass('cards distinguish booked/occupied/empty and checkout refuses inconsistent hourly amounts');
+ e=setup();e.el('filter-status').value='Đã đặt';e.context.apiGet=async url=>url==='/bookings'?[{...booking,checkinAt:'2031-01-16T10:00',checkoutAt:'2031-01-16T11:00'}]:[room];
+ await e.context.loadRooms();assert.ok(e.el('rooms-tbody').textContent.includes('Đã đặt · Chưa nhận phòng'));
+ e.el('filter-status').value='Trống';await e.context.loadRooms();assert.ok(!e.el('rooms-tbody').textContent.includes('R1'));
+ pass('status filtering matches future booking badges even when physical room is currently empty');
+ e=env('checkout');assert.equal(e.context.isValidCheckoutPreview({...p,pricePerNight:0,nights:0},1),true);
+ assert.equal(e.context.isValidCheckoutPreview({...p,pricePerNight:0,nights:0,billedHours:1},1),false);
+ e.context.renderInvoice(p);assert.equal(e.el('inv-nights').textContent,'2 giờ');assert.ok(e.el('inv-price-per-night').textContent.includes('/ giờ'));
+ pass('full invoice supports hourly stays while preserving hour labels and arithmetic validation');
+ console.log(passed+' room/hourly frontend groups passed');
+})().catch(err=>{console.error(err);process.exitCode=1;});

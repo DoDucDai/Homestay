@@ -1,0 +1,27 @@
+{
+  "license": "SIL Open Font License 1.1; see OFL.txt",
+  "conversion": "Lossless WOFF container, no glyph subsetting or outline edits",
+  "fonts": [
+    {
+      "file": "be-vietnam-pro-400.woff",
+      "weight": 400,
+      "bytes": 51324,
+      "sha256": "e39b753ee004c301dca6c0f4907cc31d92e10fc6aa37979b1bd43d620b6e5486",
+      "source": "https://github.com/google/fonts/blob/main/ofl/bevietnampro/BeVietnamPro-Regular.ttf"
+    },
+    {
+      "file": "be-vietnam-pro-600.woff",
+      "weight": 600,
+      "bytes": 54156,
+      "sha256": "3575f1f53be696afb319d3b1d2330d499236d92afeedaed87fad4c9dec4f7dd9",
+      "source": "https://github.com/google/fonts/blob/main/ofl/bevietnampro/BeVietnamPro-SemiBold.ttf"
+    },
+    {
+      "file": "be-vietnam-pro-700.woff",
+      "weight": 700,
+      "bytes": 55108,
+      "sha256": "7c380138f07fc64c450eb50ff751efcb0bcd4691fad34186182aba4343af8797",
+      "source": "https://github.com/google/fonts/blob/main/ofl/bevietnampro/BeVietnamPro-Bold.ttf"
+    }
+  ]
+}

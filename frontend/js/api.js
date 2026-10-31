@@ -114,17 +114,49 @@ function apiPost(endpoint, data) { return apiRequest(endpoint, 'POST', data); }
 function apiPut(endpoint, data) { return apiRequest(endpoint, 'PUT', data); }
 function apiDelete(endpoint) { return apiRequest(endpoint, 'DELETE'); }
 
+let alertMessageVersion = 0;
 function showAlert(message, type = 'success') {
     const el = document.getElementById('alert-message');
     if (!el) return;
     el.textContent = message;
     el.className = `alert alert-${type}`;
     el.style.display = 'block';
-    setTimeout(() => { el.style.display = 'none'; }, 5000);
+    const version = ++alertMessageVersion;
+    setTimeout(() => { if (version === alertMessageVersion) el.style.display = 'none'; }, 5000);
 }
-function openModal(modalId) { document.getElementById(modalId).classList.add('show'); }
-function closeModal() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show')); }
+function setPasswordVisibility(input, toggle, visible = false) {
+    if (!input || !toggle) return;
+    input.type = visible ? 'text' : 'password';
+    toggle.textContent = visible ? 'Ẩn' : 'Hiện';
+    toggle.setAttribute('aria-pressed', String(visible));
+    toggle.setAttribute('aria-label', (visible ? 'Ẩn ' : 'Hiện ') + (toggle.dataset.passwordLabel || 'mật khẩu'));
+}
+function bindPasswordVisibility(input, toggle, label = 'mật khẩu') {
+    if (!input || !toggle) return;
+    toggle.dataset.passwordLabel = label;
+    toggle.setAttribute('aria-controls', input.id);
+    setPasswordVisibility(input, toggle);
+    toggle.addEventListener('click', () => {
+        if (!input.disabled && !toggle.disabled) setPasswordVisibility(input, toggle, input.type === 'password');
+    });
+}
+function openModal(modalId) {
+    const overlay = document.getElementById(modalId);
+    if (typeof prepareModalAccessibility === 'function') prepareModalAccessibility(overlay);
+    overlay.classList.add('show');
+    if (typeof syncModalAccessibility === 'function') syncModalAccessibility();
+}
+function closeModal() {
+    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
+    if (typeof syncModalAccessibility === 'function') syncModalAccessibility();
+}
 function formatMoney(amount) { return (typeof amount === 'bigint' ? amount : Number(amount)).toLocaleString('vi-VN') + ' VNĐ'; }
+function vietnamNow() { return new Date(Date.now()+7*3600000).toISOString().slice(0,19); }
+function bookingTime(booking,which) {
+    const at=booking[which+'At'];
+    if(booking.billingUnit==='Hour' && at) return at.slice(0,16).replace('T',' ')+' (giờ VN)';
+    return formatDate(booking[which+'Date']);
+}
 function formatDate(dateStr) { return dateStr ? new Date(dateStr).toLocaleDateString('vi-VN') : '--'; }
 
 // Dynamic data is text; action handlers close over data rather than inline code.
@@ -154,6 +186,8 @@ function appendTableRow(body, values, actions = null) {
 }
 function tableState(id, columns, message) {
     const body = document.getElementById(id); if (!body) return;
+    const pager = document.getElementById('pager-'+(id === 'checkout-tbody' ? 'stays' : id.replace(/-tbody$/,'')));
+    if (pager) {pager.replaceChildren();pager.hidden = true;}
     body.replaceChildren();
     const row = appendTableRow(body, [message]);
     row.firstElementChild.colSpan = columns;
@@ -191,4 +225,67 @@ function validBookingDates(checkin, checkout) {
 }
 function vietnamToday(offset = 0) {
     return new Date(Date.now() + 7 * 3600000 + offset * 86400000).toISOString().slice(0, 10);
+}
+
+let confirmationPending = false;
+function askConfirmation(message, title = 'Xác nhận thao tác') {
+    if (confirmationPending) return Promise.resolve(false);
+    confirmationPending = true;
+    const previousFocus = document.activeElement;
+    const overlay = textNode('div','','modal-overlay show confirmation-overlay');
+    overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');
+    overlay.setAttribute('aria-labelledby','confirmation-title');overlay.setAttribute('aria-describedby','confirmation-message');
+    const box = textNode('div','','modal-box');
+    const heading = textNode('h3',title);heading.id = 'confirmation-title';
+    const description = textNode('p',message);description.id = 'confirmation-message';
+    const footer = textNode('div','','modal-footer');
+    return new Promise(resolve => {
+        const finish = accepted => {
+            overlay.remove();confirmationPending = false;
+            if (previousFocus?.isConnected) previousFocus.focus();
+            resolve(accepted);
+        };
+        const cancel = actionButton('Quay lại','btn btn-secondary',() => finish(false));
+        const accept = actionButton('Đồng ý','btn btn-primary',() => finish(true));
+        footer.append(cancel,accept);box.append(heading,description,footer);overlay.append(box);
+        if (typeof prepareModalAccessibility === 'function') prepareModalAccessibility(overlay, previousFocus);
+        document.body.append(overlay);
+        if (typeof syncModalAccessibility === 'function') syncModalAccessibility();
+        overlay.addEventListener('keydown',event => {
+            if (event.key === 'Escape') {event.preventDefault();finish(false);}
+            if (event.key === 'Tab') {event.preventDefault();(document.activeElement === cancel ? accept : cancel).focus();}
+        });
+        cancel.focus();
+    });
+}
+
+const paginationStates = new Map();
+function pageRows(key, rows, redraw, size = 20) {
+    let state = paginationStates.get(key);
+    if (!state || state.rows !== rows) { state = {rows,page:1};paginationStates.set(key,state); }
+    const pages = Math.max(1,Math.ceil(rows.length/size));state.page = Math.min(state.page,pages);
+    const nav = document.getElementById('pager-'+key);
+    if (nav) {
+        nav.replaceChildren();nav.hidden = rows.length <= size;
+        const previous = actionButton('Trang trước','btn btn-secondary',() => {state.page--;redraw(rows);});previous.disabled = state.page <= 1;
+        const next = actionButton('Trang sau','btn btn-secondary',() => {state.page++;redraw(rows);});next.disabled = state.page >= pages;
+        nav.append(previous,textNode('span',`Trang ${state.page}/${pages} · ${rows.length} dòng`),next);
+    }
+    return rows.slice((state.page-1)*size,state.page*size);
+}
+function makeCsv(columns, rows) {
+    const cell = (value, text = false) => {
+        let content = String(value ?? '').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g,'');
+        if (text || /^[\s\ufeff]*[=+\-@]/.test(content) || /^[\t\r\n]/.test(content)) content = "'"+content;
+        return '"'+content.replace(/"/g,'""')+'"';
+    };
+    return '\ufeff'+[columns.map(c => cell(c.label)).join(','),...rows.map(row => columns.map(c => cell(c.value(row),c.text)).join(','))].join('\r\n')+'\r\n';
+}
+function downloadCsv(filename, columns, rows, ready = true) {
+    if (!ready) {showAlert('Dữ liệu chưa tải xong hoặc đang lỗi. Hãy tải lại trước khi xuất CSV.','error');return false;}
+    if (!rows.length) {showAlert('Không có dòng dữ liệu để xuất CSV.','info');return false;}
+    const blob = new Blob([makeCsv(columns,rows)],{type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob), link = document.createElement('a');
+    link.href = url;link.download = filename;document.body.append(link);link.click();link.remove();
+    setTimeout(() => URL.revokeObjectURL(url),1000);return true;
 }

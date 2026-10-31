@@ -1,0 +1,28 @@
+@page { size: A4; margin: 15mm; }
+body { background: white !important; overflow: visible !important; }
+body > :not(#checkout-modal):not(#print-preview-controls) { display: none !important; }
+#checkout-modal { display: block !important; position: static; width: 180mm; height: auto; padding: 0; background: white; max-width: calc(100% - 32px); margin: 16px auto; }
+#checkout-modal .modal-box { width: 100% !important; max-width: none; max-height: none; overflow: visible; box-shadow: none; border: 0; border-radius: 0; padding: 0; }
+#checkout-modal .modal-box > :not(#invoice-details) { display: none !important; }
+#invoice-details { background: white !important; color: black; padding: 0 !important; margin: 0; border: 0; border-radius: 0; line-height: 1.5 !important; }
+#invoice-details .invoice-brand, #invoice-details .invoice-grand-total, #invoice-details .invoice-state { color: black; }
+#invoice-details .invoice-meta { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 3mm 8mm; padding-bottom: 5mm; }
+#invoice-details .invoice-payment-meta { break-inside: avoid; }
+#invoice-details .invoice-service-scroll { overflow: visible; border: 0; border-radius: 0; }
+#invoice-details .invoice-totals { margin: 5mm 0; padding: 3mm 0; background: white; border-top: 1px solid #777; break-inside: avoid; }
+#invoice-details .invoice-totals > div { flex-direction: row; padding: 1mm 0; }
+#invoice-details .invoice-totals dd { text-align: right; }
+#invoice-details .invoice-grand-total { font-size: 14pt; }
+#invoice-details h3, #invoice-details h4 { break-after: avoid; }
+#invoice-details .no-print, #invoice-details td:last-child:empty { display: none; }
+#invoice-details table { width: 100%; min-width: 0; font-size: 10pt; table-layout: fixed; }
+#invoice-details td, #invoice-details th { padding: 2mm; min-width: 0; overflow-wrap: anywhere; }
+#invoice-details th:first-child { width: 40%; }
+#invoice-details td:nth-child(3), #invoice-details td:nth-child(4) { white-space: normal; }
+#invoice-details tr { break-inside: avoid; }
+#invoice-details thead { display: table-header-group; }
+#print-preview-controls { display: flex; gap: 12px; justify-content: center; padding: 12px; }
+@media print {
+    #checkout-modal { width: auto; max-width: none; margin: 0; }
+    #print-preview-controls { display: none !important; }
+}

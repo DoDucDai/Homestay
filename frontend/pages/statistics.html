@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thống Kê - Homestay Management</title>
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/statistics.css">
 </head>
-<body class="session-pending">
+<body class="session-pending dashboard-page">
+<a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
 <div id="session-status" class="session-status" role="status" aria-live="polite">
     <span id="session-message">Đang kiểm tra phiên đăng nhập...</span>
     <button id="session-retry" class="btn btn-secondary" hidden>Thử lại</button>
@@ -21,73 +23,85 @@
 
 <div class="wrapper">
 
-    <nav class="sidebar">
-        <div class="logo">🏠 Homestay</div>
-        <ul>
-            <li><a href="rooms.html">🛏 Quản lý Phòng</a></li>
-            <li><a href="customers.html">👤 Khách hàng</a></li>
-            <li><a href="bookings.html">📅 Booking</a></li>
-            <li><a href="checkin.html">✅ Check-in</a></li>
-            <li><a href="checkout.html">💰 Check-out</a></li>
-            <li><a href="services.html">🛎 Dịch vụ</a></li>
-            <li><a data-admin-only hidden href="statistics.html" class="active">📊 Thống kê</a></li>
-            <li><a href="#" id="logout-btn">🚪 Đăng xuất</a></li>
-        </ul>
-    </nav>
+    <nav id="app-sidebar" class="sidebar" aria-label="Điều hướng chính"></nav>
 
-    <div class="main-content">
-        <h1 class="page-title">📊 Thống Kê & Báo Cáo</h1>
+    <main id="main-content" class="main-content" tabindex="-1">
+        <header class="dashboard-heading"><div><p class="statistics-eyebrow">THỐNG KÊ · <span data-property-label>Tất cả cơ sở</span></p><h1>Tổng quan kinh doanh</h1><p id="dashboard-period" class="text-muted">Đang tải báo cáo…</p></div>
+            <div class="heading-actions"><div class="dashboard-periods" aria-label="Khoảng báo cáo"><button class="active" data-days="7" onclick="setDashboardDays(7)">7 ngày</button><button data-days="14" onclick="setDashboardDays(14)">14 ngày</button><button data-days="30" onclick="setDashboardDays(30)">30 ngày</button></div><button id="dashboard-export" class="btn btn-primary" onclick="exportDashboard()" disabled>Xuất báo cáo</button></div></header>
+        <section id="statistics-denied" class="card" role="status" hidden><h2>Chỉ dành cho quản trị viên</h2>
+            <p>Bạn không có quyền xem thống kê và báo cáo. <a href="bookings.html">Quay về lịch đặt phòng</a>.</p></section>
+        <div id="statistics-content" hidden>
+        <section id="dashboard-content" aria-label="Tổng quan kinh doanh">
+            <p id="dashboard-status" role="status" aria-live="polite"></p>
+            <div id="dashboard-kpis" class="dashboard-kpis"></div>
+            <div class="dashboard-main-grid"><section class="card dashboard-revenue"><div class="dashboard-card-heading"><div><h2>Doanh thu theo ngày</h2><p class="text-muted">Tiền đã thu, gồm tiền phòng và dịch vụ</p></div><span class="chart-key"><i></i>Đã thanh toán</span></div><div id="daily-revenue-chart" class="daily-revenue-chart"></div></section>
+            <section class="card dashboard-today"><div class="dashboard-card-heading"><h2>Hôm nay</h2><a href="bookings.html">Mở lịch phòng ›</a></div><div id="dashboard-today-counts" class="dashboard-today-counts"></div><h3>Cần chú ý</h3><div id="dashboard-attention"></div></section></div>
+            <div class="dashboard-secondary-grid"><section class="card"><div class="dashboard-card-heading"><div><h2>Phân bố phòng hiện tại</h2><p class="text-muted">Tình trạng thực tế của toàn bộ phòng</p></div></div><div id="dashboard-distribution"></div></section>
+            <section class="card"><div class="dashboard-card-heading"><div><h2>Hình thức lưu trú</h2><p class="text-muted">Theo lượt nhận phòng trong kỳ</p></div></div><div id="dashboard-billing"></div></section></div>
+            <section class="card dashboard-top-rooms"><div class="dashboard-card-heading"><div><h2>Phòng có doanh thu cao nhất</h2><p class="text-muted">Xếp theo tiền phòng đã thu trong kỳ</p></div><span id="dashboard-room-count" class="text-muted"></span></div><div class="table-scroll"><table><thead><tr><th>#</th><th>PHÒNG</th><th>LƯỢT ĐÃ THU</th><th class="text-money">TIỀN PHÒNG</th><th class="text-money">TỔNG ĐÃ THU</th></tr></thead><tbody id="dashboard-top-rooms"></tbody></table></div></section>
+        </section>
+        <details class="dashboard-reports"><summary>Báo cáo chi tiết theo tháng & năm</summary>
+        <div class="statistics-overview-heading"><div><h2>Tổng quan hiện tại</h2><p id="overview-period" class="text-muted">Các chỉ số tháng hiện tại tính theo giờ Việt Nam, không đổi theo bộ lọc báo cáo bên dưới.</p></div>
+            <button class="btn btn-secondary" onclick="loadOverview()">Tải lại tổng quan</button></div>
 
         <!-- Tong quan nhanh -->
-        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:20px; margin-bottom:20px;">
+        <div class="stat-kpis">
 
-            <div class="card" style="text-align:center;">
-                <div style="font-size:36px;">🛏</div>
-                <div style="font-size:28px; font-weight:bold; color:#3498db;" id="stat-total-rooms">--</div>
-                <div style="color:#888;">Tổng phòng</div>
+            <div class="card statistics-kpi">
+                <p class="statistics-kpi-label">Tổng phòng</p><p class="statistics-kpi-value" id="stat-total-rooms">--</p>
+                <p class="statistics-kpi-help">Toàn bộ danh mục phòng</p>
             </div>
 
-            <div class="card" style="text-align:center;">
-                <div style="font-size:36px;">👤</div>
-                <div style="font-size:28px; font-weight:bold; color:#27ae60;" id="stat-total-customers">--</div>
-                <div style="color:#888;">Khách hàng</div>
+            <div class="card statistics-kpi">
+                <p class="statistics-kpi-label">Khách hàng</p><p class="statistics-kpi-value" id="stat-total-customers">--</p>
+                <p class="statistics-kpi-help">Toàn bộ hồ sơ khách</p>
             </div>
 
-            <div class="card" style="text-align:center;">
-                <div style="font-size:36px;">📅</div>
-                <div style="font-size:28px; font-weight:bold; color:#f39c12;" id="stat-total-bookings">--</div>
-                <div style="color:#888;">Booking tháng này</div>
+            <div class="card statistics-kpi">
+                <p class="statistics-kpi-label">Booking tạo tháng này</p><p class="statistics-kpi-value" id="stat-total-bookings">--</p>
+                <p class="statistics-kpi-help">Theo ngày tạo, giờ Việt Nam</p>
             </div>
 
-            <div class="card" style="text-align:center;">
-                <div style="font-size:36px;">💰</div>
-                <div style="font-size:28px; font-weight:bold; color:#e74c3c;" id="stat-revenue">--</div>
-                <div style="color:#888;">Doanh thu tháng này</div>
+            <div class="card statistics-kpi statistics-kpi-revenue">
+                <p class="statistics-kpi-label">Doanh thu tháng này</p><p class="statistics-kpi-value" id="stat-revenue">--</p>
+                <p class="statistics-kpi-help">Chỉ tính tiền đã thanh toán</p>
             </div>
 
         </div>
 
+        <div id="alert-message" class="alert" style="display:none;" role="status" aria-live="polite"></div>
+        <p id="overview-status" class="report-status" role="status" aria-live="polite"></p>
+        <div class="chart-grid statistics-charts">
+            <section class="card" aria-labelledby="yearly-title"><h2 id="yearly-title">Doanh thu theo năm</h2>
+                <div class="yearly-toolbar"><div class="form-group"><label for="chart-year">Năm báo cáo</label><input id="chart-year" type="number" min="1" max="9999" aria-describedby="yearly-status"></div><button class="btn btn-primary" onclick="loadYearly()">Xem năm</button></div>
+                <p id="yearly-status" class="report-status" role="status" aria-live="polite"></p>
+                <div class="statistics-chart-scroll" role="region" aria-label="Biểu đồ doanh thu năm, cuộn ngang để xem đủ 12 tháng" tabindex="0"><svg id="yearly-chart" viewBox="0 0 800 280" role="img" aria-label="Biểu đồ doanh thu 12 tháng"></svg></div>
+                <p class="report-total">Tổng năm <strong id="yearly-total">--</strong></p>
+                <details class="yearly-data"><summary>Số liệu 12 tháng</summary><div class="table-scroll"><table id="yearly-table"><caption class="visually-hidden">Số liệu tương đương biểu đồ doanh thu năm.</caption><thead><tr><th scope="col">Tháng</th><th scope="col" class="text-money">Đã thu (VND)</th></tr></thead><tbody id="yearly-tbody"></tbody></table></div></details>
+            </section>
+            <section class="card" aria-labelledby="room-chart-title"><h2 id="room-chart-title">Trạng thái phòng hôm nay</h2><svg id="room-chart" viewBox="0 0 220 220" role="img" aria-label="Biểu đồ trạng thái phòng hôm nay"></svg>
+                <p class="text-muted">Số phòng theo ngày Việt Nam. Bảng dưới đây dùng cùng số liệu với biểu đồ.</p>
         <!-- Trang thai phong -->
-        <div class="card">
-            <h3 style="margin-bottom:15px;">Trạng thái phòng</h3>
-            <table>
+            <div class="table-scroll room-distribution"><table id="room-status-table"><caption class="visually-hidden">Chú giải và số phòng tương đương biểu đồ trạng thái.</caption>
                 <thead>
                     <tr>
-                        <th>Trạng thái</th>
-                        <th>Số phòng</th>
+                        <th scope="col">Trạng thái</th>
+                        <th scope="col" class="text-money">Số phòng</th>
                     </tr>
                 </thead>
                 <tbody id="room-status-tbody">
                     <tr><td colspan="2" style="text-align:center;">Đang tải...</td></tr>
                 </tbody>
-            </table>
+            </table></div>
+            </section>
         </div>
 
         <!-- Doanh thu theo thang -->
-        <div class="card">
-            <h3 style="margin-bottom:15px;">Thống kê doanh thu</h3>
-            <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <select id="stat-month" style="padding:8px; border:1px solid #ccc; border-radius:5px;">
+        <section class="card monthly-revenue" aria-labelledby="revenue-title">
+            <div class="card-header"><div><h2 id="revenue-title">Chi tiết doanh thu tháng</h2><p class="text-muted">Chỉ tính hóa đơn đã thanh toán theo ngày thu tiền, giờ Việt Nam.</p></div>
+                <button id="revenue-export" class="btn btn-secondary" onclick="exportRevenue()" disabled>Xuất CSV</button></div>
+            <div class="monthly-toolbar"><div class="form-group"><label for="stat-month">Tháng báo cáo</label>
+                <select id="stat-month" aria-describedby="revenue-status">
                     <option value="1">Tháng 1</option>
                     <option value="2">Tháng 2</option>
                     <option value="3">Tháng 3</option>
@@ -101,33 +115,33 @@
                     <option value="11">Tháng 11</option>
                     <option value="12">Tháng 12</option>
                 </select>
-                <input type="number" id="stat-year" value="2026" style="padding:8px; border:1px solid #ccc; border-radius:5px; width:100px;">
-                <button class="btn btn-primary" onclick="loadRevenue()">Xem</button>
+                </div><div class="form-group"><label for="stat-year">Năm báo cáo</label><input min="1" max="9999" type="number" id="stat-year" aria-describedby="revenue-status"></div>
+                <button class="btn btn-primary" onclick="loadRevenue()">Xem tháng</button>
             </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Hóa đơn</th>
-                        <th>Khách hàng</th>
-                        <th>Phòng</th>
-                        <th>Ngày thanh toán</th>
-                        <th>Tổng tiền</th>
-                    </tr>
-                </thead>
+            <p id="revenue-status" class="report-status" role="status" aria-live="polite"></p>
+            <div class="table-scroll" role="region" aria-label="Bảng doanh thu tháng, cuộn ngang để xem đầy đủ" tabindex="0"><table id="revenue-table">
+                <caption class="visually-hidden">Hóa đơn đã thu trong kỳ báo cáo đã xác nhận.</caption>
+                <thead><tr><th scope="col">Hóa đơn</th><th scope="col">Ngày thu</th><th scope="col">Khách hàng</th><th scope="col">Phòng</th><th scope="col" class="text-money">Tiền phòng</th><th scope="col" class="text-money">Dịch vụ</th><th scope="col">Phương thức</th><th scope="col" class="text-money">Tổng tiền</th></tr></thead>
                 <tbody id="revenue-tbody">
-                    <tr><td colspan="5" style="text-align:center;">Chọn tháng và năm để xem</td></tr>
+                    <tr><td colspan="8" style="text-align:center;">Chọn tháng và năm để xem</td></tr>
                 </tbody>
             </table>
+            </div>
+<nav id="pager-revenue" class="pagination" aria-label="Phân trang doanh thu tháng" hidden></nav><p class="report-total">Tổng tháng <strong id="revenue-total">--</strong></p>
+        </section>
+        </details>
         </div>
 
-    </div>
+    </main>
 </div>
 
 <!-- JS tien ich chung -->
 <script src="../js/api.js"></script>
+<script src="../js/shell.js"></script>
 <script src="../js/account.js"></script>
 <!-- JS xu ly -->
 <script src="../js/statistics.js"></script>
+<script src="../js/dashboard.js"></script>
 
 </body>
 </html>
