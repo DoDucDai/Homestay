@@ -37,7 +37,7 @@ final class BookingInvoiceSnapshot {
         long nights;
         boolean estimated;
         String query = """
-                SELECT b.checkin_date,b.checkout_date,b.price_per_night,b.snapshot_estimated,
+                SELECT b.checkin_date,b.checkout_date,b.price_per_night,b.snapshot_estimated,b.billing_unit,b.checkin_at,b.checkout_at,b.price_per_hour,
                        c.full_name,c.cccd,c.phone,c.address,r.room_code,r.room_name
                 FROM Bookings b JOIN Customers c ON c.customer_id=b.customer_id
                 JOIN Rooms r ON r.room_id=b.room_id WHERE b.booking_id=?
@@ -50,6 +50,14 @@ final class BookingInvoiceSnapshot {
                 nights = ChronoUnit.DAYS.between(rs.getDate("checkin_date").toLocalDate(),
                         rs.getDate("checkout_date").toLocalDate());
                 if (nights <= 0) throw new ApiProblem(409,"DATA_INCONSISTENT","Ngày lưu trú đã lưu không hợp lệ!");
+                if("Hour".equals(rs.getString("billing_unit"))) {
+                    var start=rs.getTimestamp("checkin_at").toLocalDateTime();
+                    var end=rs.getTimestamp("checkout_at").toLocalDateTime();
+                    nights=HourlyStay.billedHours(start,end);
+                    price=money(rs.getBigDecimal("price_per_hour"));
+                    invoice.put("billingUnit","Hour");invoice.put("billedHours",nights);invoice.put("pricePerHour",price);
+                    invoice.put("checkinAt",start.toString());invoice.put("checkoutAt",end.toString());
+                } else invoice.put("billingUnit","Night");
                 estimated = rs.getBoolean("snapshot_estimated");
                 invoice.put("bookingId", bookingId);
                 invoice.put("customerName", rs.getString("full_name"));
@@ -94,8 +102,8 @@ final class BookingInvoiceSnapshot {
             }
         }
         BigDecimal roomTotal = money(price.multiply(BigDecimal.valueOf(nights)));
-        invoice.put("nights", nights);
-        invoice.put("pricePerNight", price);
+        invoice.put("nights", "Hour".equals(invoice.get("billingUnit")) ? 0 : nights);
+        invoice.put("pricePerNight", "Hour".equals(invoice.get("billingUnit")) ? BigDecimal.ZERO : price);
         invoice.put("roomTotal", roomTotal);
         invoice.put("serviceTotal", money(serviceTotal));
         invoice.put("grandTotal", money(roomTotal.add(serviceTotal)));
@@ -107,11 +115,15 @@ final class BookingInvoiceSnapshot {
     }
 
     static int store(Connection conn, Map<String, Object> invoice, String paymentMethod) throws SQLException {
+        return store(conn, invoice, paymentMethod, null);
+    }
+
+    static int store(Connection conn, Map<String, Object> invoice, String paymentMethod, java.time.LocalDateTime paidAt) throws SQLException {
         int paymentId;
         String insert = """
                 INSERT INTO Payments(booking_id,room_total,service_total,grand_total,payment_method,
                     payment_status,paid_at,snapshot_estimated,reconciliation_warning)
-                VALUES(?,?,?,?,?,N'Đã thanh toán',GETDATE(),?,?)
+                VALUES(?,?,?,?,?,N'Đã thanh toán',COALESCE(?,GETDATE()),?,?)
                 """;
         try (PreparedStatement stmt = conn.prepareStatement(insert, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, ((Number) invoice.get("bookingId")).intValue());
@@ -119,8 +131,9 @@ final class BookingInvoiceSnapshot {
             stmt.setBigDecimal(3, (BigDecimal) invoice.get("serviceTotal"));
             stmt.setBigDecimal(4, (BigDecimal) invoice.get("grandTotal"));
             stmt.setString(5, paymentMethod);
-            stmt.setBoolean(6, Boolean.TRUE.equals(invoice.get("snapshotEstimated")));
-            stmt.setString(7, (String) invoice.get("reconciliationWarning"));
+            stmt.setTimestamp(6, paidAt == null ? null : Timestamp.valueOf(paidAt));
+            stmt.setBoolean(7, Boolean.TRUE.equals(invoice.get("snapshotEstimated")));
+            stmt.setString(8, (String) invoice.get("reconciliationWarning"));
             stmt.executeUpdate();
             try (ResultSet rs = stmt.getGeneratedKeys()) {
                 if (!rs.next()) throw new SQLException("Payment key was not returned");

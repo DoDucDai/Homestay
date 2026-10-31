@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Tài khoản của tôi - Homestay</title><link rel="stylesheet" href="../css/style.css"><link rel="stylesheet" href="../css/profile.css"></head>
+<body class="session-pending profile-page">
+<a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
+<div id="session-status" class="session-status" role="status" aria-live="polite"><span id="session-message">Đang kiểm tra phiên đăng nhập...</span><button id="session-retry" class="btn btn-secondary" hidden>Thử lại</button></div>
+<div class="wrapper"><nav id="app-sidebar" class="sidebar" aria-label="Điều hướng chính"></nav><main id="main-content" class="main-content" tabindex="-1">
+    <header class="profile-heading"><div><p class="profile-eyebrow">TÀI KHOẢN HOMESTAY</p><h1>Tài khoản của tôi</h1><p class="text-muted">Thông tin cá nhân, bảo mật và không gian làm việc của bạn.</p></div><a href="landing.html" class="btn btn-secondary">Về trang chủ ↗</a></header>
+    <div id="alert-message" class="alert" role="status" aria-live="polite" style="display:none;"></div>
+    <div class="profile-layout"><section class="profile-identity-card" aria-labelledby="profile-name"><span id="profile-avatar" class="profile-avatar" aria-hidden="true">H</span><p class="profile-eyebrow">CHÀO MỪNG BẠN</p><h2 id="profile-name">Đang tải tài khoản…</h2><span id="profile-role" class="profile-role"></span><p id="profile-description"></p><a href="bookings.html" class="profile-operation-link">Mở khu vận hành <span>↗</span></a></section>
+    <section class="card profile-details" aria-labelledby="profile-details-title"><h2 id="profile-details-title">Thông tin tài khoản</h2><p class="text-muted">Thông tin của tài khoản đang đăng nhập.</p><dl><div><dt>Họ và tên</dt><dd id="profile-full-name">—</dd></div><div><dt>Tên đăng nhập</dt><dd id="profile-username">—</dd></div><div><dt>Vai trò</dt><dd id="profile-role-detail">—</dd></div><div><dt>Mã tài khoản</dt><dd id="profile-id">—</dd></div></dl><div class="profile-security"><div><h3>Bảo mật tài khoản</h3><p>Mật khẩu mới cần 12–128 ký tự. Sau khi đổi mật khẩu, bạn sẽ đăng nhập lại.</p></div><button id="profile-password-button" class="btn btn-primary">Đổi mật khẩu</button></div></section></div>
+    <section id="quan-tri" class="profile-admin" data-admin-only hidden aria-labelledby="profile-admin-title"><div class="profile-section-heading"><div><p class="profile-eyebrow">CHỈ DÀNH CHO ADMIN</p><h2 id="profile-admin-title">Khu quản trị</h2><p class="text-muted">Thống kê và quản lý danh mục, tách riêng khỏi các thao tác vận hành.</p></div></div><div class="profile-admin-grid">
+        <a class="profile-admin-card" href="statistics.html"><span class="profile-card-number">01 / BÁO CÁO</span><h3>Thống kê</h3><p>Xem doanh thu, tình trạng phòng và báo cáo theo kỳ.</p><span class="profile-card-link">Mở thống kê ↗</span></a>
+        <a class="profile-admin-card" href="rooms.html"><span class="profile-card-number">02 / DANH MỤC</span><h3>Quản lý phòng</h3><p>Thiết lập thông tin, giá giờ và tình trạng bảo trì phòng.</p><span class="profile-card-link">Quản lý phòng ↗</span></a>
+        <a class="profile-admin-card" href="customers.html?workspace=admin"><span class="profile-card-number">03 / KHÁCH HÀNG</span><h3>Quản lý khách hàng</h3><p>Quản lý hồ sơ, thông tin liên hệ và lịch sử lưu trú.</p><span class="profile-card-link">Quản lý khách hàng ↗</span></a>
+    </div></section>
+</main></div><script src="../js/api.js"></script><script src="../js/shell.js"></script><script src="../js/account.js"></script><script src="../js/profile.js"></script></body>
+</html>

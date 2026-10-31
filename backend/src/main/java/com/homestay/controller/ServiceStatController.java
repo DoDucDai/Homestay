@@ -96,6 +96,7 @@ public class ServiceStatController {
     public Map<String, Object> getOverview() {
         return ApiErrors.guard(() -> {
             Map<String, Object> result = new LinkedHashMap<>();
+            java.time.LocalDate today=RoomSchedule.today(clock);
 
             try (Connection conn = DBConnection.getConnection()) {
                 // Query 1 - Thống kê phòng
@@ -134,13 +135,14 @@ public class ServiceStatController {
                 String bookingSql = """
                     SELECT COUNT(*) AS total_bookings_this_month
                     FROM Bookings
-                    WHERE MONTH(created_at) = MONTH(GETDATE())
-                      AND YEAR(created_at)  = YEAR(GETDATE())
+                    WHERE MONTH(created_at) = ? AND YEAR(created_at) = ?
                     """;
-                try (PreparedStatement stmt = conn.prepareStatement(bookingSql);
-                     ResultSet rs = stmt.executeQuery()) {
+                try (PreparedStatement stmt = conn.prepareStatement(bookingSql)) {
+                    stmt.setInt(1,today.getMonthValue());stmt.setInt(2,today.getYear());
+                    try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
                         result.put("totalBookingsThisMonth", rs.getInt("total_bookings_this_month"));
+                    }
                     }
                 }
 
@@ -148,14 +150,15 @@ public class ServiceStatController {
                 String revenueSql = """
                     SELECT ISNULL(SUM(grand_total), 0) AS revenue_this_month
                     FROM Payments
-                    WHERE MONTH(paid_at) = MONTH(GETDATE())
-                      AND YEAR(paid_at)  = YEAR(GETDATE())
+                    WHERE MONTH(paid_at) = ? AND YEAR(paid_at) = ?
                       AND payment_status = N'Đã thanh toán'
                     """;
-                try (PreparedStatement stmt = conn.prepareStatement(revenueSql);
-                     ResultSet rs = stmt.executeQuery()) {
+                try (PreparedStatement stmt = conn.prepareStatement(revenueSql)) {
+                    stmt.setInt(1,today.getMonthValue());stmt.setInt(2,today.getYear());
+                    try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
                         result.put("revenueThisMonth", rs.getLong("revenue_this_month"));
+                    }
                     }
                 }
 
@@ -179,8 +182,8 @@ public class ServiceStatController {
         String sql = """
             SELECT
                 p.payment_id,
-                c.full_name AS customer_name,
-                r.room_code,
+                COALESCE(JSON_VALUE(p.invoice_snapshot,'$.customerName'),c.full_name) AS customer_name,
+                COALESCE(JSON_VALUE(p.invoice_snapshot,'$.roomCode'),r.room_code) AS room_code,
                 p.room_total,
                 p.service_total,
                 p.grand_total,
@@ -191,6 +194,7 @@ public class ServiceStatController {
             JOIN Customers c ON b.customer_id = c.customer_id
             JOIN Rooms r ON b.room_id = r.room_id
             WHERE MONTH(p.paid_at) = ? AND YEAR(p.paid_at) = ?
+              AND p.payment_status = N'Đã thanh toán'
             ORDER BY p.paid_at DESC
             """;
 
@@ -219,5 +223,21 @@ public class ServiceStatController {
         }
 
         return result;
+    }
+
+    @GetMapping("/statistics/yearly")
+    public List<java.math.BigDecimal> getYearly(@RequestParam int year) {
+        if(year<1 || year>9999) throw ApiErrors.invalid("Năm cần từ 1–9999!");
+        List<java.math.BigDecimal> months=new ArrayList<>(Collections.nCopies(12,java.math.BigDecimal.ZERO));
+        try(Connection conn=DBConnection.getConnection();PreparedStatement stmt=conn.prepareStatement("""
+            SELECT MONTH(paid_at) AS month,SUM(grand_total) AS amount FROM Payments
+            WHERE YEAR(paid_at)=? AND payment_status=N'Đã thanh toán'
+            GROUP BY MONTH(paid_at)
+            """)) {
+            stmt.setInt(1,year);try(ResultSet rs=stmt.executeQuery()) {
+                while(rs.next()) months.set(rs.getInt("month")-1,rs.getBigDecimal("amount"));
+            }
+        } catch(SQLException e) {throw ApiErrors.databaseFailure(e);}
+        return months;
     }
 }

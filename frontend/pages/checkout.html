@@ -5,8 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Check-out & Thanh Toán - Homestay Management</title>
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/checkout.css">
+    <link id="invoice-print-css" rel="stylesheet" href="../css/invoice-print.css" media="print">
 </head>
 <body class="session-pending">
+<a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
+<div id="print-preview-controls" hidden><button data-modal-close class="btn btn-secondary" onclick="closePrintPreview()">Quay lại hóa đơn</button><button class="btn btn-primary" onclick="printInvoice()">In bản này</button></div>
 <div id="session-status" class="session-status" role="status" aria-live="polite">
     <span id="session-message">Đang kiểm tra phiên đăng nhập...</span>
     <button id="session-retry" class="btn btn-secondary" hidden>Thử lại</button>
@@ -20,86 +24,85 @@
 
 <div class="wrapper">
 
-    <nav class="sidebar">
-        <div class="logo">🏠 Homestay</div>
-        <ul>
-            <li><a href="rooms.html">🛏 Quản lý Phòng</a></li>
-            <li><a href="customers.html">👤 Khách hàng</a></li>
-            <li><a href="bookings.html">📅 Booking</a></li>
-            <li><a href="checkin.html">✅ Check-in</a></li>
-            <li><a href="checkout.html" class="active">💰 Check-out</a></li>
-            <li><a href="services.html">🛎 Dịch vụ</a></li>
-            <li><a data-admin-only hidden href="statistics.html">📊 Thống kê</a></li>
-            <li><a href="#" id="logout-btn">🚪 Đăng xuất</a></li>
-        </ul>
-    </nav>
+    <nav id="app-sidebar" class="sidebar" aria-label="Điều hướng chính"></nav>
 
-    <div class="main-content">
-        <h1 class="page-title">💰 Check-out & Thanh Toán</h1>
+    <main id="main-content" class="main-content" tabindex="-1">
+        <header class="checkout-heading"><div><p class="checkout-eyebrow">QUẢN LÝ LƯU TRÚ</p><h1>Check-out và thanh toán</h1>
+            <p class="text-muted">Quản lý dịch vụ, ghi nhận tiền đã thu và xem lại hóa đơn.</p></div></header>
 
-        <div id="alert-message" class="alert" style="display:none;"></div>
+        <div id="alert-message" class="alert" role="status" aria-live="polite" style="display:none;"></div>
 
         <!-- Danh sach phong dang su dung -->
-        <div class="card">
-            <h3 style="margin-bottom:15px;">Phòng đang có khách</h3>
-            <button class="btn btn-secondary" onclick="loadCheckedInBookings()">Tải lại khách đang ở</button>
+        <section class="card checkout-list" aria-labelledby="stays-title">
+            <div class="card-header"><div><h2 id="stays-title">Khách đang ở</h2><p id="stays-result" class="text-muted" role="status" aria-live="polite">Đang tải khách đang ở…</p></div>
+                <button class="btn btn-secondary" onclick="loadCheckedInBookings()">Tải lại khách đang ở</button></div>
+            <div class="table-scroll" role="region" aria-label="Khách đang ở, cuộn ngang để xem đầy đủ" tabindex="0">
             <table id="checkout-table">
+                <caption class="visually-hidden">Booking đang ở; mở bảng kê dịch vụ và tạm tính trước khi trả phòng.</caption>
                 <thead>
                     <tr>
-                        <th>Mã booking</th>
-                        <th>Khách hàng</th>
-                        <th>Phòng</th>
-                        <th>Ngày nhận</th>
-                        <th>Ngày trả</th>
-                        <th>Thao tác</th>
+                        <th scope="col">Mã booking</th>
+                        <th scope="col">Khách hàng</th>
+                        <th scope="col">Phòng</th>
+                        <th scope="col">Ngày nhận</th>
+                        <th scope="col">Ngày trả</th>
+                        <th scope="col">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody id="checkout-tbody">
                     <tr><td colspan="6" style="text-align:center;">Đang tải dữ liệu...</td></tr>
                 </tbody>
             </table>
-        </div>
-<section class="card payment-history">
-    <h3>Hóa đơn đã thu</h3>
-    <button class="btn btn-secondary" onclick="loadPayments()">Tải lại hóa đơn</button>
-    <table><thead><tr><th>Hóa đơn</th><th>Booking</th><th>Ngày thu</th><th>Phương thức</th><th>Tổng tiền</th><th>Thao tác</th></tr></thead>
+            </div>
+<nav id="pager-stays" class="pagination" aria-label="Phân trang khách đang ở" hidden></nav>
+        </section>
+<section class="card payment-history checkout-list" aria-labelledby="payments-title">
+    <div class="card-header"><div><h2 id="payments-title">Hóa đơn đã thu</h2><p id="payments-result" class="text-muted" role="status" aria-live="polite">Đang tải hóa đơn…</p></div>
+        <button class="btn btn-secondary" onclick="loadPayments()">Tải lại hóa đơn</button></div>
+    <p class="checkout-note">Hóa đơn đã lưu chỉ dùng để xem và in lại; không ghi nhận thêm thanh toán.</p>
+    <div class="table-scroll" role="region" aria-label="Hóa đơn đã thu, cuộn ngang để xem đầy đủ" tabindex="0">
+    <table id="payments-table"><caption class="visually-hidden">Hóa đơn đã thanh toán theo ngày thu, phương thức và tổng tiền.</caption><thead><tr><th scope="col">Hóa đơn</th><th scope="col">Booking</th><th scope="col">Ngày thu</th><th scope="col">Phương thức</th><th scope="col" class="text-money">Tổng tiền</th><th scope="col">Thao tác</th></tr></thead>
     <tbody id="payments-tbody"><tr><td colspan="6">Đang tải...</td></tr></tbody></table>
-</section>
     </div>
+<nav id="pager-payments" class="pagination" aria-label="Phân trang hóa đơn đã thu" hidden></nav>
+</section>
+    </main>
 </div>
 
 <!-- MODAL HOA DON & THANH TOAN -->
 <div class="modal-overlay" id="checkout-modal">
-    <div class="modal-box" style="width:800px;">
+    <div class="modal-box checkout-editor">
         <p id="checkout-status" role="status" aria-live="polite"></p>
 
         <!-- Thong tin hoa don - JS dien vao -->
-        <div id="invoice-details" style="background:#f9f9f9; padding:15px; border-radius:5px; margin-bottom:15px; line-height:2;">
+        <article id="invoice-details">
+            <p class="invoice-brand">HOMESTAY MANAGEMENT</p>
             <h3 id="invoice-title">Tạm tính</h3>
-            <table style="width:100%; border:none;">
-                <tr><td><strong>Mã chứng từ:</strong></td>    <td id="inv-id">--</td></tr>
-                <tr><td><strong>Khách hàng:</strong></td>     <td id="inv-customer">--</td></tr>
-                <tr><td><strong>Phòng:</strong></td>          <td id="inv-room">--</td></tr>
-                <tr><td><strong>Ngày nhận:</strong></td>      <td id="inv-checkin">--</td></tr>
-                <tr><td><strong>Ngày trả:</strong></td>       <td id="inv-checkout">--</td></tr>
-                <tr><td><strong>Số đêm:</strong></td>         <td id="inv-nights">--</td></tr>
-                <tr><td><strong>Giá / đêm:</strong></td>      <td id="inv-price-per-night">--</td></tr>
-                <tr><td><strong>Tiền phòng:</strong></td>     <td id="inv-room-total">--</td></tr>
-                <tr><td><strong>Tiền dịch vụ:</strong></td>   <td id="inv-service-total">--</td></tr>
-                <tr style="font-size:18px; color:#e74c3c;">
-                    <td><strong>TỔNG CỘNG:</strong></td>
-                    <td><strong id="inv-grand-total">--</strong></td>
-                </tr>
-            </table>
-            <h4>Bảng kê dịch vụ</h4>
-            <table><thead><tr><th>Dịch vụ</th><th>Số lượng</th><th>Đơn giá</th><th>Thành tiền</th><th class="no-print">Thao tác</th></tr></thead><tbody id="invoice-services"></tbody></table>
-            <p>Ngày thu: <span id="inv-paid-at">--</span></p>
-            <p>Phương thức: <span id="inv-method">--</span></p>
+            <p id="invoice-state" class="invoice-state" role="status" aria-live="polite">Chưa xác nhận dữ liệu</p>
+            <dl class="invoice-meta">
+                <div><dt>Mã chứng từ</dt><dd id="inv-id">--</dd></div>
+                <div><dt>Khách hàng</dt><dd id="inv-customer">--</dd></div>
+                <div><dt>Phòng</dt><dd id="inv-room">--</dd></div>
+                <div><dt>Thời lượng tính tiền</dt><dd id="inv-nights">--</dd></div>
+                <div><dt>Ngày nhận</dt><dd id="inv-checkin">--</dd></div>
+                <div><dt>Ngày trả</dt><dd id="inv-checkout">--</dd></div>
+                <div><dt>Đơn giá phòng đã chốt</dt><dd id="inv-price-per-night">--</dd></div>
+            </dl>
+            <h4 id="invoice-services-title">Bảng kê dịch vụ</h4>
+            <div class="table-scroll invoice-service-scroll" role="region" aria-labelledby="invoice-services-title" tabindex="0">
+                <table id="invoice-service-table"><caption class="visually-hidden">Dịch vụ đã sử dụng với số lượng và đơn giá đã chốt.</caption><thead><tr><th scope="col">Dịch vụ</th><th scope="col">Số lượng</th><th scope="col" class="text-money">Đơn giá</th><th scope="col" class="text-money">Thành tiền</th><th id="invoice-actions-header" scope="col" class="no-print">Thao tác</th></tr></thead><tbody id="invoice-services"></tbody></table>
+            </div>
+            <dl class="invoice-totals"><div><dt>Tiền phòng</dt><dd id="inv-room-total">--</dd></div>
+                <div><dt>Tiền dịch vụ</dt><dd id="inv-service-total">--</dd></div>
+                <div class="invoice-grand-total"><dt>Tổng cộng</dt><dd id="inv-grand-total">--</dd></div></dl>
+            <dl class="invoice-meta invoice-payment-meta"><div><dt>Ngày thu</dt><dd id="inv-paid-at">--</dd></div>
+                <div><dt>Phương thức</dt><dd id="inv-method">--</dd></div></dl>
             <p id="inv-warning" role="status"></p>
-        </div>
-        <button id="add-service-btn" class="btn btn-primary" onclick="openServiceModal()">+ Thêm dịch vụ</button>
+        </article>
+        <button id="add-service-btn" class="btn btn-secondary" onclick="openServiceModal()">Thêm dịch vụ</button>
         <div class="form-group" id="payment-controls">
-            <p>Nhân viên xác nhận đã thu đủ tiền. Phương thức chỉ để ghi nhận, hệ thống chưa xác minh tiền về hoặc kết nối cổng thanh toán. Tiền phòng tính theo số đêm đã đặt.</p>
+            <h4>Ghi nhận thanh toán và trả phòng</h4>
+            <p class="form-help">Chỉ xác nhận sau khi đã thu đủ tiền. Phương thức dùng để ghi nhận; hệ thống chưa xác minh tiền về hoặc kết nối cổng thanh toán. Tiền phòng tính theo khung giờ hoặc số đêm đã đặt; phần giờ được làm tròn lên.</p>
             <label for="payment-method">Phương thức thanh toán</label>
             <select id="payment-method">
                 <option value="Tiền mặt">Tiền mặt</option>
@@ -109,25 +112,28 @@
         </div>
 
         <div class="modal-footer">
-            <button id="checkout-cancel-btn" class="btn btn-secondary" onclick="closeCheckoutModal()">Đóng</button>
+            <button data-modal-close id="checkout-cancel-btn" class="btn btn-secondary" onclick="closeCheckoutModal()">Đóng</button>
             <button id="invoice-print-btn" class="btn btn-primary" onclick="printInvoice()" disabled>In hóa đơn</button>
-            <button id="checkout-confirm-btn" class="btn btn-success" onclick="confirmCheckout()" disabled>✅ Xác nhận thanh toán & Check-out</button>
+            <button id="invoice-preview-btn" class="btn btn-secondary" onclick="previewInvoicePrint()" disabled>Xem bản in</button>
+            <button id="checkout-confirm-btn" class="btn btn-primary" aria-busy="false" onclick="confirmCheckout()" disabled>Xác nhận đã thu tiền & Check-out</button>
         </div>
     </div>
 </div>
 
 <div class="modal-overlay" id="service-modal" role="dialog" aria-modal="true" aria-labelledby="service-title">
-    <div class="modal-box">
+    <div class="modal-box checkout-service-editor">
         <h3 id="service-title">Thêm dịch vụ cho khách đang ở</h3>
         <p id="service-status" role="status" aria-live="polite"></p>
-        <div class="form-group"><label for="service-select">Dịch vụ</label><select id="service-select" onchange="updateServicePrice()"></select></div>
-        <div class="form-group"><label for="service-quantity">Số lượng (1–10000)</label><input id="service-quantity" type="number" min="1" max="10000" step="1" value="1" oninput="updateServicePrice()"></div>
-        <p id="service-price">--</p>
-        <div class="modal-footer"><button id="service-cancel-btn" class="btn btn-secondary" onclick="closeServiceModal()">Hủy</button><button id="service-save-btn" class="btn btn-success" onclick="addBookingService()" disabled>Thêm dịch vụ</button></div>
+        <p class="text-muted checkout-service-intro">Chọn dịch vụ đang hoạt động. Đơn giá được chốt khi thêm vào booking.</p>
+        <div class="form-group"><label for="service-select">Dịch vụ</label><select id="service-select" aria-describedby="service-status" onchange="updateServicePrice()"></select></div>
+        <div class="form-group"><label for="service-quantity">Số lượng (1–10000)</label><input id="service-quantity" type="number" min="1" max="10000" step="1" value="1" aria-describedby="service-status service-price" oninput="updateServicePrice()"></div>
+        <div class="service-estimate"><p class="text-muted">Đơn giá × Số lượng = Thành tiền</p><p id="service-price" role="status" aria-live="polite">--</p></div>
+        <div class="modal-footer"><button data-modal-close id="service-cancel-btn" class="btn btn-secondary" onclick="closeServiceModal()">Hủy</button><button id="service-save-btn" class="btn btn-primary" aria-busy="false" onclick="addBookingService()" disabled>Thêm dịch vụ</button></div>
     </div>
 </div>
 <!-- JS tien ich chung -->
 <script src="../js/api.js"></script>
+<script src="../js/shell.js"></script>
 <script src="../js/account.js"></script>
 <!-- JS xu ly -->
 <script src="../js/checkout.js"></script>

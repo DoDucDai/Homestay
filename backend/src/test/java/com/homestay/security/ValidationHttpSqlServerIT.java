@@ -331,6 +331,7 @@ public class ValidationHttpSqlServerIT {
             pass("server role changes invalidate existing authority snapshots");
             runValidationChecks(loginNew);
             runCustomerHistoryChecks(loginNew);
+            runReportChecks(loginNew);
         }
         System.out.println("SQL Server + HTTP FIX-03: "+passed+" groups passed.");
     }
@@ -389,6 +390,54 @@ public class ValidationHttpSqlServerIT {
         try { error(admin.get("/api/customers/"+owner+"/history"),503); }
         finally { sql("EXEC sp_rename 'dbo.Bookings_HistoryOffline','Bookings'"); }
         pass("FE-04 history query failure is 503 rather than an empty successful history");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void runReportChecks(Client admin) throws Exception {
+        int customer=Integer.parseInt(value("SELECT TOP 1 customer_id FROM Customers ORDER BY customer_id"));
+        int room=Integer.parseInt(value("SELECT TOP 1 room_id FROM Rooms ORDER BY room_id"));
+        String[] dates={"2031-01-15","2031-02-15","2030-01-15","2031-01-20"};
+        int[] amounts={100,200,700,9999};
+        for(int i=0;i<dates.length;i++) {
+            sql("INSERT INTO Bookings(customer_id,room_id,checkin_date,checkout_date,status,price_per_night,created_at) VALUES("
+                    +customer+","+room+",'"+dates[i]+"',DATEADD(day,1,'"+dates[i]+"'),'CheckedOut',"+amounts[i]+",'"+dates[i]+"')");
+            int booking=Integer.parseInt(value("SELECT MAX(booking_id) FROM Bookings"));
+            sql("INSERT INTO Payments(booking_id,room_total,service_total,grand_total,payment_status,paid_at) VALUES("
+                    +booking+","+amounts[i]+",0,"+amounts[i]+",N'"+(i==3?"Chưa thanh toán":"Đã thanh toán")+"','"+dates[i]+"')");
+        }
+        var yearly=admin.get("/api/statistics/yearly?year=2031");status(yearly,200);
+        List<Number> months=JSON.readValue(yearly.body(),List.class);
+        require(months.size()==12 && months.get(0).intValue()==100 && months.get(1).intValue()==200,"Yearly data has wrong month/status/year");
+        require(months.stream().mapToLong(Number::longValue).sum()==300,"Yearly total mismatch");
+        var empty=admin.get("/api/statistics/yearly?year=2040");status(empty,200);
+        require(((List<Number>)JSON.readValue(empty.body(),List.class)).stream().allMatch(n->n.intValue()==0),"Empty year is not zero filled");
+        pass("REPORT-01 yearly returns exactly 12 months, excludes unpaid/other-year amounts and zero-fills empty months");
+        long sum=0;
+        for(int month=1;month<=12;month++) {
+            var response=admin.get("/api/statistics/revenue?month="+month+"&year=2031");status(response,200);
+            List<Map<String,Object>> list=JSON.readValue(response.body(),List.class);
+            long monthly=list.stream().mapToLong(p->((Number)p.get("grandTotal")).longValue()).sum();sum+=monthly;
+            require(monthly==months.get(month-1).longValue(),"Monthly invoices and yearly chart disagree");
+        }
+        require(sum==300,"Invoice reconciliation total mismatch");
+        pass("REPORT-01 all 12 monthly invoice totals reconcile with yearly revenue");
+        int payment=Integer.parseInt(value("SELECT TOP 1 payment_id FROM Payments WHERE invoice_snapshot IS NOT NULL ORDER BY payment_id"));
+        String name=value("SELECT JSON_VALUE(invoice_snapshot,'$.customerName') FROM Payments WHERE payment_id="+payment);
+        String date=value("SELECT CONVERT(varchar(10),paid_at,23) FROM Payments WHERE payment_id="+payment);
+        int owner=Integer.parseInt(value("SELECT b.customer_id FROM Bookings b JOIN Payments p ON p.booking_id=b.booking_id WHERE p.payment_id="+payment));
+        sql("UPDATE Customers SET full_name=N'Renamed after payment' WHERE customer_id="+owner);
+        var report=admin.get("/api/statistics/revenue?month="+Integer.parseInt(date.substring(5,7))+"&year="+date.substring(0,4));status(report,200);
+        List<Map<String,Object>> rows=JSON.readValue(report.body(),List.class);
+        require(rows.stream().anyMatch(p->((Number)p.get("paymentId")).intValue()==payment && Objects.equals(p.get("customerName"),name)),"Paid report changed historical customer name");
+        var overview=admin.get("/api/statistics/overview");status(overview,200);Map<String,Object> stats=data(overview);
+        require(((Number)stats.get("totalRooms")).intValue()==((Number)stats.get("availableRooms")).intValue()+((Number)stats.get("bookedRooms")).intValue()+((Number)stats.get("occupiedRooms")).intValue()+((Number)stats.get("maintenanceRooms")).intValue(),"Room KPI sum mismatch");
+        pass("REPORT-01 snapshot names stay frozen and room KPI totals reconcile");
+        for(String year:List.of("0","10000","1.5","x")) error(admin.get("/api/statistics/yearly?year="+year),400);
+        Client staff=new Client();status(staff.login("staff",STAFF_PASSWORD),200);error(staff.get("/api/statistics/yearly?year=2031"),403);
+        sql("EXEC sp_rename 'dbo.Payments','Payments_ReportOffline'");
+        try {error(admin.get("/api/statistics/yearly?year=2031"),503);}
+        finally {sql("EXEC sp_rename 'dbo.Payments_ReportOffline','Payments'");}
+        pass("REPORT-01 invalid years, staff access and database outages retain 400/403/503 semantics");
     }
 
     private static void error(java.net.http.HttpResponse<String> response,int expected) throws Exception {

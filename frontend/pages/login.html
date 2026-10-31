@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng Nhập - Homestay Management</title>
     <link rel="stylesheet" href="../css/style.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏠</text></svg>">
+    <link rel="stylesheet" href="../css/login.css">
 </head>
 <body>
 
@@ -15,33 +15,94 @@
      NGUOI LAM JS: BAN (LEADER) -> xem file js/auth.js
      ================================================ -->
 
-<div class="login-page">
-    <div class="login-box">
-        <h2>🏠 Homestay Management</h2>
-
-        <!-- Thong bao loi / thanh cong -->
-        <div id="alert-message" class="alert" style="display:none;"></div>
-
-        <form id="login-form">
+<main class="login-page">
+    <div class="login-shell">
+        <aside class="login-brand-panel" aria-label="Homestay Management">
+            <div class="login-brand"><span class="login-brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 11 8-7 8 7v9H4Z M9 20v-7h6v7"/></svg></span><span>Homestay<span class="login-brand-secondary">A LITTLE TIME FOR YOURSELF</span></span></div>
+            <div class="login-intro">
+                <p class="login-eyebrow">KHÔNG GIAN CỦA BẠN. THỜI GIAN CỦA BẠN.</p>
+                <p class="login-headline">Một khoảng nghỉ.<br><em>Đúng lúc bạn cần.</em></p>
+                <p class="login-description">Từ một căn phòng phù hợp đến một lịch trình linh hoạt. Bắt đầu trải nghiệm Homestay theo cách của bạn.</p>
+                <ul class="login-features">
+                    <li>Khám phá phòng và chọn khung giờ</li>
+                    <li>Theo dõi lịch đặt trong cùng một nơi</li>
+                    <li>Quản lý lưu trú, dịch vụ và thanh toán</li>
+                </ul>
+                <div class="login-art" aria-hidden="true"><span></span><span></span><span></span><i></i></div>
+            </div>
+            <p class="login-brand-caption">KHÔNG GIAN NHỎ. KHOẢNG NGHỈ RIÊNG.<span>Ảnh không gian minh họa</span></p>
+        </aside>
+        <section class="login-form-panel" aria-labelledby="login-title">
+        <div id="login-view">
+        <p class="login-form-eyebrow">CHÀO MỪNG TRỞ LẠI</p>
+        <h1 id="login-title">Đăng nhập</h1>
+        <p class="login-form-description">Dùng tài khoản được cấp để tiếp tục quản lý Homestay.</p>
+        <div id="alert-message" class="alert" role="alert" style="display:none;"></div>
+        <form id="login-form" novalidate aria-busy="true">
             <div class="form-group">
                 <label for="username">Tên đăng nhập</label>
-                <input type="text" id="username" name="username" autocomplete="username" maxlength="50" placeholder="Nhập tên đăng nhập" required>
+                <input type="text" id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="50" placeholder="Nhập tên đăng nhập" aria-describedby="username-error" required disabled>
+                <span id="username-error" class="form-error" hidden></span>
             </div>
-
             <div class="form-group">
                 <label for="password">Mật khẩu</label>
-                <input type="password" id="password" name="password" autocomplete="current-password" maxlength="256" placeholder="Nhập mật khẩu" required>
+                <div class="password-field">
+                    <input type="password" id="password" name="password" autocomplete="current-password" maxlength="256" placeholder="Nhập mật khẩu" aria-describedby="password-error" required disabled>
+                    <button id="password-toggle" class="password-toggle" type="button" aria-label="Hiện mật khẩu" aria-controls="password" aria-pressed="false" disabled>Hiện</button>
+                </div>
+                <span id="password-error" class="form-error" hidden></span>
             </div>
-
-            <button type="submit" class="btn btn-primary" style="width:100%">Đăng nhập</button>
+            <div class="auth-form-links"><a href="login.html?view=forgot-password">Quên mật khẩu?</a></div>
+            <button id="login-submit" type="submit" class="btn btn-primary login-submit" disabled><span id="login-submit-label">Đang kiểm tra...</span></button>
+            <p id="login-status" class="login-status" role="status" aria-live="polite">Đang kiểm tra phiên đăng nhập...</p>
         </form>
+        <p class="auth-switch">Chưa có tài khoản? <a href="login.html?view=register">Đăng ký thành viên</a></p>
+        <p class="login-footnote">Đăng nhập hiện dành cho quản trị viên và nhân viên Homestay.</p>
+        </div>
+        <div id="register-view" hidden>
+            <a href="login.html" class="auth-back">← Quay lại đăng nhập</a>
+            <p class="login-form-eyebrow">THÀNH VIÊN HOMESTAY</p>
+            <h1 id="register-title">Tạo tài khoản</h1>
+            <p class="login-form-description">Đăng ký thành viên để chuẩn bị cho những lượt đặt phòng của bạn.</p>
+            <p class="auth-preview-note"><strong>Bản xem trước</strong> · Đăng ký chưa được kích hoạt. Thông tin chưa được gửi và tài khoản chưa được tạo.</p>
+            <form id="register-form" method="post" novalidate>
+                <div class="auth-field-grid">
+                    <div class="form-group"><label for="member-name">Họ và tên *</label><input id="member-name" name="fullName" autocomplete="name" maxlength="100" placeholder="Nguyễn Văn An" required aria-describedby="member-name-error"><span id="member-name-error" class="form-error" hidden></span></div>
+                    <div class="form-group"><label for="member-phone">Số điện thoại *</label><input id="member-phone" name="phone" type="tel" autocomplete="tel" maxlength="15" placeholder="0901 234 567" required aria-describedby="member-phone-error"><span id="member-phone-error" class="form-error" hidden></span></div>
+                </div>
+                <div class="form-group"><label for="member-email">Email *</label><input id="member-email" name="email" type="email" autocomplete="email" maxlength="100" placeholder="ban@example.com" required aria-describedby="member-email-error"><span id="member-email-error" class="form-error" hidden></span></div>
+                <div class="form-group"><label for="member-username">Tên đăng nhập *</label><input id="member-username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" minlength="3" maxlength="50" placeholder="Từ 3–50 ký tự" required aria-describedby="member-username-error"><span id="member-username-error" class="form-error" hidden></span></div>
+                <div class="form-group"><label for="member-password">Mật khẩu *</label><div class="password-field"><input id="member-password" name="password" type="password" autocomplete="new-password" minlength="12" maxlength="128" placeholder="Tối thiểu 12 ký tự" required aria-describedby="member-password-help member-password-error"><button id="member-password-toggle" type="button" class="password-toggle" aria-label="Hiện mật khẩu" aria-controls="member-password" aria-pressed="false">Hiện</button></div><p id="member-password-help" class="form-help">Dùng từ 12–128 ký tự cho mật khẩu của bạn.</p><span id="member-password-error" class="form-error" hidden></span></div>
+                <div class="form-group"><label for="member-confirm">Nhập lại mật khẩu *</label><div class="password-field"><input id="member-confirm" name="confirmation" type="password" autocomplete="new-password" maxlength="128" placeholder="Nhập lại mật khẩu" required aria-describedby="member-confirm-error"><button id="member-confirm-toggle" type="button" class="password-toggle" aria-label="Hiện mật khẩu nhập lại" aria-controls="member-confirm" aria-pressed="false">Hiện</button></div><span id="member-confirm-error" class="form-error" hidden></span></div>
+                <button type="submit" class="btn btn-primary login-submit">Đăng ký thành viên</button>
+                <p id="register-status" class="auth-preview-result" role="status" aria-live="polite" hidden></p>
+            </form>
+            <p class="auth-switch">Đã có tài khoản? <a href="login.html">Đăng nhập</a></p>
+        </div>
+        <div id="forgot-password-view" hidden>
+            <a href="login.html" class="auth-back">← Quay lại đăng nhập</a>
+            <div class="auth-mail-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg></div>
+            <p class="login-form-eyebrow">KHÔI PHỤC TÀI KHOẢN</p>
+            <h1 id="forgot-password-title">Quên mật khẩu?</h1>
+            <p class="login-form-description">Nhập email bạn đã dùng khi đăng ký để yêu cầu hướng dẫn đặt lại mật khẩu.</p>
+            <p class="auth-preview-note"><strong>Bản xem trước</strong> · Khôi phục mật khẩu chưa được kích hoạt. Chưa gửi email hoặc thay đổi mật khẩu.</p>
+            <form id="forgot-password-form" method="post" novalidate>
+                <div class="form-group"><label for="recovery-email">Email đăng ký *</label><input id="recovery-email" name="email" type="email" autocomplete="email" maxlength="100" placeholder="ban@example.com" required aria-describedby="recovery-email-error"><span id="recovery-email-error" class="form-error" hidden></span></div>
+                <button type="submit" class="btn btn-primary login-submit">Gửi hướng dẫn đặt lại mật khẩu</button>
+                <p id="recovery-status" class="auth-preview-result" role="status" aria-live="polite" hidden></p>
+            </form>
+            <p class="auth-switch">Nhớ mật khẩu rồi? <a href="login.html">Đăng nhập</a></p>
+        </div>
+        <noscript><p class="alert alert-error">Bật JavaScript để sử dụng trang đăng nhập.</p></noscript>
+        </section>
     </div>
-</div>
+</main>
 
 <!-- JS tien ich chung -->
 <script src="../js/api.js"></script>
 <!-- JS xu ly login -->
 <script src="../js/auth.js"></script>
+<script src="../js/member-preview.js"></script>
 
 </body>
 </html>

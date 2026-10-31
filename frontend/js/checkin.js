@@ -9,6 +9,12 @@ const checkinBusy = new Set();
 function checkinReason(booking) {
     const today = vietnamToday();
     if (booking.status !== 'Confirmed') return 'Booking không còn ở trạng thái chờ nhận phòng.';
+    if (booking.billingUnit === 'Hour') {
+        if(!booking.checkinAt || !booking.checkoutAt) return 'Thiếu giờ nhận/trả phòng.';
+        if(vietnamNow()<booking.checkinAt) return 'Chưa đến giờ nhận phòng.';
+        if(vietnamNow()>=booking.checkoutAt) return 'Đã hết khung giờ dự kiến. Cần xử lý booking.';
+        return '';
+    }
     if (!booking.checkinDate || !booking.checkoutDate) return 'Thiếu ngày nhận/trả phòng. Vui lòng tải lại.';
     if (today < booking.checkinDate.slice(0, 10)) return 'Chưa đến ngày nhận phòng.';
     if (today >= booking.checkoutDate.slice(0, 10)) return 'Đã hết kỳ lưu trú dự kiến. Cần xử lý booking trước khi nhận phòng.';
@@ -17,6 +23,7 @@ function checkinReason(booking) {
 async function loadPendingBookings() {
     const version = ++checkinListVersion;
     tableState('checkin-tbody', 8, 'Đang tải booking chờ nhận phòng...');
+    document.getElementById('checkin-result').textContent = 'Đang tải danh sách…';
     try {
         const bookings = expectList(await apiGet('/bookings?status=Confirmed'));
         if (version !== checkinListVersion) return;
@@ -24,6 +31,7 @@ async function loadPendingBookings() {
     } catch (err) {
         if (version !== checkinListVersion) return;
         pendingCheckins = new Map();
+        document.getElementById('checkin-result').textContent = 'Chưa tải được danh sách. Hãy thử tải lại.';
         tableState('checkin-tbody', 8, err.message || 'Không tải được danh sách chờ check-in.');
         showRequestError(err, 'Không tải được danh sách chờ check-in.');
     }
@@ -32,21 +40,27 @@ function renderTable(bookings) {
     pendingCheckins = new Map(bookings.map(b => [b.bookingId, b]));
     const body = document.getElementById('checkin-tbody'); if (!body) return;
     body.replaceChildren();
+    document.getElementById('checkin-result').textContent = bookings.length+' booking chờ nhận phòng · Ngày '+formatDate(vietnamToday());
     if (!bookings.length) { tableState('checkin-tbody', 8, 'Không có khách hàng nào chờ Check-in'); return; }
-    bookings.forEach(b => {
+    pageRows('checkin', bookings, renderTable).forEach(b => {
         const reason = checkinReason(b);
-        const button = actionButton(checkinBusy.has(b.bookingId) ? 'Đang nhận phòng...' : 'Xác nhận Check-in', 'btn btn-success',
+        const button = actionButton(checkinBusy.has(b.bookingId) ? 'Đang nhận phòng...' : 'Nhận phòng', 'btn btn-primary',
             () => doCheckin(b.bookingId, b.roomCode, b.customerName));
         button.disabled = !!reason || checkinBusy.has(b.bookingId); button.title = reason;
+        button.setAttribute('aria-label',button.textContent+' BK'+b.bookingId);
         const actions = [button];
-        if (reason) actions.push(textNode('p', reason));
+        if (reason) {
+            const description = textNode('p',reason,'checkin-reason'); description.id = 'checkin-reason-'+b.bookingId;
+            button.setAttribute('aria-describedby',description.id); actions.push(description);
+        }
         appendTableRow(body, [textNode('strong', 'BK' + b.bookingId), b.customerName || '', b.phone || '', textNode('strong', b.roomCode || ''),
-            formatDate(b.checkinDate), formatDate(b.checkoutDate), b.note || ''], actions);
+            bookingTime(b,'checkin'), bookingTime(b,'checkout'), b.note || ''], actions);
     });
 }
 function updateCheckinControls() {
     document.getElementById('checkin-confirm-btn').disabled = checkinSubmitting || checkinNeedsReload || !currentCheckin || !!checkinReason(currentCheckin);
-    document.getElementById('checkin-confirm-btn').textContent = checkinSubmitting ? 'Đang nhận phòng...' : '✅ Xác nhận Check-in';
+    document.getElementById('checkin-confirm-btn').textContent = checkinSubmitting ? 'Đang nhận phòng...' : 'Xác nhận nhận phòng';
+    document.getElementById('checkin-confirm-btn').setAttribute('aria-busy',String(checkinSubmitting));
     document.getElementById('checkin-close-btn').disabled = checkinSubmitting;
 }
 function doCheckin(bookingId, roomCode, customerName) {
@@ -58,9 +72,9 @@ function doCheckin(bookingId, roomCode, customerName) {
     currentCheckin = booking; checkinNeedsReload = false;
     document.getElementById('checkin-success').hidden = true;
     const info = document.getElementById('checkin-info'); info.replaceChildren();
-    for (const [label, value] of [['Booking', 'BK' + bookingId], ['Khách hàng', booking.customerName], ['Phòng', booking.roomCode],
-        ['Ngày nhận', formatDate(booking.checkinDate)], ['Ngày trả', formatDate(booking.checkoutDate)], ['Ghi chú', booking.note || '--']]) {
-        const line = document.createElement('p'); line.append(textNode('strong', label + ': '), textNode('span', value)); info.appendChild(line);
+    for (const [label, value] of [['Booking', 'BK' + bookingId], ['Khách hàng', booking.customerName], ['Điện thoại', booking.phone || '--'], ['Phòng', booking.roomCode],
+        ['Ngày nhận', bookingTime(booking,'checkin')], ['Ngày trả', bookingTime(booking,'checkout')], ['Ghi chú', booking.note || '--']]) {
+        const line = document.createElement('div'); line.append(textNode('dt',label),textNode('dd',value)); info.appendChild(line);
     }
     document.getElementById('checkin-status').textContent = '';
     updateCheckinControls(); openModal('checkin-modal');

@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản Lý Khách Hàng - Homestay Management</title>
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/customers.css">
 </head>
 <body class="session-pending">
+<a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
 <div id="session-status" class="session-status" role="status" aria-live="polite">
     <span id="session-message">Đang kiểm tra phiên đăng nhập...</span>
     <button id="session-retry" class="btn btn-secondary" hidden>Thử lại</button>
@@ -21,110 +23,136 @@
 <div class="wrapper">
 
     <!-- SIDEBAR -->
-    <nav class="sidebar">
-        <div class="logo">🏠 Homestay</div>
-        <ul>
-            <li><a href="rooms.html">🛏 Quản lý Phòng</a></li>
-            <li><a href="customers.html" class="active">👤 Khách hàng</a></li>
-            <li><a href="bookings.html">📅 Booking</a></li>
-            <li><a href="checkin.html">✅ Check-in</a></li>
-            <li><a href="checkout.html">💰 Check-out</a></li>
-            <li><a href="services.html">🛎 Dịch vụ</a></li>
-            <li><a data-admin-only hidden href="statistics.html">📊 Thống kê</a></li>
-            <li><a href="#" id="logout-btn">🚪 Đăng xuất</a></li>
-        </ul>
-    </nav>
+    <nav id="app-sidebar" class="sidebar" aria-label="Điều hướng chính"></nav>
 
     <!-- NOI DUNG CHINH -->
-    <div class="main-content">
-        <h1 class="page-title">👤 Quản Lý Khách Hàng</h1>
+    <main id="main-content" class="main-content" tabindex="-1">
+        <header class="customers-heading">
+            <div><p class="customers-eyebrow">DANH MỤC HOMESTAY</p><h1>Quản lý khách hàng</h1>
+                <p class="text-muted">Thông tin liên hệ, giấy tờ và lịch sử lưu trú của khách.</p></div>
+            <button class="btn btn-primary" onclick="openAddModal()">Thêm khách hàng</button>
+        </header>
 
-        <div class="card">
-            <button class="btn btn-success" onclick="openAddModal()">+ Thêm khách hàng</button>
-            <input type="search" id="search-input" aria-label="Tìm tên, giấy tờ hoặc số điện thoại" maxlength="100" placeholder="Tên, giấy tờ hoặc số điện thoại..." style="padding:8px; margin-left:10px; border:1px solid #ccc; border-radius:5px;">
-            <button class="btn btn-secondary" onclick="loadCustomers()">Tìm / Tải lại</button>
-        </div>
+        <section class="card" aria-label="Tìm kiếm khách hàng">
+            <div class="customers-toolbar">
+                <div class="form-field"><label for="search-input">Tìm khách hàng</label>
+                    <input type="search" id="search-input" maxlength="100" placeholder="Nhập tên, số giấy tờ hoặc số điện thoại…" aria-describedby="customers-search-help"></div>
+                <button class="btn btn-secondary" onclick="loadCustomers()">Tải lại</button>
+            </div>
+            <p id="customers-search-help" class="form-help">Danh sách tự cập nhật theo từ khóa. CSV bao gồm toàn bộ kết quả tìm kiếm ở mọi trang.</p>
+        </section>
 
-        <div id="alert-message" class="alert" style="display:none;"></div>
+        <div id="alert-message" class="alert" role="status" aria-live="polite" style="display:none;"></div>
 
-        <div class="card">
+        <section class="card customers-list" aria-labelledby="customers-list-title">
+            <div class="card-header"><div><h2 id="customers-list-title">Danh sách khách hàng</h2>
+                <p id="customers-result" class="text-muted" role="status" aria-live="polite">Đang tải khách hàng…</p></div>
+                <button id="customers-export" class="btn btn-secondary" disabled onclick="exportCustomers()">Xuất CSV</button></div>
+            <div class="table-scroll" role="region" aria-label="Bảng khách hàng, cuộn ngang để xem đầy đủ" tabindex="0">
             <table id="customers-table">
+                <caption class="visually-hidden">Khách hàng theo từ khóa tìm kiếm, thông tin giấy tờ và liên hệ.</caption>
                 <thead>
                     <tr>
-                        <th>Mã KH</th>
-                        <th>Họ tên</th>
-                        <th>CCCD / Passport</th>
-                        <th>Số điện thoại</th>
-                        <th>Email</th>
-                        <th>Thao tác</th>
+                        <th scope="col">Mã KH</th>
+                        <th scope="col">Họ tên / Địa chỉ</th>
+                        <th scope="col">Giấy tờ</th>
+                        <th scope="col">Số điện thoại</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody id="customers-tbody">
                     <tr><td colspan="6" style="text-align:center;">Đang tải dữ liệu...</td></tr>
                 </tbody>
             </table>
-        </div>
-    </div>
+            </div>
+<nav id="pager-customers" class="pagination" aria-label="Phân trang khách hàng" hidden></nav>
+        </section>
+    </main>
 </div>
 
 <!-- MODAL THEM / SUA KHACH HANG -->
 <div class="modal-overlay" id="customer-modal">
-    <div class="modal-box">
+    <div class="modal-box customer-editor">
         <h3 id="modal-title">Thêm Khách Hàng</h3>
+        <p class="customer-editor-intro text-muted">Các trường có dấu * là bắt buộc. Kiểm tra giấy tờ và thông tin liên hệ trước khi lưu.</p>
+        <form id="customer-form" novalidate onsubmit="event.preventDefault(); saveCustomer()">
+        <p id="customer-form-error" class="form-error" role="alert" hidden></p>
 
         <input type="hidden" id="customer-id">
 
         <div class="form-group">
             <label for="customer-name">Họ và tên *</label>
-            <input type="text" id="customer-name" maxlength="100" placeholder="Nhập họ và tên">
+            <input type="text" id="customer-name" maxlength="100" required autocomplete="name" aria-describedby="customer-name-error" placeholder="Nhập họ và tên">
+            <span id="customer-name-error" class="form-error" hidden></span>
         </div>
+        <div class="form-grid">
         <div class="form-group">
             <label for="customer-document-type">Loại giấy tờ *</label>
-            <select id="customer-document-type">
+            <select id="customer-document-type" required aria-describedby="customer-document-help customer-validation-warning customer-document-type-error">
                 <option value="CCCD">CCCD</option>
                 <option value="PASSPORT">Hộ chiếu</option>
                 <option value="LEGACY" disabled>Chưa xác định (dữ liệu cũ)</option>
             </select>
-            <p id="customer-validation-warning" role="status"></p>
+            <span id="customer-document-type-error" class="form-error" hidden></span>
         </div>
         <div class="form-group">
-            <label for="customer-cccd">CCCD / Passport *</label>
-            <input type="text" id="customer-cccd" maxlength="20" placeholder="Số CCCD hoặc Hộ chiếu">
+            <label for="customer-cccd">Số giấy tờ *</label>
+            <input type="text" id="customer-cccd" maxlength="20" required aria-describedby="customer-document-help customer-validation-warning customer-cccd-error" placeholder="Số CCCD hoặc hộ chiếu">
+            <span id="customer-cccd-error" class="form-error" hidden></span>
         </div>
+        </div>
+        <p id="customer-document-help" class="form-help customer-document-help">CCCD gồm 12 chữ số. Hộ chiếu gồm 6–20 chữ cái hoặc chữ số.</p>
+        <p id="customer-validation-warning" class="customer-legacy-warning" role="status" aria-live="polite"></p>
+        <div class="form-grid">
         <div class="form-group">
             <label for="customer-phone">Số điện thoại *</label>
-            <input type="text" id="customer-phone" maxlength="15" placeholder="VD: 0901234567">
+            <input type="tel" id="customer-phone" maxlength="15" required autocomplete="tel" aria-describedby="customer-phone-help customer-phone-error" placeholder="VD: 0901234567">
+            <span id="customer-phone-help" class="form-help">10 chữ số, bắt đầu bằng 0.</span>
+            <span id="customer-phone-error" class="form-error" hidden></span>
         </div>
         <div class="form-group">
             <label for="customer-email">Email</label>
-            <input type="email" id="customer-email" maxlength="100" placeholder="VD: khach@email.com">
+            <input type="email" id="customer-email" maxlength="100" autocomplete="email" aria-describedby="customer-email-error" placeholder="VD: khach@email.com">
+            <span id="customer-email-error" class="form-error" hidden></span>
+        </div>
         </div>
         <div class="form-group">
             <label for="customer-address">Địa chỉ</label>
-            <input type="text" id="customer-address" maxlength="200" placeholder="Địa chỉ thường trú">
+            <input type="text" id="customer-address" maxlength="200" autocomplete="street-address" aria-describedby="customer-address-error" placeholder="Địa chỉ thường trú">
+            <span id="customer-address-error" class="form-error" hidden></span>
         </div>
 
         <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeCustomerModal()">Hủy</button>
-            <button class="btn btn-primary" onclick="saveCustomer()">Lưu</button>
+            <button type="button" data-modal-close class="btn btn-secondary" onclick="closeCustomerModal()">Hủy</button>
+            <button type="submit" id="customer-save-btn" class="btn btn-primary">Lưu khách hàng</button>
         </div>
+        </form>
     </div>
 </div>
 
 <div class="modal-overlay" id="customer-history-modal" role="dialog" aria-modal="true" aria-labelledby="history-title">
     <div class="modal-box history-box">
         <h3 id="history-title">Lịch sử lưu trú</h3>
+        <dl class="customer-history-summary">
+            <div><dt>Khách hàng</dt><dd id="history-customer">--</dd></div>
+            <div><dt>Điện thoại</dt><dd id="history-phone">--</dd></div>
+            <div><dt>Số lần lưu trú</dt><dd id="history-stays">--</dd><p class="text-muted">Đang ở và đã trả phòng</p></div>
+            <div><dt>Tổng đã thanh toán</dt><dd id="history-total">--</dd></div>
+        </dl>
         <p id="history-status" role="status" aria-live="polite"></p>
-        <p>Tổng chi tiêu đã thanh toán: <strong id="history-total">--</strong></p>
-        <div class="history-table-scroll"><table>
-            <thead><tr><th>Booking</th><th>Phòng</th><th>Ngày nhận</th><th>Ngày trả</th><th>Số đêm</th><th>Trạng thái</th><th>Đã thu</th><th>Phương thức</th><th>Hóa đơn</th></tr></thead>
+        <div class="history-table-scroll table-scroll" role="region" aria-label="Lịch sử đặt phòng, cuộn ngang để xem đầy đủ" tabindex="0"><table id="customer-history-table">
+            <caption class="visually-hidden">Lịch sử booking và hóa đơn đã thanh toán của khách hàng.</caption>
+            <thead><tr><th scope="col">Booking</th><th scope="col">Phòng</th><th scope="col">Ngày nhận</th><th scope="col">Ngày trả</th><th scope="col">Số đêm</th><th scope="col">Trạng thái</th><th scope="col" class="text-money">Đã thu</th><th scope="col">Phương thức</th><th scope="col">Hóa đơn</th></tr></thead>
             <tbody id="history-tbody"></tbody>
-        </table></div>
-        <div class="modal-footer"><button id="history-reload" class="btn btn-secondary">Tải lại</button><button class="btn btn-primary" onclick="closeCustomerHistory()">Đóng</button></div>
+        </table>
+        </div><nav id="pager-history" class="pagination" aria-label="Phân trang lịch sử lưu trú" hidden></nav>
+        <div class="modal-footer"><button id="history-reload" class="btn btn-secondary">Tải lại</button><button data-modal-close class="btn btn-primary" onclick="closeCustomerHistory()">Đóng</button></div>
     </div>
 </div>
 <!-- JS tien ich chung -->
 <script src="../js/api.js"></script>
+<script src="../js/shell.js"></script>
 <script src="../js/account.js"></script>
 <!-- JS xu ly khach hang -->
 <script src="../js/customers.js"></script>

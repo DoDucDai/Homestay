@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản Lý Phòng - Homestay Management</title>
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/rooms.css">
 </head>
-<body class="session-pending">
+<body class="session-pending rooms-page">
+<a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
 <div id="session-status" class="session-status" role="status" aria-live="polite">
     <span id="session-message">Đang kiểm tra phiên đăng nhập...</span>
     <button id="session-retry" class="btn btn-secondary" hidden>Thử lại</button>
@@ -21,107 +23,128 @@
 <div class="wrapper">
 
     <!-- SIDEBAR -->
-    <nav class="sidebar">
-        <div class="logo">🏠 Homestay</div>
-        <ul>
-            <li><a href="rooms.html" class="active">🛏 Quản lý Phòng</a></li>
-            <li><a href="customers.html">👤 Khách hàng</a></li>
-            <li><a href="bookings.html">📅 Booking</a></li>
-            <li><a href="checkin.html">✅ Check-in</a></li>
-            <li><a href="checkout.html">💰 Check-out</a></li>
-            <li><a href="services.html">🛎 Dịch vụ</a></li>
-            <li><a data-admin-only hidden href="statistics.html">📊 Thống kê</a></li>
-            <li><a href="#" id="logout-btn">🚪 Đăng xuất</a></li>
-        </ul>
-    </nav>
+    <nav id="app-sidebar" class="sidebar" aria-label="Điều hướng chính"></nav>
 
     <!-- NOI DUNG CHINH -->
-    <div class="main-content">
-        <h1 class="page-title">🛏 Quản Lý Phòng</h1>
+    <main id="main-content" class="main-content" tabindex="-1">
+        <header class="rooms-heading">
+            <div><p class="rooms-eyebrow">DANH MỤC HOMESTAY</p><h1>Quản lý phòng</h1>
+                <p class="text-muted">Chọn phòng, đặt theo giờ và theo dõi khách trong cùng một cửa sổ.</p></div>
+            <button id="room-add-btn" data-admin-only hidden class="btn btn-primary" onclick="openAddModal()">Thêm phòng</button>
+        </header>
 
         <!-- Thanh cong cu -->
-        <div class="card">
-            <button id="room-add-btn" data-admin-only hidden class="btn btn-success" onclick="openAddModal()">+ Thêm phòng</button>
-            <input type="text" aria-label="Tìm mã hoặc tên phòng" maxlength="100" id="search-input" placeholder="Tìm kiếm phòng..." style="padding:8px; margin-left:10px; border:1px solid #ccc; border-radius:5px;">
-        </div>
-
-        <div class="card room-filters">
-            <label for="filter-type">Loại phòng</label><select id="filter-type"><option value="">Tất cả loại</option><option>Single</option><option>Double</option><option>VIP</option><option>Family</option></select>
-            <label for="filter-status">Trạng thái hôm nay</label><select id="filter-status"><option value="">Tất cả trạng thái</option><option>Trống</option><option>Đã đặt</option><option>Đang sử dụng</option><option>Bảo trì</option></select>
-            <button class="btn btn-secondary" onclick="loadRooms()">Lọc / Tải lại</button>
-            <p>Trạng thái theo ngày Việt Nam, được tải lại khi quay về trang hoặc qua ngày mới. Bảo trì chỉ bật khi không còn booking Confirmed/CheckedIn.</p>
-        </div>
+        <section class="card" aria-label="Tìm kiếm và lọc phòng">
+            <div class="rooms-toolbar">
+                <div class="form-field"><label for="search-input">Tìm phòng</label><input type="search" maxlength="100" id="search-input" placeholder="Nhập mã hoặc tên phòng…"></div>
+                <div class="form-field"><label for="filter-type">Loại phòng</label><select id="filter-type"><option value="">Tất cả loại</option><option>Single</option><option>Double</option><option>VIP</option><option>Family</option></select></div>
+                <div class="form-field"><label for="filter-status">Trạng thái phòng</label><select id="filter-status"><option value="">Tất cả trạng thái</option><option value="Trống">Còn trống</option><option value="Đã đặt">Đã đặt · Chưa nhận</option><option value="Đang sử dụng">Có khách đang ở</option><option>Bảo trì</option></select></div>
+                <div class="form-field"><label for="filter-pricing">Giá theo giờ</label><select id="filter-pricing"><option value="">Tất cả phòng</option><option value="ready">Đã có giá giờ</option><option value="missing">Chưa có giá giờ</option></select></div>
+                <button class="btn btn-secondary" onclick="loadRooms()">Tải lại</button>
+            </div>
+            <p class="rooms-note">Ưu tiên đặt theo giờ, làm tròn lên mỗi giờ theo giờ Việt Nam. Để cấu hình giá: chọn phòng → Thiết lập giá giờ. Phòng chưa có giá giờ chưa nhận đặt theo giờ.</p>
+        </section>
         <!-- Thong bao -->
-        <div id="alert-message" class="alert" style="display:none;"></div>
+        <div id="alert-message" class="alert" role="status" aria-live="polite" style="display:none;"></div>
 
         <!-- Bang danh sach phong -->
-        <div class="card">
-            <table id="rooms-table">
-                <thead>
-                    <tr>
-                        <th>Mã phòng</th>
-                        <th>Tên phòng</th>
-                        <th>Loại phòng</th>
-                        <th>Giá / đêm</th>
-                        <th>Trạng thái</th>
-                        <th>Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody id="rooms-tbody">
-                    <!-- Du lieu se duoc JS dien vao day -->
-                    <tr><td colspan="6" style="text-align:center;">Đang tải dữ liệu...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+        <section class="card rooms-list" aria-labelledby="rooms-list-title">
+            <div class="card-header"><div><h2 id="rooms-list-title">Danh sách phòng</h2><p id="rooms-result" class="text-muted" role="status" aria-live="polite">Đang tải phòng…</p></div>
+                <button id="rooms-export" class="btn btn-secondary" disabled onclick="exportRooms()">Xuất CSV</button></div>
+            <div id="rooms-tbody" class="rooms-grid" aria-label="Các thẻ phòng"><p class="room-grid-state">Đang tải phòng…</p></div>
+<nav id="pager-rooms" class="pagination" aria-label="Phân trang danh sách phòng" hidden></nav>
+        </section>
+    </main>
 </div>
 
 <!-- MODAL THEM / SUA PHONG -->
 <div class="modal-overlay" id="room-modal">
-    <div class="modal-box">
+    <div class="modal-box room-editor">
         <h3 id="modal-title">Thêm Phòng Mới</h3>
+        <p class="text-muted room-editor-intro">Nhập giá giờ để mở đặt phòng theo khung giờ. Giá áp dụng cho lượt đặt mới; lượt đã đặt giữ giá đã chốt. Các trường có dấu * là bắt buộc.</p>
+        <form id="room-form" novalidate onsubmit="event.preventDefault(); saveRoom()">
+        <p id="room-form-error" class="form-error" role="alert" hidden></p>
 
         <input type="hidden" id="room-id">
 
-        <div class="form-group">
+        <div class="form-grid"><div class="form-group">
             <label for="room-code">Mã phòng *</label>
-            <input type="text" maxlength="20" id="room-code" placeholder="VD: P101">
+        <input type="text" maxlength="20" id="room-code" required aria-describedby="room-code-error" placeholder="VD: P101">
+            <span id="room-code-error" class="form-error" hidden></span>
         </div>
         <div class="form-group">
             <label for="room-name">Tên phòng *</label>
-            <input type="text" maxlength="100" id="room-name" placeholder="VD: Phòng Đôi Hướng Biển">
+            <input type="text" maxlength="100" id="room-name" required aria-describedby="room-name-error" placeholder="VD: Phòng Đôi Hướng Biển">
+            <span id="room-name-error" class="form-error" hidden></span>
         </div>
         <div class="form-group">
             <label for="room-type">Loại phòng *</label>
-            <select id="room-type">
+            <select id="room-type" required aria-describedby="room-type-error">
                 <option value="">-- Chọn loại --</option>
                 <option value="Single">Single</option>
                 <option value="Double">Double</option>
                 <option value="VIP">VIP</option>
                 <option value="Family">Family</option>
             </select>
+            <span id="room-type-error" class="form-error" hidden></span>
+        </div>
+        <div class="form-group">
+            <label for="room-hourly-price">Giá / giờ (VNĐ)</label>
+            <input type="number" min="1" max="999999999999" step="1" id="room-hourly-price" aria-describedby="room-hourly-price-error" placeholder="Nhập giá giờ thực tế">
+            <span id="room-hourly-price-error" class="form-error" hidden></span>
         </div>
         <div class="form-group">
             <label for="room-price">Giá / đêm (VNĐ) *</label>
-            <input type="number" min="1" max="999999999999" step="1" id="room-price" placeholder="VD: 500000">
-        </div>
-        <p>Phòng mới mặc định Trống. Trạng thái được tính theo booking; bật/tắt bảo trì ở danh sách phòng.</p>
+            <input type="number" min="1" max="999999999999" step="1" id="room-price" required aria-describedby="room-price-error" placeholder="Giá cho đặt qua đêm">
+            <span id="room-price-error" class="form-error" hidden></span>
+        </div></div>
+        <p class="rooms-note">Phòng mới mặc định Trống. Trạng thái được tính theo booking; bật/tắt bảo trì ở danh sách phòng.</p>
         <div class="form-group">
             <label for="room-desc">Mô tả</label>
-            <textarea maxlength="500" id="room-desc" rows="3" placeholder="Mô tả ngắn về phòng..."></textarea>
+            <textarea maxlength="500" id="room-desc" rows="3" aria-describedby="room-desc-error" placeholder="Mô tả ngắn về phòng..."></textarea>
+            <span id="room-desc-error" class="form-error" hidden></span>
         </div>
 
         <div class="modal-footer">
-            <button class="btn btn-secondary" id="room-cancel-btn" onclick="closeRoomModal()">Hủy</button>
-            <button class="btn btn-primary" id="room-save-btn" onclick="saveRoom()">Lưu</button>
+            <button type="button" data-modal-close class="btn btn-secondary" id="room-cancel-btn" onclick="closeRoomModal()">Hủy</button>
+            <button type="submit" class="btn btn-primary" id="room-save-btn">Lưu phòng</button>
         </div>
+        </form>
     </div>
+</div>
+
+
+<div class="modal-overlay" id="room-stay-modal">
+  <div class="modal-box room-stay-box">
+    <div class="stay-heading"><div><p class="rooms-eyebrow">CHI TIẾT PHÒNG</p><h2 id="stay-title" tabindex="-1">Thông tin phòng</h2></div><button id="stay-close" type="button" data-modal-close class="btn btn-secondary" onclick="closeRoomStay()">Đóng</button></div>
+    <p id="stay-summary" class="text-muted"></p>
+    <p id="stay-message" class="text-muted" role="status" aria-live="polite"></p>
+    <section class="stay-section" aria-labelledby="stay-schedule-title"><h3 id="stay-schedule-title">Khách & lịch đặt</h3><div id="stay-bookings"></div></section>
+    <section id="stay-invoice" class="stay-section" hidden aria-labelledby="stay-invoice-title">
+      <h3 id="stay-invoice-title">Trả phòng & thanh toán</h3><p id="stay-invoice-summary"></p><div id="stay-invoice-lines" class="text-muted"></div>
+      <a id="stay-services-link" href="checkout.html">Xem hóa đơn đầy đủ / thêm dịch vụ</a>
+      <div class="form-group"><label for="stay-payment">Phương thức thanh toán</label><select id="stay-payment"><option>Tiền mặt</option><option>Chuyển khoản</option><option>Thẻ ngân hàng</option></select></div>
+      <button type="button" class="btn btn-primary" onclick="payRoomStay()">Xác nhận đã thu tiền & trả phòng</button>
+    </section>
+    <form id="stay-form" class="stay-section" novalidate onsubmit="event.preventDefault();saveRoomStay()">
+      <h3>Đặt phòng theo giờ</h3>
+      <div class="form-group"><label for="stay-customer">Khách hàng *</label><select id="stay-customer" required></select><p class="text-muted">Khách mới: thêm tại <a href="customers.html">Khách hàng</a>, sau đó mở lại phòng.</p></div>
+      <div class="form-grid"><div class="form-group"><label for="stay-checkin">Nhận phòng dự kiến *</label><input type="datetime-local" id="stay-checkin" required></div><div class="form-group"><label for="stay-checkout">Trả phòng dự kiến *</label><input type="datetime-local" id="stay-checkout" required></div></div>
+      <p id="stay-estimate" class="stay-estimate" role="status" aria-live="polite"></p>
+      <div class="form-group"><label for="stay-note">Ghi chú</label><textarea id="stay-note" rows="2" maxlength="500"></textarea></div>
+      <button id="stay-save" type="submit" class="btn btn-primary" disabled>Xác nhận đặt phòng</button>
+      <p class="text-muted">Tiền phòng tính theo khung giờ đã đặt. Muốn đặt theo đêm, dùng mục <a href="bookings.html">Đặt phòng</a>.</p>
+    </form>
+    <div class="stay-admin-actions"><button id="stay-edit" data-admin-only hidden type="button" class="btn btn-secondary" onclick="editStayRoom()">Thiết lập giá giờ & thông tin phòng</button><div id="stay-admin-extra" class="room-actions"></div></div>
+  </div>
 </div>
 
 <!-- JS tien ich chung -->
 <script src="../js/api.js"></script>
+<script src="../js/shell.js"></script>
 <script src="../js/account.js"></script>
 <!-- JS xu ly phong -->
+<script src="../js/room-stay.js"></script>
 <script src="../js/rooms.js"></script>
 
 </body>

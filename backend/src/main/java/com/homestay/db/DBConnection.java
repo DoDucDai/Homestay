@@ -1,93 +1,87 @@
 package com.homestay.db;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.nio.file.*;
+import java.nio.charset.StandardCharsets;
+import java.sql.*;
+import java.util.*;
+import java.util.function.Function;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 
-/**
- * Ket noi SQL Server bang JDBC
- * NGUOI LAM: DUC DAI (LEADER)
- *
- * Config duoc doc tu file .env o thu muc goc du an.
- * Neu khong co .env, dung gia tri mac dinh trong application.properties.
- *
- * De test ket noi: chay ham main() duoi day.
- */
-public class DBConnection {
+/** Shared JDBC configuration; production never falls back to a local .env. */
+public final class DBConnection {
+    private static volatile Settings settings;
+    private record Settings(String host,int port,String database,String username,String password,boolean encrypt,boolean trust) {}
+    private DBConnection() {}
 
-    private static final java.util.Map<String, String> ENV_FILE_VARS = loadEnvFile();
-
-    private static java.util.Map<String, String> loadEnvFile() {
-        java.util.Map<String, String> map = new java.util.HashMap<>();
-        java.io.File[] files = new java.io.File[] {
-            new java.io.File(".env"),
-            new java.io.File("../.env"),
-            new java.io.File("backend/.env")
-        };
-        for (java.io.File file : files) {
-            if (file.exists() && file.isFile()) {
-                try (java.io.BufferedReader reader = new java.io.BufferedReader(
-                        new java.io.FileReader(file, java.nio.charset.StandardCharsets.UTF_8))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        line = line.trim();
-                        if (line.isEmpty() || line.startsWith("#") || !line.contains("=")) continue;
-                        int idx = line.indexOf('=');
-                        String k = line.substring(0, idx).trim();
-                        String v = line.substring(idx + 1).trim();
-                        if (v.startsWith("\"") && v.endsWith("\"") && v.length() >= 2) {
-                            v = v.substring(1, v.length() - 1);
-                        } else if (v.startsWith("'") && v.endsWith("'") && v.length() >= 2) {
-                            v = v.substring(1, v.length() - 1);
-                        }
-                        map.putIfAbsent(k, v);
-                    }
-                } catch (Exception ignored) {}
+    public static synchronized void configure(Environment environment) {
+        boolean prod=environment.acceptsProfiles(Profiles.of("prod"));
+        Map<String,String> local=prod ? Map.of() : readLocalEnv();
+        Function<String,String> value=key -> {
+            if(prod) {
+                String explicit=System.getenv(key);
+                return explicit!=null && !explicit.isBlank()?explicit:System.getProperty(key);
             }
+            String configured=environment.getProperty(key);
+            return configured!=null && !configured.isBlank() ? configured : local.get(key);
+        };
+        if(prod && !"true".equalsIgnoreCase(value.apply("COOKIE_SECURE"))) {
+            throw new IllegalStateException("Production requires COOKIE_SECURE=true and HTTPS at the reverse proxy.");
         }
-        return map;
+        settings=resolve(value,prod);
     }
-
-    private static String getEnv(String key, String defaultValue) {
-        String val = System.getenv(key);
-        if (val != null && !val.trim().isEmpty()) return val;
-        val = System.getProperty(key);
-        if (val != null && !val.trim().isEmpty()) return val;
-        val = ENV_FILE_VARS.get(key);
-        if (val != null && !val.trim().isEmpty()) return val;
-        return defaultValue;
+    private static Map<String,String> readLocalEnv() {
+        for(Path file:List.of(Path.of(".env"),Path.of("../.env"),Path.of("backend/.env"))) {
+            if(!Files.isRegularFile(file)) continue;
+            Map<String,String> result=new HashMap<>();
+            try {
+                for(String raw:Files.readAllLines(file,StandardCharsets.UTF_8)) {
+                    String line=raw.trim();if(line.isEmpty() || line.startsWith("#") || !line.contains("=")) continue;
+                    int split=line.indexOf('=');String value=line.substring(split+1).trim();
+                    if(value.length()>=2 && ((value.startsWith("\"") && value.endsWith("\"")) || (value.startsWith("'") && value.endsWith("'")))) value=value.substring(1,value.length()-1);
+                    result.putIfAbsent(line.substring(0,split).trim(),value);
+                }
+                return result;
+            } catch(java.io.IOException error) {throw new IllegalStateException("Cannot read local database configuration.");}
+        }
+        return Map.of();
     }
-
-    // Doc tu bien moi truong (duoc nap tu file .env)
-    private static final String DB_HOST = getEnv("DB_HOST", "localhost");
-    private static final String DB_PORT = getEnv("DB_PORT", "56537");
-    private static final String DB_NAME = getEnv("DB_NAME", "HomestayDB");
-    private static final String DB_USER = getEnv("DB_USER", "sa");
-    private static final String DB_PASSWORD = getEnv("DB_PASSWORD", "123456");
-
-    private static final String DB_URL =
-        "jdbc:sqlserver://" + DB_HOST + ":" + DB_PORT
-        + ";databaseName=" + DB_NAME
-        + ";encrypt=true;trustServerCertificate=true";
-
+    private static String value(Function<String,String> source,String key,String fallback) {
+        String value=source.apply(key);if(value!=null && !value.isBlank()) return value;
+        if(fallback==null) throw new IllegalStateException("Missing required configuration: "+key);
+        return fallback;
+    }
+    private static boolean flag(Function<String,String> source,String key,boolean fallback) {
+        String raw=value(source,key,Boolean.toString(fallback));
+        if(!Set.of("true","false").contains(raw.toLowerCase(Locale.ROOT))) throw new IllegalStateException("Invalid boolean configuration: "+key);
+        return Boolean.parseBoolean(raw);
+    }
+    private static Settings resolve(Function<String,String> source,boolean prod) {
+        String host=value(source,"DB_HOST",prod?null:"localhost"),database=value(source,"DB_NAME",prod?null:"HomestayDB"),user=value(source,"DB_USER",prod?null:"sa");
+        int port;
+        try {port=Integer.parseInt(value(source,"DB_PORT",prod?null:"1433"));if(port<1 || port>65535) throw new NumberFormatException();}
+        catch(NumberFormatException error) {throw new IllegalStateException("DB_PORT must be between 1 and 65535.");}
+        if(host.contains(";") || database.contains(";")) throw new IllegalStateException("Database host/name cannot contain JDBC delimiters.");
+        String password=value(source,"DB_PASSWORD",null);
+        boolean encrypt=flag(source,"DB_ENCRYPT",true),trust=flag(source,"DB_TRUST_SERVER_CERTIFICATE",!prod);
+        if(prod && (!encrypt || trust)) throw new IllegalStateException("Production requires DB_ENCRYPT=true and DB_TRUST_SERVER_CERTIFICATE=false.");
+        return new Settings(host,port,database,user,password,encrypt,trust);
+    }
+    private static Settings current() {
+        Settings configured=settings;if(configured!=null) return configured;
+        Map<String,String> local=readLocalEnv();
+        return resolve(key -> {
+            String value=System.getenv(key);if(value!=null && !value.isBlank()) return value;
+            value=System.getProperty(key);return value!=null && !value.isBlank()?value:local.get(key);
+        },false);
+    }
     public static Connection getConnection() throws SQLException {
-        try {
-            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-            return DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-        } catch (ClassNotFoundException e) {
-            throw new SQLException("Khong tim thay SQL Server JDBC Driver!", e);
-        }
+        Settings cfg=current();
+        String url="jdbc:sqlserver://"+cfg.host()+":"+cfg.port()+";databaseName="+cfg.database()+";encrypt="+cfg.encrypt()+";trustServerCertificate="+cfg.trust();
+        Properties credentials=new Properties();credentials.setProperty("user",cfg.username());credentials.setProperty("password",cfg.password());
+        return DriverManager.getConnection(url,credentials);
     }
-
-    // Test ket noi - chay ham main nay de kiem tra
-    public static void main(String[] args) {
-        System.out.println(">>> Dang ket noi toi: " + DB_URL);
-        System.out.println(">>> User: " + DB_USER);
-        try (Connection conn = getConnection()) {
-            System.out.println(">>> Ket noi SQL Server THANH CONG!");
-        } catch (SQLException e) {
-            System.out.println(">>> LOI ket noi: " + e.getMessage());
-            System.out.println(">>> Kiem tra lai file .env va SQL Server co dang chay khong.");
-        }
+    public static void main(String[] args) throws SQLException {
+        try(Connection conn=getConnection()) {System.out.println("Database connection verified.");}
     }
 }

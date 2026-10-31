@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Khám phá phòng, chọn khung giờ và quản lý lượt lưu trú cùng Homestay.">
+    <title>Homestay — Một khoảng nghỉ, đúng lúc bạn cần</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/landing.css">
+</head>
+<body class="session-pending landing-page">
+<a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
+<div id="session-status" class="session-status" role="status" aria-live="polite"><span id="session-message">Đang kiểm tra phiên đăng nhập...</span><button id="session-retry" class="btn btn-secondary" hidden>Thử lại</button></div>
+<div class="wrapper">
+    <nav id="app-sidebar" class="sidebar" aria-label="Điều hướng chính"></nav>
+    <main id="main-content" class="main-content" tabindex="-1">
+        <section class="stay-hero" id="dau-trang" aria-labelledby="hero-title">
+            <img class="stay-hero-photo" src="../css/images/homestay-hero.avif" alt="Không gian nghỉ ngơi với ánh nắng ấm và nội thất gỗ, ảnh minh họa" fetchpriority="high">
+            <div class="stay-hero-shade"></div>
+            <header class="stay-header">
+                <a class="stay-brand" href="landing.html" aria-label="Homestay, trang chủ"><span class="stay-brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 11 8-7 8 7v9H4Z M9 20v-7h6v7"/></svg></span><span>Homestay<span class="stay-brand-tag">A LITTLE TIME FOR YOURSELF</span></span></a>
+                <nav class="stay-top-nav" aria-label="Khám phá Homestay"><a href="bookings.html">Khám phá phòng</a><a href="bookings.html">Lịch đặt phòng</a><a href="#cach-dat">Cách đặt phòng</a><a href="services.html">Dịch vụ</a></nav>
+                <div id="landing-account"></div>
+            </header>
+            <div class="stay-hero-copy stay-container">
+                <p class="stay-eyebrow"><span></span> KHÔNG GIAN CỦA BẠN. THỜI GIAN CỦA BẠN.</p>
+                <h1 id="hero-title">Một khoảng nghỉ.<br><em>Đúng lúc bạn cần.</em></h1>
+                <p class="stay-hero-description">Một vài giờ để nghỉ ngơi, đổi không gian hay chậm lại một chút. Tìm căn phòng phù hợp với nhịp sống của bạn.</p>
+                <div class="stay-hero-actions"><a class="stay-button stay-button-gold" href="bookings.html">Khám phá lịch theo giờ <span>↗</span></a><a class="stay-hero-secondary" href="bookings.html">Xem không gian <span>↗</span></a></div>
+            </div>
+            <div class="stay-hero-bottom stay-container"><span id="landing-greeting">Chào mừng bạn trở lại Homestay</span><span class="stay-photo-credit">Ảnh không gian minh họa · Unsplash</span></div>
+        </section>
+
+        <section class="stay-search-wrap stay-container" aria-label="Chọn thời gian lưu trú">
+            <form id="landing-search" class="stay-search">
+                <div class="stay-search-heading"><span class="stay-search-icon">↗</span><div><strong>Bạn muốn nghỉ khi nào?</strong><span>Chọn thời gian, xem lịch phòng.</span></div></div>
+                <div class="stay-search-field"><label for="landing-date">NGÀY NHẬN PHÒNG</label><input id="landing-date" type="date" required></div>
+                <div class="stay-search-field"><label for="landing-time">GIỜ BẮT ĐẦU</label><input id="landing-time" type="time" required></div>
+                <div class="stay-search-field"><label for="landing-room-type">LOẠI PHÒNG</label><select id="landing-room-type"><option value="">Tất cả loại phòng</option></select></div>
+                <button class="stay-button stay-button-dark" type="submit">Xem lịch phòng <span>→</span></button>
+                <p id="landing-search-error" class="form-error" role="status" hidden></p>
+            </form>
+        </section>
+
+        <section class="stay-container stay-live-stats" aria-label="Danh mục phòng hiện tại"><div><strong id="landing-total">—</strong><span>phòng trong danh mục</span></div><div><strong id="landing-free">—</strong><span>phòng trống hiện tại</span></div><div><strong id="landing-types-count">—</strong><span>loại không gian</span></div><p id="landing-sync" class="stay-live-status" role="status">Đang kết nối dữ liệu phòng…</p></section>
+        <div class="stay-container"><div id="alert-message" class="alert" role="status" aria-live="polite" style="display:none;"></div></div>
+
+        <section class="stay-difference" aria-labelledby="difference-title"><div class="stay-container stay-difference-grid">
+            <div class="stay-editorial-image"><img src="../css/images/homestay-interior.avif" alt="Góc phòng với ánh sáng tự nhiên, ảnh minh họa" loading="lazy"><span>Ảnh minh họa không gian</span><div class="stay-image-caption"><span>MAKE ROOM FOR YOURSELF</span><strong>Chậm lại.<br>Và tận hưởng.</strong></div></div>
+            <div class="stay-difference-copy"><p class="stay-eyebrow">NHỎ GỌN HƠN. LINH HOẠT HƠN.</p><h2 id="difference-title">Không nhất thiết<br>phải là <em>cả một đêm.</em></h2><p>Một khoảng thời gian phù hợp cũng đủ để bạn nạp lại năng lượng. Homestay giúp việc chọn phòng và theo dõi lịch trở nên rõ ràng hơn.</p><div class="stay-benefit"><span>01</span><div><h3>Chọn theo khung giờ của bạn</h3><p>Xem lịch trong ngày và chọn thời điểm nhận, trả phù hợp. Những lượt đặt qua đêm vẫn có trong chế độ nhiều ngày.</p></div></div><div class="stay-benefit"><span>02</span><div><h3>Biết tình trạng trước khi chọn</h3><p>Phòng trống, đang có khách hay bảo trì được thể hiện trên lịch. Dữ liệu tự cập nhật mỗi 5 giây khi mở lịch.</p></div></div><div class="stay-benefit"><span>03</span><div><h3>Mọi chi tiết, trong cùng một nơi</h3><p>Mở lượt đặt để xem khách, thời gian lưu trú và giá đã chốt; theo dõi dịch vụ và hóa đơn khi trả phòng.</p></div></div><a class="stay-text-link" href="bookings.html">Mở lịch đặt phòng <span>↗</span></a></div>
+        </div></section>
+
+        <section class="stay-container stay-moments" id="cam-hung" aria-labelledby="moments-title">
+            <div class="stay-section-heading"><div><p class="stay-eyebrow">NHỮNG KHOẢNG NGHỈ NHO NHỎ</p><h2 id="moments-title">Không cần đi xa<br>để tìm một chút <em>bình yên.</em></h2></div><p class="stay-moments-intro">Một cuốn sách đọc dở, một buổi chiều không vội, hay chỉ là thời gian dành riêng cho mình. Khoảng nghỉ đẹp nhất là khoảng nghỉ vừa với bạn.</p></div>
+            <figure class="stay-moments-photo"><img src="../css/images/homestay-moments.avif" alt="Góc sofa cạnh cửa sổ ngập nắng và cây xanh, ảnh minh họa cảm hứng nghỉ ngơi" loading="lazy"><figcaption><span>A SLOWER KIND OF DAY</span><strong>Một góc yên.<br>Một nhịp sống khác.</strong><small>Ảnh không gian minh họa · Unsplash</small></figcaption><span class="stay-moments-stamp" aria-hidden="true">just<br><em>breathe.</em></span></figure>
+            <div class="stay-moments-stories"><article><span>01 / GIỮA NGÀY BẬN RỘN</span><h3>Nạp lại một chút năng lượng</h3><p>Đặt công việc xuống trong chốc lát. Một khoảng nghỉ ngắn để trở lại ngày của bạn nhẹ nhàng hơn.</p></article><article><span>02 / TRONG CHUYẾN ĐI NGẮN</span><h3>Một điểm dừng vừa đủ</h3><p>Giữa những lịch hẹn và hành trình, dành cho mình chút thời gian nghỉ ngơi trước khi tiếp tục.</p></article><article><span>03 / CHỈ ĐỂ CHẬM LẠI</span><h3>Hôm nay, ưu tiên chính mình</h3><p>Không cần một dịp đặc biệt. Đôi khi, một không gian khác cũng mở ra một cảm giác mới.</p></article></div>
+        </section>
+
+        <section class="stay-container stay-how" id="cach-dat" aria-labelledby="how-title"><div class="stay-section-heading"><div><p class="stay-eyebrow">TỪ KHÁM PHÁ ĐẾN LƯU TRÚ</p><h2 id="how-title">Dễ chọn. Dễ theo dõi.</h2></div><p class="stay-how-description">Chỉ vài bước để bắt đầu một lượt đặt phòng.</p></div><div class="stay-steps"><article><span>01 / KHÁM PHÁ</span><h3>Tìm không gian</h3><p>Xem danh mục, chọn loại phòng và kiểm tra tình trạng hiện tại.</p><a href="bookings.html">Khám phá phòng ↗</a></article><article><span>02 / CHỌN THỜI GIAN</span><h3>Xem lịch theo giờ</h3><p>Chọn phòng cùng thời gian nhận, trả. Kiểm tra khung giờ và giá trước khi xác nhận.</p><a href="bookings.html">Mở lịch đặt phòng ↗</a></article><article><span>03 / LƯU TRÚ</span><h3>Theo dõi lượt đặt</h3><p>Quản lý nhận phòng, dịch vụ và thanh toán từ chi tiết lượt lưu trú.</p><a href="checkout.html">Dịch vụ & thanh toán ↗</a></article></div></section>
+
+        <section class="stay-container stay-workspace" aria-labelledby="workspace-title"><div><p class="stay-eyebrow">KHÔNG GIAN LÀM VIỆC</p><h2 id="workspace-title">Mọi việc, trong tầm tay.</h2><p>Đi nhanh đến các chức năng quản lý bạn cần.</p></div><div class="stay-workspace-links"><a href="bookings.html">Lịch phòng <span>↗</span></a><a href="customers.html">Khách hàng <span>↗</span></a><a href="services.html">Dịch vụ <span>↗</span></a><a href="account.html#quan-tri" data-admin-only hidden>Khu quản trị <span>↗</span></a></div></section>
+        <section class="stay-final-cta"><div class="stay-container"><p class="stay-eyebrow">DÀNH MỘT CHÚT THỜI GIAN CHO BẠN</p><h2>Khoảng nghỉ tiếp theo,<br>bắt đầu từ <em>đây.</em></h2><a class="stay-button stay-button-gold" href="bookings.html">Chọn khung giờ của bạn <span>↗</span></a></div></section>
+        <footer class="stay-footer-full" id="cuoi-trang"><div class="stay-container">
+            <div class="stay-footer-main"><div class="stay-footer-about"><a class="stay-brand" href="#dau-trang"><span class="stay-brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 11 8-7 8 7v9H4Z M9 20v-7h6v7"/></svg></span><span>Homestay<span class="stay-brand-tag">A LITTLE TIME FOR YOURSELF</span></span></a><p>Không gian của bạn. Thời gian của bạn.</p><p>Một nơi để khám phá phòng, chọn khung giờ và theo dõi hành trình lưu trú thật rõ ràng.</p><a class="stay-footer-start" href="bookings.html">Bắt đầu từ lịch phòng <span>↗</span></a></div>
+            <nav class="stay-footer-column" aria-label="Khám phá ở cuối trang"><h3>KHÁM PHÁ</h3><a href="bookings.html">Không gian & phòng</a><a href="bookings.html">Đặt phòng theo giờ</a><a href="#cam-hung">Cảm hứng nghỉ ngơi</a><a href="services.html">Dịch vụ</a></nav>
+            <nav class="stay-footer-column" aria-label="Hướng dẫn ở cuối trang"><h3>CÙNG HOMESTAY</h3><a href="#cach-dat">Các bước đặt phòng</a><a href="#difference-title">Về trải nghiệm theo giờ</a><a href="checkin.html">Nhận phòng</a><a href="checkout.html">Dịch vụ & thanh toán</a></nav>
+            <nav class="stay-footer-column" aria-label="Quản lý ở cuối trang"><h3>KHÔNG GIAN LÀM VIỆC</h3><a href="bookings.html">Lịch đặt phòng</a><a href="customers.html">Khách hàng</a><a href="checkin.html">Nhận phòng</a><a href="account.html#quan-tri" data-admin-only hidden>Khu quản trị</a></nav></div>
+            <div class="stay-footer-signature" aria-hidden="true">a little time. <em>a better day.</em></div>
+            <div class="stay-footer-bottom"><small>© <span id="landing-year">2026</span> Homestay · Quản lý lưu trú</small><span>Được tạo cho những khoảng nghỉ vừa vặn.</span><a href="#dau-trang">Về đầu trang <span>↑</span></a></div>
+        </div></footer>
+    </main>
+</div>
+<script src="../js/api.js"></script><script src="../js/shell.js"></script><script src="../js/account.js"></script><script src="../js/landing.js"></script>
+</body>
+</html>

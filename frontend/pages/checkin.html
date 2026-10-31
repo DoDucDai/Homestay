@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Check-in - Homestay Management</title>
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/checkin.css">
 </head>
 <body class="session-pending">
+<a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
 <div id="session-status" class="session-status" role="status" aria-live="polite">
     <span id="session-message">Đang kiểm tra phiên đăng nhập...</span>
     <button id="session-retry" class="btn btn-secondary" hidden>Thử lại</button>
@@ -20,82 +22,79 @@
 
 <div class="wrapper">
 
-    <nav class="sidebar">
-        <div class="logo">🏠 Homestay</div>
-        <ul>
-            <li><a href="rooms.html">🛏 Quản lý Phòng</a></li>
-            <li><a href="customers.html">👤 Khách hàng</a></li>
-            <li><a href="bookings.html">📅 Booking</a></li>
-            <li><a href="checkin.html" class="active">✅ Check-in</a></li>
-            <li><a href="checkout.html">💰 Check-out</a></li>
-            <li><a href="services.html">🛎 Dịch vụ</a></li>
-            <li><a data-admin-only hidden href="statistics.html">📊 Thống kê</a></li>
-            <li><a href="#" id="logout-btn">🚪 Đăng xuất</a></li>
-        </ul>
-    </nav>
+    <nav id="app-sidebar" class="sidebar" aria-label="Điều hướng chính"></nav>
 
-    <div class="main-content">
-        <h1 class="page-title">✅ Check-in Khách</h1>
-
-        <div id="alert-message" class="alert" style="display:none;"></div>
-        <div class="card">
-            <p>Chỉ nhận phòng từ ngày nhận dự kiến đến trước ngày trả dự kiến (giờ Việt Nam). Phòng phải hết bảo trì và không còn khách khác đang ở.</p>
-            <p>Booking chưa đến ngày hoặc đã hết kỳ lưu trú cần được xử lý ở trang Booking; không thể nhận phòng tại đây.</p>
+    <main id="main-content" class="main-content" tabindex="-1">
+        <header class="checkin-heading">
+            <div><p class="checkin-eyebrow">QUẢN LÝ LƯU TRÚ</p><h1>Check-in</h1>
+                <p class="text-muted">Đối chiếu booking và xác nhận nhận phòng cho khách.</p></div>
             <button type="button" class="btn btn-secondary" onclick="loadPendingBookings()">Tải lại danh sách</button>
-        </div>
-        <div id="checkin-success" class="card" hidden>
-            <p id="checkin-success-message" role="status"></p>
-            <a href="checkout.html" class="btn btn-primary">Đến trang khách đang ở</a>
-        </div>
+        </header>
+
+        <div id="alert-message" class="alert" role="status" aria-live="polite" style="display:none;"></div>
+        <section class="card checkin-guidance" aria-labelledby="checkin-guidance-title">
+            <h2 id="checkin-guidance-title">Điều kiện nhận phòng</h2>
+            <p>Chỉ nhận phòng từ ngày nhận dự kiến đến trước ngày trả dự kiến (giờ Việt Nam). Phòng phải hết bảo trì và không còn khách khác đang ở.</p>
+            <p class="text-muted">Booking chưa đến ngày hoặc đã hết kỳ lưu trú cần được xử lý tại <a href="bookings.html">trang Booking</a>. Điều kiện phòng được máy chủ kiểm tra khi xác nhận.</p>
+        </section>
+        <section id="checkin-success" class="card checkin-success" aria-labelledby="checkin-success-title" hidden>
+            <h2 id="checkin-success-title">Đã nhận phòng</h2>
+            <p id="checkin-success-message" role="status" aria-live="polite"></p>
+            <a href="checkout.html" class="btn btn-primary">Quản lý dịch vụ cho khách đang ở</a>
+        </section>
 
         <!-- Danh sach booking cho doi check-in -->
-        <div class="card">
-            <h3 style="margin-bottom:15px;">Booking chờ check-in</h3>
+        <section class="card checkin-list" aria-labelledby="checkin-list-title">
+            <div class="card-header"><div><h2 id="checkin-list-title">Booking chờ nhận phòng</h2>
+                <p id="checkin-result" class="text-muted" role="status" aria-live="polite">Đang tải danh sách…</p></div></div>
+            <div class="table-scroll" role="region" aria-label="Bảng chờ nhận phòng, cuộn ngang để xem đầy đủ" tabindex="0">
             <table id="checkin-table">
+                <caption class="visually-hidden">Booking chờ nhận phòng, thông tin liên hệ, kỳ lưu trú và lý do chưa được nhận phòng.</caption>
                 <thead>
                     <tr>
-                        <th>Mã booking</th>
-                        <th>Khách hàng</th>
-                        <th>Điện thoại</th>
-                        <th>Phòng</th>
-                        <th>Ngày nhận</th>
-                        <th>Ngày trả</th>
-                        <th>Ghi chú</th>
-                        <th>Thao tác</th>
+                        <th scope="col">Mã booking</th>
+                        <th scope="col">Khách hàng</th>
+                        <th scope="col">Điện thoại</th>
+                        <th scope="col">Phòng</th>
+                        <th scope="col">Ngày nhận</th>
+                        <th scope="col">Ngày trả</th>
+                        <th scope="col">Ghi chú</th>
+                        <th scope="col">Nhận phòng</th>
                     </tr>
                 </thead>
                 <tbody id="checkin-tbody">
                     <tr><td colspan="8" style="text-align:center;">Đang tải dữ liệu...</td></tr>
                 </tbody>
             </table>
-        </div>
-    </div>
+            </div>
+<nav id="pager-checkin" class="pagination" aria-label="Phân trang danh sách chờ nhận phòng" hidden></nav>
+        </section>
+    </main>
 </div>
 
 <!-- MODAL XAC NHAN CHECK-IN -->
 <div class="modal-overlay" id="checkin-modal">
-    <div class="modal-box">
-        <h3>Xác nhận Check-in</h3>
+    <div class="modal-box checkin-confirmation">
+        <h3 id="checkin-title">Xác nhận nhận phòng</h3>
+        <p class="checkin-confirmation-intro text-muted">Đối chiếu thông tin khách, phòng và ngày lưu trú trước khi xác nhận.</p>
 
-        <div id="checkin-info" style="background:#f0f4f8; padding:15px; border-radius:5px; margin-bottom:15px;">
+        <dl id="checkin-info" class="checkin-details">
             <!-- JS se dien thong tin booking vao day -->
-        </div>
+        </dl>
 
-        <div class="form-group">
-            <label>Xác nhận check-in cho khách hàng này?</label>
-            <p style="color:#e74c3c; font-size:13px;">* Sau khi xác nhận, trạng thái phòng sẽ chuyển sang "Đang sử dụng"</p>
-        </div>
+        <p class="checkin-confirmation-note">Sau khi xác nhận thành công, khách được ghi nhận đang ở và trạng thái phòng chuyển sang Đang sử dụng.</p>
+        <p id="checkin-status" role="status" aria-live="polite"></p>
 
         <div class="modal-footer">
-            <button id="checkin-close-btn" type="button" class="btn btn-secondary" onclick="closeCheckinModal()">Đóng</button>
-            <button id="checkin-confirm-btn" type="button" class="btn btn-success" onclick="confirmCheckin()" disabled>✅ Xác nhận Check-in</button>
+            <button data-modal-close id="checkin-close-btn" type="button" class="btn btn-secondary" onclick="closeCheckinModal()">Đóng</button>
+            <button id="checkin-confirm-btn" type="button" class="btn btn-primary" aria-busy="false" onclick="confirmCheckin()" disabled>Xác nhận nhận phòng</button>
         </div>
-        <p id="checkin-status" role="status" aria-live="polite"></p>
     </div>
 </div>
 
 <!-- JS tien ich chung -->
 <script src="../js/api.js"></script>
+<script src="../js/shell.js"></script>
 <script src="../js/account.js"></script>
 <!-- JS xu ly -->
 <script src="../js/checkin.js"></script>

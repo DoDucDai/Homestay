@@ -11,18 +11,20 @@ class Element {
     set innerHTML(value) { throw new Error('Unsafe innerHTML reached: ' + value); }
     get firstElementChild() { return this.children[0]; }
     get options() { return this.children; }
-    appendChild(child) { this.children.push(child); return child; }
+    appendChild(child) { child.parentNode=this;this.children.push(child); return child; }
+    remove() { if(this.parentNode) this.parentNode.children=this.parentNode.children.filter(n=>n!==this); }
+    focus() { this.focused=true; }
     append(...children) { children.forEach(child => this.appendChild(child)); }
     replaceChildren(...children) { this._text = ''; this.children = []; this.append(...children); }
     addEventListener(type, fn) { this.events[type] = fn; }
     getAttribute(name) { return name === 'data-price' ? this.dataset.price : this.attributes[name] ?? null; }
     setAttribute(name, value) { this.attributes[name] = value; }
 }
-function env(module) {
+function env(module, options = {}) {
     const elements = new Map(), events = {}, writes = [], confirmations = [];
     const el = id => { if (!elements.has(id)) elements.set(id, new Element(id.includes('tbody') ? 'tbody' : 'div')); return elements.get(id); };
     const context = vm.createContext({
-        Node: Element, document: { createElement: tag => new Element(tag), getElementById: el,
+        Node: Element, document: { body:new Element('body'),createElementNS:(_,tag)=>new Element(tag),createElement: tag => new Element(tag), getElementById: el,
             addEventListener: (name, fn) => { events[name] = fn; }, querySelectorAll: selector => selector.startsWith('#invoice-details') ? [...elements].filter(([id]) => id.startsWith('inv-')).map(([, node]) => node) : [], querySelector: () => null },
         window: { location: { pathname: '/pages/rooms.html', replace() {} }, addEventListener() {} },
         sessionStorage: { removeItem() {} }, setTimeout: () => 0, clearTimeout() {}, setInterval: () => 0, URLSearchParams,
@@ -30,7 +32,9 @@ function env(module) {
         confirm: message => { confirmations.push(message); return false; }, console
     });
     vm.runInContext(fs.readFileSync(path.join(root, 'api.js'), 'utf8'), context);
+    if(module === 'rooms') vm.runInContext(fs.readFileSync(path.join(root, 'room-stay.js'), 'utf8'), context);
     vm.runInContext(fs.readFileSync(path.join(root, module + '.js'), 'utf8'), context);
+    if (!options.realConfirmation) context.askConfirmation = async message => context.confirm(message);
     // Rendering protected admin actions requires a verified identity in the fixture.
     vm.runInContext("currentUser = {role:'admin'}", context);
     context.apiGet = async () => [];
