@@ -1,0 +1,20 @@
+{
+  "datasetId": "DEMO-LH-20261029",
+  "cutoff": "2026-10-29",
+  "reportStart": "2025-11-01",
+  "reportEnd": "2026-10-29",
+  "sourceCommits": {
+    "hung": "ccf373b738fea7a7276b8734a2f0782f32b93e50",
+    "long": "493776d3723d8713d465c8e3f72b0a979d1288b2"
+  },
+  "roomCodePrefix": "DEMO-",
+  "counts": {
+    "customers": 50,
+    "services": 12,
+    "rooms": 20,
+    "bookings": 60,
+    "booking_services": 52,
+    "payments": 40
+  },
+  "note": "Synthetic data; completion and validation by Duc Dai/Codex, not a claim of tests performed by Hung or Long."
+}

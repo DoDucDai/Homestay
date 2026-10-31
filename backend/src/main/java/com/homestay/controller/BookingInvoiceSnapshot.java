@@ -118,6 +118,7 @@ final class BookingInvoiceSnapshot {
         return store(conn, invoice, paymentMethod, null);
     }
 
+    // Manual imports can preserve paid_at; normal checkout keeps the SQL server timestamp.
     static int store(Connection conn, Map<String, Object> invoice, String paymentMethod, java.time.LocalDateTime paidAt) throws SQLException {
         int paymentId;
         String insert = """
