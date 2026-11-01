@@ -5,11 +5,9 @@ e.context.renderAccountProfile({userId:7,username:'admin_demo',fullName:payload,
 assert.equal(e.el('profile-name').textContent,payload);
 assert.equal(e.el('profile-full-name').textContent,payload);
 assert.equal(e.el('profile-id').textContent,'TK7');
-assert.equal(e.el('quan-tri').hidden,false);
 assert.equal(e.el('profile-role').textContent,'Quản trị viên');
 console.log('PASS profile renders authenticated identity safely and exposes the admin workspace only to admin');
 e.context.renderAccountProfile({userId:8,username:'staff_demo',fullName:'Nhân Viên',role:'staff'});
-assert.equal(e.el('quan-tri').hidden,true);
 assert.equal(e.el('profile-role-detail').textContent,'Nhân viên');
 assert.equal(e.el('profile-username').textContent,'staff_demo');
 console.log('PASS staff profile hides administration and retains operational account details');

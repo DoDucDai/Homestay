@@ -19,6 +19,7 @@ class Element {
     addEventListener(type, fn) { this.events[type] = fn; }
     getAttribute(name) { return name === 'data-price' ? this.dataset.price : this.attributes[name] ?? null; }
     setAttribute(name, value) { this.attributes[name] = value; }
+    removeAttribute(name) { delete this.attributes[name]; }
 }
 function env(module, options = {}) {
     const elements = new Map(), events = {}, writes = [], confirmations = [];

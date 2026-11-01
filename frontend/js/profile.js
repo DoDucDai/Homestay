@@ -9,10 +9,31 @@ function renderAccountProfile(user){
     document.getElementById('profile-role-detail').textContent=role;
     document.getElementById('profile-id').textContent='TK'+user.userId;
     document.getElementById('profile-description').textContent=user.role==='admin'?'Quản lý hệ thống và theo dõi hoạt động lưu trú.':'Thực hiện đặt phòng, tiếp nhận khách và theo dõi lượt lưu trú.';
-    document.getElementById('quan-tri').hidden=user.role!=='admin';
 }
 document.addEventListener('DOMContentLoaded',async()=>{
     const user=await checkLogin();if(!user)return;
     renderAccountProfile(user);
     document.getElementById('profile-password-button').addEventListener('click',()=>document.getElementById('account-change-btn').click());
+});
+
+document.addEventListener('DOMContentLoaded',async()=>{
+    const form=document.getElementById('profile-edit-form');
+    const keys=['fullName','phone','email','birthDate','city'];
+    const fill=user=>keys.forEach(key=>{document.getElementById('edit-'+key).value=user[key]||'';});
+    document.getElementById('edit-birthDate').max=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+    const status=document.getElementById('profile-edit-status');
+    const button=form.querySelector('button');button.disabled=true;
+    try {const result=await apiGet('/auth/me');fill(result.user);}
+    catch(error){status.textContent=error.message;return;}
+    button.disabled=false;
+    form.addEventListener('submit',async event=>{
+        event.preventDefault();if(button.disabled || !form.reportValidity())return;
+        const body=Object.fromEntries(keys.map(key=>[key,document.getElementById('edit-'+key).value.trim()]));
+        if(!validAccountPhone(body.phone)) { status.textContent='Số điện thoại cần đúng 10 chữ số, bắt đầu bằng 0.';document.getElementById('edit-phone').focus();return; }
+        if(!validAccountEmail(body.email)) { status.textContent='Email phải đúng dạng ten@gmail.com.';document.getElementById('edit-email').focus();return; }
+        button.disabled=true;status.textContent='Đang lưu...';
+        try {const result=await apiPut('/auth/profile',body);fill(result.user);renderAccountProfile(result.user);addAccountControls(result.user);status.textContent='Đã cập nhật thông tin tài khoản.';}
+        catch(error){status.textContent=error.message||'Không thể lưu thông tin.';}
+        finally {button.disabled=false;}
+    });
 });

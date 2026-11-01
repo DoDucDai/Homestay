@@ -203,6 +203,8 @@ async function loadCalendarData(force=false) {
 }
 function initializeBookingCalendar() {
     const query=new URLSearchParams(window.location.search),date=query.get('date'),hour=query.get('hour'),type=query.get('type');
+    const requestedRoom=query.get('room');
+    if(requestedRoom && requestedRoom.length<=20)document.getElementById('booking-search').value=requestedRoom;
     if(date && /^\d{4}-\d{2}-\d{2}$/.test(date) && Number.isFinite(Date.parse(date+'T00:00Z')) && new Date(Date.parse(date+'T00:00Z')).toISOString().slice(0,10)===date)calendarStart=date;
     if(hour!==null && /^\d{1,2}$/.test(hour) && Number(hour)>=0 && Number(hour)<=23)calendarPreferredHour=Number(hour);
     if(['Single','Double','VIP','Family'].includes(type))calendarType=type;

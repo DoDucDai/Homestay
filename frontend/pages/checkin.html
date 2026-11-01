@@ -26,17 +26,18 @@
 
     <main id="main-content" class="main-content" tabindex="-1">
         <header class="checkin-heading">
-            <div><p class="checkin-eyebrow">QUẢN LÝ LƯU TRÚ</p><h1>Check-in</h1>
+            <div><p class="checkin-eyebrow">QUẢN LÝ LƯU TRÚ</p><h1>Nhận phòng</h1>
                 <p class="text-muted">Đối chiếu booking và xác nhận nhận phòng cho khách.</p></div>
             <button type="button" class="btn btn-secondary" onclick="loadPendingBookings()">Tải lại danh sách</button>
         </header>
 
         <div id="alert-message" class="alert" role="status" aria-live="polite" style="display:none;"></div>
-        <section class="card checkin-guidance" aria-labelledby="checkin-guidance-title">
-            <h2 id="checkin-guidance-title">Điều kiện nhận phòng</h2>
-            <p>Chỉ nhận phòng từ ngày nhận dự kiến đến trước ngày trả dự kiến (giờ Việt Nam). Phòng phải hết bảo trì và không còn khách khác đang ở.</p>
+        <section class="checkin-summary" aria-label="Tổng quan chờ nhận phòng"><div><span>Tất cả lượt chờ</span><strong id="checkin-count-all">—</strong></div><div><span>Đến lịch nhận</span><strong id="checkin-count-ready">—</strong></div><div><span>Chưa đến lịch</span><strong id="checkin-count-upcoming">—</strong></div><div><span>Cần xử lý</span><strong id="checkin-count-attention">—</strong></div></section>
+        <details class="card checkin-guidance">
+            <summary>Điều kiện nhận phòng và cách xử lý</summary>
+            <p>Nhận phòng trong khoảng ngày hoặc giờ đã đặt (giờ Việt Nam). Phòng phải hết bảo trì và không còn khách khác đang ở.</p>
             <p class="text-muted">Booking chưa đến ngày hoặc đã hết kỳ lưu trú cần được xử lý tại <a href="bookings.html">trang Booking</a>. Điều kiện phòng được máy chủ kiểm tra khi xác nhận.</p>
-        </section>
+        </details>
         <section id="checkin-success" class="card checkin-success" aria-labelledby="checkin-success-title" hidden>
             <h2 id="checkin-success-title">Đã nhận phòng</h2>
             <p id="checkin-success-message" role="status" aria-live="polite"></p>
@@ -47,23 +48,22 @@
         <section class="card checkin-list" aria-labelledby="checkin-list-title">
             <div class="card-header"><div><h2 id="checkin-list-title">Booking chờ nhận phòng</h2>
                 <p id="checkin-result" class="text-muted" role="status" aria-live="polite">Đang tải danh sách…</p></div></div>
-            <div class="table-scroll" role="region" aria-label="Bảng chờ nhận phòng, cuộn ngang để xem đầy đủ" tabindex="0">
+            <div class="checkin-filters"><div class="form-group"><label for="checkin-search">Tìm lượt nhận phòng</label><input id="checkin-search" type="search" maxlength="100" placeholder="Tên khách, số điện thoại, phòng hoặc BK..."></div><div class="form-group"><label for="checkin-filter">Thời gian nhận</label><select id="checkin-filter"><option value="all">Tất cả lượt chờ</option><option value="ready">Đến lịch nhận</option><option value="upcoming">Chưa đến lịch</option><option value="attention">Cần xử lý</option></select></div></div>
+            <div class="table-scroll" role="region" aria-label="Danh sách chờ nhận phòng" tabindex="0">
             <table id="checkin-table">
                 <caption class="visually-hidden">Booking chờ nhận phòng, thông tin liên hệ, kỳ lưu trú và lý do chưa được nhận phòng.</caption>
                 <thead>
                     <tr>
                         <th scope="col">Mã booking</th>
                         <th scope="col">Khách hàng</th>
-                        <th scope="col">Điện thoại</th>
                         <th scope="col">Phòng</th>
-                        <th scope="col">Ngày nhận</th>
-                        <th scope="col">Ngày trả</th>
-                        <th scope="col">Ghi chú</th>
+                        <th scope="col">Thời gian lưu trú</th>
+                        <th scope="col">Tình trạng</th>
                         <th scope="col">Nhận phòng</th>
                     </tr>
                 </thead>
                 <tbody id="checkin-tbody">
-                    <tr><td colspan="8" style="text-align:center;">Đang tải dữ liệu...</td></tr>
+                    <tr><td colspan="6" style="text-align:center;">Đang tải dữ liệu...</td></tr>
                 </tbody>
             </table>
             </div>

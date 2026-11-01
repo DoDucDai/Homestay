@@ -161,12 +161,17 @@ const availableCalls=e=>e.calls.filter(call=>call.endpoint.startsWith('/bookings
     pass('out-of-order list reloads cannot restore stale cancel actions');
 
     e=env('checkin');e.context.renderTable([booking(1),booking(2,'Confirmed',1,3),booking(3,'Confirmed',-2,0)]);
-    const table=e.el('checkin-tbody');assert.equal(table.children[0].children.length,8);
+    const table=e.el('checkin-tbody');assert.equal(table.children[0].children.length,6);
+    assert.equal(e.el('checkin-count-ready').textContent,'1');
+    assert.equal(e.el('checkin-count-upcoming').textContent,'1');
+    assert.equal(e.el('checkin-count-attention').textContent,'1');
+    assert.deepEqual(e.context.filterPendingCheckins([booking(1),booking(2,'Confirmed',1,3)],'BK2','upcoming').map(b=>b.bookingId),[2]);
     assert.equal(table.children[0].children.at(-1).children[0].disabled,false);assert.equal(table.children[1].children.at(-1).children[0].disabled,true);
     assert.equal(table.children[2].children.at(-1).children[0].disabled,true);
     const futureActions=table.children[1].children.at(-1);
-    assert.equal(futureActions.children[0].getAttribute('aria-describedby'),futureActions.children[1].id);
-    assert.equal(futureActions.children[1].textContent,'Chưa đến ngày nhận phòng.');
+    const futureState=table.children[1].children[4].children[0];
+    assert.equal(futureActions.children[0].getAttribute('aria-describedby'),futureState.children[1].id);
+    assert.equal(futureState.children[1].textContent,'Chưa đến ngày nhận phòng.');
     e.context.doCheckin(2);assert.equal(e.el('checkin-modal').classes.has('show'),false);
     e.context.doCheckin(1);assert.ok(e.el('checkin-info').textContent.includes(guest.fullName));assert.equal(e.el('checkin-success').hidden,true);
     assert.ok(e.el('checkin-info').textContent.includes('0901234567'));
@@ -196,7 +201,7 @@ const availableCalls=e=>e.calls.filter(call=>call.endpoint.startsWith('/bookings
     for(const module of ['bookings','checkin']) {
         const source=fs.readFileSync(path.join(root,'js/'+module+'.js'),'utf8');const html=fs.readFileSync(path.join(root,'pages/'+module+'.html'),'utf8');
         for(const match of source.matchAll(/getElementById\('([^']+)'\)/g)) assert.ok(html.includes('id="'+match[1]+'"'),'Missing HTML ID '+match[1]);
-        const header=html.match(/<thead>([\s\S]*?)<\/thead>/)[1];assert.equal((header.match(/<th\b[^>]*>/g)||[]).length,8);
+        const header=html.match(/<thead>([\s\S]*?)<\/thead>/)[1];assert.equal((header.match(/<th\b[^>]*>/g)||[]).length,module==='checkin'?6:8);
         for(const match of html.matchAll(/onclick="([A-Za-z]+)\(/g)) {
             const current=env(module);
             if(module==='bookings')vm.runInContext(fs.readFileSync(path.join(root,'js/booking-calendar.js'),'utf8'),current.context);

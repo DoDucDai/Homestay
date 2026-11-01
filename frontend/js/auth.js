@@ -1,5 +1,16 @@
 const loginForm = document.getElementById('login-form');
 let loginSubmitting = false, loginChecking = true, loginRedirecting = false, loginCheckVersion = 0;
+function loginDestination() {
+    const next=new URLSearchParams(window.location.search).get('next');
+    if(!next) return 'landing.html';
+    try {
+        const url=new URL(next,window.location.href);
+        const pages=['landing','explore','account','bookings','customers','services','checkin','checkout','rooms','statistics'];
+        if(url.origin===window.location.origin && pages.some(page=>url.pathname==='/pages/'+page+'.html'))
+            return url.pathname+url.search+url.hash;
+    } catch (_) {}
+    return 'landing.html';
+}
 function loginMessage(message = '', type = 'error') {
     const alert = document.getElementById('alert-message');
     if (!alert) return;
@@ -29,7 +40,7 @@ async function initializeLoginSession(force = false) {
     const user = await checkLogin(force);
     if (version !== loginCheckVersion) return;
     loginChecking = false;
-    if (user) { loginRedirecting = true; updateLoginControls(); window.location.replace('landing.html'); }
+    if (user) { loginRedirecting = true; updateLoginControls(); window.location.replace(loginDestination()); }
     else updateLoginControls();
 }
 if (loginForm) {
@@ -51,7 +62,7 @@ if (loginForm) {
             await apiPost('/auth/login', {username, password});
             document.getElementById('password').value = '';
             setPasswordVisibility(document.getElementById('password'), document.getElementById('password-toggle'));
-            loginRedirecting = true; window.location.replace('landing.html');
+            loginRedirecting = true; window.location.replace(loginDestination());
         } catch (error) {
             setPasswordVisibility(document.getElementById('password'), document.getElementById('password-toggle'));
             loginMessage(error.message || 'Không thể đăng nhập. Vui lòng thử lại!');

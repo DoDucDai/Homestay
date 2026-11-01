@@ -6,9 +6,11 @@ checkLogin();
 let currentServices = [];
 let servicesVersion = 0, serviceSaving = false;
 const serviceDeleting = new Set();
+function canManageServices() { return ['admin','staff'].includes(currentUser?.role); }
 
 document.addEventListener('DOMContentLoaded', async () => {
     if (!await checkLogin()) return;
+    document.getElementById('service-add-btn').hidden=!canManageServices();
     loadServices();
 });
 
@@ -33,10 +35,10 @@ async function loadServices() {
 function renderTable(services) {
     const tbody = document.getElementById('services-tbody'); if (!tbody) return;
     tbody.replaceChildren();
-    document.getElementById('services-result').textContent = services.length+' dịch vụ · Nhân viên chỉ xem danh mục';
+    document.getElementById('services-result').textContent = services.length+' dịch vụ · Thêm, sửa hoặc ngừng cung cấp dịch vụ';
     if (!services.length) { tableState('services-tbody', 5, 'Chưa có dịch vụ trong danh mục.'); return; }
     pageRows('services', services, renderTable).forEach(service => {
-        const actions = currentUser?.role === 'admin' ? [actionButton('Sửa','btn btn-secondary',() => openEditModal(service)),
+        const actions = canManageServices() ? [actionButton('Sửa','btn btn-secondary',() => openEditModal(service)),
             actionButton('Xóa','btn btn-danger',() => deleteService(service.serviceId,service.serviceName))] : [];
         actions.forEach(button => {
             button.disabled = serviceDeleting.has(service.serviceId);
@@ -50,7 +52,7 @@ function renderTable(services) {
 }
 
 function openAddModal() {
-    if (currentUser?.role !== 'admin' || serviceSaving) return;
+    if (!canManageServices() || serviceSaving) return;
     clearServiceErrors();
     document.getElementById('modal-title').textContent = 'Thêm Dịch Vụ Mới';
     document.getElementById('service-id').value = '';
@@ -61,7 +63,7 @@ function openAddModal() {
 }
 
 function openEditModal(service) {
-    if (currentUser?.role !== 'admin' || serviceSaving || serviceDeleting.has(service.serviceId)) return;
+    if (!canManageServices() || serviceSaving || serviceDeleting.has(service.serviceId)) return;
     clearServiceErrors();
     document.getElementById('modal-title').textContent = 'Sửa Dịch Vụ';
     document.getElementById('service-id').value = service.serviceId;
@@ -82,7 +84,7 @@ function closeServiceModal() {
     if (!serviceSaving) document.getElementById('service-modal').classList.remove('show');
 }
 async function saveService() {
-    if (currentUser?.role !== 'admin' || serviceSaving) return;
+    if (!canManageServices() || serviceSaving) return;
     clearServiceErrors();
     const id = document.getElementById('service-id').value;
     const serviceName = document.getElementById('service-name').value.trim();
@@ -138,7 +140,7 @@ async function saveService() {
 }
 
 async function deleteService(id, name) {
-    if (currentUser?.role !== 'admin' || serviceDeleting.has(id)) return;
+    if (!canManageServices() || serviceDeleting.has(id)) return;
     if (!await askConfirmation(`Bạn có chắc chắn muốn xóa dịch vụ [${name}] không?`)) return;
     if (serviceDeleting.has(id)) return;
     serviceDeleting.add(id);servicesVersion++;renderTable(currentServices);

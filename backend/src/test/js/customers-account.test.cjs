@@ -70,8 +70,10 @@ function accountEnv(handler) {
     e=env('customers');vm.runInContext("currentUser={role:'staff'}",e.context);e.context.renderTable([{...guest,documentType:'PASSPORT',cccd:'AB123456',phone:'0901234567'}]);
     assert.equal(e.el('customers-tbody').children[0].children.at(-1).children.length,2);await e.context.deleteCustomer(1,'Guest');assert.equal(e.writes.length,0);
     e=env('services');vm.runInContext("currentUser={role:'staff'}",e.context);e.context.renderTable([{serviceId:1,serviceName:'Water',unitPrice:10000,status:'Hoạt động'}]);
-    assert.equal(e.el('services-tbody').children[0].children.at(-1).children.length,0);await e.context.saveService();await e.context.deleteService(1,'Water');assert.equal(e.writes.length,0);
-    pass('staff can edit/view customer history but has no customer delete or service catalog writes');
+    assert.equal(e.el('services-tbody').children[0].children.at(-1).children.length,2);
+    e.context.openEditModal({serviceId:1,serviceName:'Water',unitPrice:10000,status:'Hoạt động'});
+    await e.context.saveService();assert.equal(e.writes[0].endpoint,'/services/1');
+    pass('staff can edit service catalog while customer deletion remains restricted');
 
     e=env('customers');e.context.openAddModal();e.el('customer-email').value='invalid';e.el('customer-address').value='x'.repeat(201);
     await e.context.saveCustomer();assert.equal(e.writes.length,0);assert.equal(e.el('customer-name').focused,true);
@@ -106,9 +108,9 @@ function accountEnv(handler) {
     pass('shared header renders server identity safely, updates role permissions and never duplicates controls');
 
     a=accountEnv();await a.events.DOMContentLoaded();
-    a.el('account-info-link').events.click({preventDefault(){}});assert.equal(a.context.window.location.href,'account.html');
-    a.el('account-admin-link').events.click({preventDefault(){}});assert.equal(a.context.window.location.href,'account.html#quan-tri');
-    vm.runInContext('accountBusy=true',a.context);a.context.setAccountBusy(true);a.el('account-info-link').events.click({preventDefault(){}});assert.equal(a.context.window.location.href,'account.html#quan-tri');
+    a.el('account-info-link').events.click({preventDefault(){}});assert.equal(a.context.window.location.href,'account.html#ho-so');
+    a.el('account-admin-link').events.click({preventDefault(){}});assert.equal(a.context.window.location.href,'statistics.html');
+    vm.runInContext('accountBusy=true',a.context);a.context.setAccountBusy(true);a.el('account-info-link').events.click({preventDefault(){}});assert.equal(a.context.window.location.href,'statistics.html');
     vm.runInContext('accountBusy=false',a.context);a.context.setAccountBusy(false);a.context.addAccountControls({fullName:'Staff',role:'staff'});assert.equal(a.el('account-admin-link').hidden,true);
     pass('profile/admin links navigate correctly, block navigation during writes and hide administration for staff');
 
@@ -136,11 +138,11 @@ function accountEnv(handler) {
         if(url.endsWith('/me'))return res(loggedOut?401:200,loggedOut?{message:'Expired'}:{success:true,user:{userId:1,role:'staff',fullName:'Staff'}});
         if(url.endsWith('/csrf'))return res(200,{token:'csrf',headerName:'X-CSRF-TOKEN'});
         loggedOut=true;throw new Error('Lost logout response');
-    });await a.events.DOMContentLoaded();await a.context.logoutAccount();assert.equal(a.calls.filter(c=>c.url.endsWith('/logout')).length,1);assert.equal(a.redirects[0],'login.html');
+    });await a.events.DOMContentLoaded();await a.context.logoutAccount();assert.equal(a.calls.filter(c=>c.url.endsWith('/logout')).length,1);assert.equal(a.redirects[0],'login.html?next=%2Fpages%2Frooms.html');
     pass('lost logout response rechecks the server with GET and recognizes a session already invalidated');
 
     let expired=false;a=accountEnv((url,options,res)=>res(expired?401:200,expired?{message:'Expired'}:{success:true,user:{userId:1,role:'staff',fullName:'Staff'}}));
-    await a.events.DOMContentLoaded();a.el('account-old-password').value='secret';a.windowEvents.pagehide();assert.equal(a.el('account-old-password').value,'');expired=true;await a.windowEvents.pageshow({persisted:true});assert.equal(a.redirects[0],'login.html');assert.equal(a.body.classes.has('session-pending'),true);
+    await a.events.DOMContentLoaded();a.el('account-old-password').value='secret';a.windowEvents.pagehide();assert.equal(a.el('account-old-password').value,'');expired=true;await a.windowEvents.pageshow({persisted:true});assert.equal(a.redirects[0],'login.html?next=%2Fpages%2Frooms.html');assert.equal(a.body.classes.has('session-pending'),true);
     assert.equal(a.calls.filter(c=>c.url.endsWith('/me')).length,2);
     pass('restored pages revalidate /me and conceal stale content when the server session has expired');
 

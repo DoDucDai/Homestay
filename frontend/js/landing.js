@@ -1,4 +1,22 @@
 let landingLoading=false,landingReady=false,landingRefreshTimer=null;
+function renderLandingAccount(user) {
+    const host=document.getElementById('landing-account');
+    if(user) {
+        addAccountControls(user);
+        const account=document.getElementById('account-controls');
+        host.replaceChildren(account);
+        const profile=account.querySelector('.account-profile'),actions=account.querySelector('.account-actions');
+        if(profile && actions && !account.querySelector('.stay-account-menu')) {
+            const menu=document.createElement('details');menu.className='stay-account-menu';
+            const summary=textNode('summary','');summary.setAttribute('aria-label','Mở menu tài khoản');
+            menu.append(summary,actions);account.append(menu);
+        }
+    } else {
+        const login=textNode('a','Đăng nhập','stay-button stay-button-gold');login.href='login.html';
+        host.replaceChildren(login);
+    }
+    host.setAttribute('aria-busy','false');
+}
 function startLandingRefresh(){clearInterval(landingRefreshTimer);landingRefreshTimer=setInterval(()=>{if(!document.hidden)loadLandingRooms();},30000);}
 async function loadLandingRooms(){
     if(landingLoading)return;landingLoading=true;
@@ -17,23 +35,32 @@ async function loadLandingRooms(){
     }finally{landingLoading=false;}
 }
 document.addEventListener('DOMContentLoaded',async()=>{
-    const user=await checkLogin();if(!user)return;
-    const account=document.getElementById('account-controls');
-    if(account){
-        document.getElementById('landing-account').append(account);
-        const profile=account.querySelector('.account-profile'),actions=account.querySelector('.account-actions');
-        if(profile && actions){const menu=document.createElement('details');menu.className='stay-account-menu';const summary=textNode('summary','⌄');summary.setAttribute('aria-label','Mở menu tài khoản');menu.append(summary,actions);account.append(menu);}
+    const user=await checkLogin();
+    renderLandingAccount(user);
+    if(!user) {
+        document.getElementById('landing-greeting').textContent='Chào mừng bạn đến với Homestay';
+        document.getElementById('landing-sync').textContent='Đăng nhập để xem tình trạng phòng hiện tại.';
+        const roomType=document.getElementById('landing-room-type');
+        ['Single','Double','VIP','Family'].forEach(type=>roomType.append(selectOption(type,type)));
+        document.querySelectorAll('a[href]').forEach(link=>{
+            const target=new URL(link.href,window.location.href);
+            if(target.origin===window.location.origin && target.pathname.startsWith('/pages/') && !['/pages/landing.html','/pages/explore.html','/pages/login.html'].includes(target.pathname))
+                link.href='login.html?next='+encodeURIComponent(target.pathname+target.search+target.hash);
+        });
+    } else {
+        document.getElementById('landing-greeting').textContent='Chào '+(user.fullName || user.username)+' · Chúc bạn một ngày thật dễ chịu';
     }
-    document.getElementById('landing-greeting').textContent='Chào '+(user.fullName || user.username)+' · Chúc bạn một ngày thật dễ chịu';
     document.getElementById('landing-year').textContent=new Date().getFullYear();
     const now=vietnamNow(),nextSlot=new Date(Math.ceil((Date.now()+7*3600000)/900000)*900000).toISOString();
     document.getElementById('landing-date').value=nextSlot.slice(0,10);document.getElementById('landing-date').min=now.slice(0,10);document.getElementById('landing-time').value=nextSlot.slice(11,16);
     document.getElementById('landing-search').addEventListener('submit',event=>{
         event.preventDefault();const date=document.getElementById('landing-date').value,time=document.getElementById('landing-time').value,error=document.getElementById('landing-search-error');
         if(!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time) || date+'T'+time<vietnamNow().slice(0,16)){error.textContent='Chọn ngày và giờ hiện tại hoặc tương lai để xem lịch.';error.hidden=false;return;}
-        error.hidden=true;const params=new URLSearchParams({date,hour:time.slice(0,2),mode:'hours'});const type=document.getElementById('landing-room-type').value;if(type)params.set('type',type);window.location.href='bookings.html?'+params;
+        error.hidden=true;const params=new URLSearchParams({date,hour:time.slice(0,2),mode:'hours'});const type=document.getElementById('landing-room-type').value;if(type)params.set('type',type);
+        const target='bookings.html?'+params;
+        window.location.href=user?target:'login.html?next='+encodeURIComponent('/pages/'+target);
     });
-    loadLandingRooms();
-    startLandingRefresh();window.addEventListener('pagehide',()=>clearInterval(landingRefreshTimer));
-    window.addEventListener('pageshow',event=>{if(event.persisted){loadLandingRooms();startLandingRefresh();}});
+    if(user) { loadLandingRooms(); startLandingRefresh(); }
+    window.addEventListener('pagehide',()=>clearInterval(landingRefreshTimer));
+    window.addEventListener('pageshow',event=>{if(event.persisted)window.location.reload();});
 });
