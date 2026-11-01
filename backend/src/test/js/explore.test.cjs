@@ -1,0 +1,24 @@
+const assert=require('node:assert/strict'),vm=require('node:vm');
+const {env,payload}=require('./frontend-test-env.cjs');
+const e=env('explore');
+const rows=[{roomId:1,roomCode:'P2',roomName:payload,roomType:'Single',price:400000,hourlyPrice:80000,description:payload},
+    {roomId:2,roomCode:'P1',roomName:'Family room',roomType:'Family',price:600000,hourlyPrice:null,description:null}];
+assert.equal(e.context.filterExploreRooms(rows,'p2','','code')[0].roomId,1);
+assert.equal(e.context.filterExploreRooms(rows,'','Family','code')[0].roomId,2);
+assert.deepEqual(Array.from(e.context.filterExploreRooms(rows,'','','price-up'),r=>r.roomId),[1,2]);
+assert.deepEqual(rows.map(r=>r.roomId),[1,2]);
+e.el('explore-type').value='';e.el('explore-search').value='';e.el('explore-sort').value='code';
+vm.runInContext('exploreRooms='+JSON.stringify(rows),e.context);
+e.context.renderExploreRooms();
+assert.equal(e.el('explore-grid').children.length,2);
+assert.equal(e.context.pwned,undefined);
+e.context.renderExploreDetail(rows[0]);
+assert.equal(e.el('explore-room-title').textContent,payload);
+assert.equal(e.el('explore-room-description').textContent,payload);
+assert.match(e.el('explore-book-link').href,/room=P2/);
+assert.match(e.el('explore-book-link').href,/type=Single/);
+e.context.renderExploreDetail(rows[1]);
+assert.equal(e.el('explore-hour-price').textContent,'Chưa có giá theo giờ');
+e.el('explore-search').value='missing';e.context.renderExploreRooms();
+assert.match(e.el('explore-grid').textContent,/Không tìm thấy/);
+console.log('PASS public room search, filters, sorting, complete details, safe rendering, missing photos/prices and booking handoff');

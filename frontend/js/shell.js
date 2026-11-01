@@ -5,7 +5,7 @@ const shellNavigation = [
     ['services.html', 'Dịch vụ'], ['checkin.html', 'Nhận phòng'],
     ['checkout.html', 'Hóa đơn & trả phòng']
 ];
-const adminNavigation=[['account.html','Tài khoản & quản trị'],['statistics.html','Thống kê'],['rooms.html','Quản lý phòng'],['customers.html?workspace=admin','Quản lý khách hàng'],['bookings.html','Quay lại vận hành']];
+const adminNavigation=[['account.html','Thông tin tài khoản'],['statistics.html','Thống kê'],['rooms.html','Quản lý phòng'],['customers.html?workspace=admin','Quản lý khách hàng'],['bookings.html','Quay lại vận hành']];
 function isAdminWorkspace(user,page,search=''){
     return user.role==='admin' && (['account.html','statistics.html','rooms.html'].includes(page) || page==='customers.html' && new URLSearchParams(search).get('workspace')==='admin');
 }
@@ -64,10 +64,10 @@ function initializeShell(user) {
         const close = actionButton('Đóng menu', 'btn btn-ghost navigation-close', () => setShellMenu(false));
         close.replaceChildren(sidebarIcon('close'));
         close.id = 'navigation-close'; close.setAttribute('aria-label', 'Đóng menu điều hướng');
-        const brandDetails=document.createElement('details');brandDetails.className='sidebar-brand-details';
-        const brandSummary=document.createElement('summary');brandSummary.append(logo);brandSummary.setAttribute('aria-label','Mở thông tin Homestay');
-        const home=document.createElement('a');home.href='landing.html';home.className='sidebar-home-link';home.textContent='Về trang chủ ↗';
-        brandDetails.append(brandSummary,subtitle,home);brand.append(brandDetails,close);
+        const brandDetails=document.createElement('div');brandDetails.className='sidebar-brand-details';
+        const home=document.createElement('a');home.href='landing.html';home.className='sidebar-brand-home';
+        home.setAttribute('aria-label','Homestay, về trang chủ');home.append(logo);
+        brandDetails.append(home,subtitle);brand.append(brandDetails,close);
         const list = document.createElement('ul'); list.className = 'sidebar-links';
         const currentPage = window.location.pathname.split('/').pop();
         const adminWorkspace=isAdminWorkspace(user,currentPage,window.location.search);

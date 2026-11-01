@@ -5,6 +5,21 @@ let currentCheckin = null;
 let checkinSubmitting = false;
 let checkinNeedsReload = false;
 const checkinBusy = new Set();
+function checkinGroup(booking) {
+    const reason=checkinReason(booking);
+    if(!reason)return 'ready';
+    const start=booking.billingUnit==='Hour'?booking.checkinAt:booking.checkinDate;
+    const now=booking.billingUnit==='Hour'?vietnamNow():vietnamToday();
+    return start && now<start?'upcoming':'attention';
+}
+function filterPendingCheckins(bookings,search,group) {
+    const query=search.trim().toLocaleLowerCase('vi');
+    const rank={ready:0,upcoming:1,attention:2};
+    return bookings.filter(b=>(!group || group==='all' || checkinGroup(b)===group) &&
+        (!query || ['BK'+b.bookingId,b.customerName||'',b.phone||'',b.roomCode||''].some(value=>value.toLocaleLowerCase('vi').includes(query))))
+        .sort((a,b)=>rank[checkinGroup(a)]-rank[checkinGroup(b)] || String(a.checkinAt||a.checkinDate).localeCompare(String(b.checkinAt||b.checkinDate)));
+}
+function refreshCheckinView() { renderTable([...pendingCheckins.values()]); }
 
 function checkinReason(booking) {
     const today = vietnamToday();
@@ -22,7 +37,7 @@ function checkinReason(booking) {
 }
 async function loadPendingBookings() {
     const version = ++checkinListVersion;
-    tableState('checkin-tbody', 8, 'Đang tải booking chờ nhận phòng...');
+    tableState('checkin-tbody', 6, 'Đang tải booking chờ nhận phòng...');
     document.getElementById('checkin-result').textContent = 'Đang tải danh sách…';
     try {
         const bookings = expectList(await apiGet('/bookings?status=Confirmed'));
@@ -32,7 +47,8 @@ async function loadPendingBookings() {
         if (version !== checkinListVersion) return;
         pendingCheckins = new Map();
         document.getElementById('checkin-result').textContent = 'Chưa tải được danh sách. Hãy thử tải lại.';
-        tableState('checkin-tbody', 8, err.message || 'Không tải được danh sách chờ check-in.');
+        for(const id of ['checkin-count-all','checkin-count-ready','checkin-count-upcoming','checkin-count-attention'])document.getElementById(id).textContent='—';
+        tableState('checkin-tbody', 6, err.message || 'Không tải được danh sách chờ check-in.');
         showRequestError(err, 'Không tải được danh sách chờ check-in.');
     }
 }
@@ -40,21 +56,30 @@ function renderTable(bookings) {
     pendingCheckins = new Map(bookings.map(b => [b.bookingId, b]));
     const body = document.getElementById('checkin-tbody'); if (!body) return;
     body.replaceChildren();
-    document.getElementById('checkin-result').textContent = bookings.length+' booking chờ nhận phòng · Ngày '+formatDate(vietnamToday());
-    if (!bookings.length) { tableState('checkin-tbody', 8, 'Không có khách hàng nào chờ Check-in'); return; }
-    pageRows('checkin', bookings, renderTable).forEach(b => {
+    for(const group of ['all','ready','upcoming','attention'])document.getElementById('checkin-count-'+group).textContent=String(group==='all'?bookings.length:bookings.filter(b=>checkinGroup(b)===group).length);
+    const rows=filterPendingCheckins(bookings,document.getElementById('checkin-search').value,document.getElementById('checkin-filter').value);
+    document.getElementById('checkin-result').textContent = rows.length+'/'+bookings.length+' lượt chờ nhận phòng · Ngày '+formatDate(vietnamToday());
+    if (!rows.length) { tableState('checkin-tbody', 6, bookings.length?'Không có lượt phù hợp với bộ lọc.':'Không có khách hàng nào chờ nhận phòng.'); return; }
+    pageRows('checkin', rows, refreshCheckinView).forEach(b => {
         const reason = checkinReason(b);
         const button = actionButton(checkinBusy.has(b.bookingId) ? 'Đang nhận phòng...' : 'Nhận phòng', 'btn btn-primary',
             () => doCheckin(b.bookingId, b.roomCode, b.customerName));
         button.disabled = !!reason || checkinBusy.has(b.bookingId); button.title = reason;
         button.setAttribute('aria-label',button.textContent+' BK'+b.bookingId);
         const actions = [button];
+        const state=textNode('div','');
+        const group=checkinGroup(b);
+        state.append(textNode('span',({ready:'Đến lịch nhận',upcoming:'Chưa đến lịch',attention:'Cần xử lý'})[group],'badge '+({ready:'badge-success',upcoming:'badge-info',attention:'badge-neutral'})[group]));
         if (reason) {
             const description = textNode('p',reason,'checkin-reason'); description.id = 'checkin-reason-'+b.bookingId;
-            button.setAttribute('aria-describedby',description.id); actions.push(description);
+            button.setAttribute('aria-describedby',description.id); state.append(description);
         }
-        appendTableRow(body, [textNode('strong', 'BK' + b.bookingId), b.customerName || '', b.phone || '', textNode('strong', b.roomCode || ''),
-            bookingTime(b,'checkin'), bookingTime(b,'checkout'), b.note || ''], actions);
+        const identity=textNode('div','','checkin-customer');identity.append(textNode('strong',b.customerName||'Chưa có tên'),textNode('span',b.phone||'Chưa có điện thoại','checkin-secondary'));
+        const code=textNode('div','');code.append(textNode('strong','BK'+b.bookingId),textNode('span',b.billingUnit==='Hour'?'Theo giờ':'Qua đêm','checkin-secondary'));
+        if(b.note){const note=textNode('details','','checkin-note');note.append(textNode('summary','Ghi chú'),textNode('p',b.note));code.append(note);}
+        const time=textNode('div','','checkin-time');time.append(textNode('span','Nhận · '+bookingTime(b,'checkin')),textNode('span','Trả · '+bookingTime(b,'checkout')));
+        const row=appendTableRow(body,[code,identity,textNode('strong',b.roomCode||''),time,state],actions);
+        Array.from(row.children).forEach((cell,i)=>cell.setAttribute('data-label',['Booking','Khách hàng','Phòng','Thời gian','Tình trạng','Thao tác'][i]));
     });
 }
 function updateCheckinControls() {
@@ -114,5 +139,7 @@ async function confirmCheckin() {
 }
 document.addEventListener('DOMContentLoaded', async () => {
     if (!await checkLogin()) return;
+    document.getElementById('checkin-search').addEventListener('input',refreshCheckinView);
+    document.getElementById('checkin-filter').addEventListener('change',refreshCheckinView);
     loadPendingBookings(); updateCheckinControls();
 });

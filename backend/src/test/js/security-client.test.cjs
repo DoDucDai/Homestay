@@ -22,7 +22,7 @@ function environment(handler, login = false) {
         window: { location: { pathname: login ? '/pages/login.html' : '/pages/rooms.html', search: '', replace: url => redirects.push(url) }, addEventListener(name,fn) {windowEvents[name]=fn;} },
         sessionStorage: { getItem: () => '{"role":"admin"}', removeItem() {}, setItem() { throw new Error('Must not store auth in sessionStorage'); } },
         document: { getElementById: id => id === 'login-form' ? (login ? form : null) : elements.get(id), addEventListener: (name, fn) => { events[name] = fn; } },
-        setTimeout: fn => {timers.push(fn);return timers.length;}, URLSearchParams, console
+        setTimeout: fn => {timers.push(fn);return timers.length;}, URL, URLSearchParams, console
     });
     vm.runInContext(apiCode, context);
     return { context, calls, redirects, events, elements, formEvents, submit, windowEvents, timers };
@@ -32,8 +32,25 @@ function pass(name) { passed++; console.log('PASS ' + name); }
     let env = environment(async () => response(401, { message: 'Please log in' }));
     await assert.rejects(env.context.apiGet('/rooms'));
     assert.equal(env.calls.length, 1); assert.equal(env.calls[0].url, '/api/auth/me');
-    assert.equal(env.redirects[0], 'login.html');
+    assert.equal(env.redirects[0], 'login.html?next=%2Fpages%2Frooms.html');
     pass('forged browser storage cannot authorize a protected request');
+
+    env=environment(async()=>response(401,{message:'Anonymous'}));
+    env.context.window.location.pathname='/pages/landing.html';
+    assert.equal(await env.context.checkLogin(),null);
+    assert.equal(env.redirects.length,0);
+    assert.equal(env.calls.length,1);
+    pass('anonymous visitors remain on the public landing page without requesting protected data');
+
+    env=environment(async()=>response(401,{message:'Anonymous'}),true);
+    Object.assign(env.context.window.location,{href:'http://localhost:8080/pages/login.html',origin:'http://localhost:8080',search:'?next='+encodeURIComponent('/pages/bookings.html?date=2026-11-02&mode=hours')});
+    vm.runInContext(fs.readFileSync(path.join(frontend,'auth.js'),'utf8'),env.context);
+    assert.equal(env.context.loginDestination(),'/pages/bookings.html?date=2026-11-02&mode=hours');
+    for(const next of ['https://evil.example/pages/rooms.html','//evil.example/pages/rooms.html','/api/customers','javascript:alert(1)']) {
+        env.context.window.location.search='?next='+encodeURIComponent(next);
+        assert.equal(env.context.loginDestination(),'landing.html');
+    }
+    pass('post-login destination retains selected dates and rejects external or non-page redirects');
 
     const pending = deferred();
     env = environment(async url => url.endsWith('/me') ? pending.promise : response(200, []));
@@ -68,7 +85,7 @@ function pass(name) { passed++; console.log('PASS ' + name); }
     env = environment(async url => url.endsWith('/me') ? response(200, { success: true, user })
         : response(401, { code: 'UNAUTHENTICATED', message: 'Expired' }));
     await assert.rejects(env.context.apiPost('/bookings', {}));
-    assert.equal(env.redirects[0], 'login.html');
+    assert.equal(env.redirects[0], 'login.html?next=%2Fpages%2Frooms.html');
     assert.equal(env.calls.filter(call => call.url === '/api/bookings').length, 0);
     pass('expiry while obtaining a CSRF token redirects before submitting a mutation');
 
@@ -91,7 +108,7 @@ function pass(name) { passed++; console.log('PASS ' + name); }
     await env.context.apiPost('/auth/logout');
     await assert.rejects(env.context.apiGet('/rooms'));
     assert.equal(env.calls.filter(call => call.url.endsWith('/me')).length, 2);
-    assert.equal(env.redirects[0], 'login.html');
+    assert.equal(env.redirects[0], 'login.html?next=%2Fpages%2Frooms.html');
     pass('logout calls the server then clears cached identity and rechecks me');
 
     const loginPending = deferred(); writes = 0;

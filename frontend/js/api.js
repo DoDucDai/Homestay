@@ -5,6 +5,13 @@ let currentUser = null;
 let csrfPromise = null;
 let redirectingToLogin = false;
 let authVersion = 0;
+function validAccountPhone(value) { return /^0[0-9]{9}$/.test(value); }
+function validAccountEmail(value) { return value.length<=254 && /^[a-z0-9]+(?:\.[a-z0-9]+)*@gmail\.com$/i.test(value); }
+function validAccountUsername(value) { return /^[A-Za-z0-9_.-]{6,50}$/.test(value); }
+function validAccountPassword(value) {
+    return value.length>=6 && value.length<=128 && /[A-Z]/.test(value) && /[a-z]/.test(value)
+        && /[0-9]/.test(value) && /[\p{P}\p{S}]/u.test(value);
+}
 try { sessionStorage.removeItem('currentUser'); } catch { /* Storage is optional; the server owns the session. */ }
 
 function resetAuth() {
@@ -16,7 +23,8 @@ function resetAuth() {
 function goToLogin() {
     if (!window.location.pathname.endsWith('/login.html') && !redirectingToLogin) {
         redirectingToLogin = true;
-        window.location.replace('login.html');
+        const next=window.location.pathname+(window.location.search||'')+(window.location.hash||'');
+        window.location.replace('login.html?next='+encodeURIComponent(next));
     }
 }
 async function responseJson(response) {
@@ -56,7 +64,9 @@ async function checkLogin(force = false) {
             if (version !== authVersion) return null;
             currentUser = null;
             authPromise = null;
-            if (error.status === 401) goToLogin();
+            if (error.status === 401) {
+                if (!['/pages/landing.html','/pages/explore.html'].includes(window.location.pathname)) goToLogin();
+            }
             else showAlert(error.message || 'Không thể kiểm tra đăng nhập.', 'error');
             return null;
         }
@@ -100,6 +110,10 @@ async function apiRequest(endpoint, method = 'GET', data) {
         const result = await responseJson(await fetch(API_BASE + endpoint, options));
         if (version !== authVersion) throw new Error('Phiên đã thay đổi. Vui lòng tải lại trang.');
         if (result.success && ['/auth/login', '/auth/logout', '/auth/change-password'].includes(endpoint)) resetAuth();
+        if (result.success && endpoint === '/auth/profile' && result.user) {
+            currentUser = result.user;
+            authPromise = Promise.resolve(currentUser);
+        }
         return result;
     } catch (error) {
         if (version !== authVersion) throw new Error('Phiên đã thay đổi. Vui lòng tải lại trang.');

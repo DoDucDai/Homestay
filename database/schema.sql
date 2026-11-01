@@ -145,3 +145,9 @@ IF NOT EXISTS(SELECT 1 FROM sys.check_constraints WHERE name='CHK_Bookings_Hourl
         OR (billing_unit='Hour' AND checkin_at IS NOT NULL AND checkout_at IS NOT NULL
             AND checkout_at>checkin_at AND price_per_hour IS NOT NULL AND price_per_hour>0));
 COMMIT;
+
+-- Optional for existing accounts until their first profile update. Never invent personal data.
+IF COL_LENGTH('Users','phone') IS NULL ALTER TABLE Users ADD phone VARCHAR(10) NULL;
+IF COL_LENGTH('Users','email') IS NULL ALTER TABLE Users ADD email NVARCHAR(254) NULL;
+IF COL_LENGTH('Users','birth_date') IS NULL ALTER TABLE Users ADD birth_date DATE NULL;
+IF COL_LENGTH('Users','city') IS NULL ALTER TABLE Users ADD city NVARCHAR(100) NULL;

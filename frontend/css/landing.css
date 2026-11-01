@@ -16,6 +16,8 @@
 .stay-top-nav { display:flex; gap:28px; align-items:center; }
 .stay-top-nav a { color:#f0f0e9; text-decoration:none; font-size:11px; white-space:nowrap; }
 .stay-top-nav a:hover { color:var(--stay-gold); }
+#landing-account { flex-shrink:0; min-width:104px; }
+#landing-account > .stay-button { white-space:nowrap; justify-content:center; }
 .landing-page #account-controls { display:flex; flex-direction:row; align-items:center; position:static; inset:auto; border:0; border-radius:0; background:transparent; box-shadow:none; margin:0; padding:0; width:auto; gap:8px; }
 .landing-page .account-profile { padding:6px 11px 6px 6px; border:1px solid #ffffff38; border-radius:40px; background:#1b2b3280; }
 .landing-page .account-profile::before { background:#e4b67a; color:#263c31; width:32px; height:32px; }
@@ -26,7 +28,8 @@
 .stay-account-menu { position:relative; }
 .stay-account-menu > summary { display:grid; place-items:center; min-width:32px; min-height:38px; list-style:none; border:1px solid #ffffff38; border-radius:30px; padding:5px 9px; cursor:pointer; background:#1b2b3280; color:white; }
 .stay-account-menu > summary::-webkit-details-marker { display:none; }
-.stay-account-menu > summary .account-profile::after { content:'⌄'; color:white; margin-left:7px; }
+.stay-account-menu > summary::after { content:''; width:8px; height:8px; border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor; transform:translateY(-2px) rotate(45deg); transition:transform .15s; }
+.stay-account-menu[open] > summary::after { transform:translateY(2px) rotate(225deg); }
 .stay-account-menu .account-actions { position:absolute; right:0; top:calc(100% + 10px); min-width:200px; display:flex; flex-direction:column; gap:5px; padding:10px; background:#fff; border:1px solid #e5e9e1; border-radius:12px; box-shadow:0 15px 40px #0e1b2433; }
 .stay-account-menu .account-actions .btn { flex:auto; font-size:11px; min-height:38px; }
 .landing-page .navigation-toggle { color:white; background:#ffffff15; border-color:#ffffff30; }

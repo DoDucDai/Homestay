@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Khám phá các phòng Homestay, xem thông tin phòng và giá lưu trú.">
+    <title>Khám phá phòng — Homestay</title>
+    <link rel="stylesheet" href="../css/style.css"><link rel="stylesheet" href="../css/landing.css"><link rel="stylesheet" href="../css/explore.css">
+</head>
+<body class="explore-page">
+<a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
+<header class="stay-header explore-header">
+    <a class="stay-brand" href="landing.html" aria-label="Homestay, trang chủ"><span class="stay-brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 11 8-7 8 7v9H4Z M9 20v-7h6v7"/></svg></span><span>Homestay<span class="stay-brand-tag">A LITTLE TIME FOR YOURSELF</span></span></a>
+    <nav class="explore-nav" aria-label="Điều hướng"><a href="landing.html">Trang chủ</a><a href="explore.html" aria-current="page">Khám phá phòng</a><a href="bookings.html">Lịch đặt phòng</a></nav>
+    <div id="explore-account" aria-busy="true"></div>
+</header>
+<main id="main-content" class="explore-main" tabindex="-1">
+    <div id="alert-message" class="alert" role="status" style="display:none"></div>
+    <section id="explore-list-view" aria-labelledby="explore-title">
+        <header class="explore-intro"><p class="explore-eyebrow">KHÔNG GIAN DÀNH CHO BẠN</p><h1 id="explore-title">Tìm một khoảng nghỉ phù hợp.</h1><p>Xem thông tin phòng, chọn không gian bạn thích và tiếp tục đến lịch đặt khi đã sẵn sàng.</p></header>
+        <form class="explore-filters" id="explore-filters" role="search">
+            <div class="form-group"><label for="explore-search">Tìm phòng</label><input id="explore-search" type="search" maxlength="100" placeholder="Tên hoặc mã phòng"></div>
+            <div class="form-group"><label for="explore-type">Loại phòng</label><select id="explore-type"><option value="">Tất cả loại phòng</option></select></div>
+            <div class="form-group"><label for="explore-sort">Sắp xếp</label><select id="explore-sort"><option value="code">Theo mã phòng</option><option value="price-up">Giá đêm tăng dần</option><option value="price-down">Giá đêm giảm dần</option></select></div>
+        </form>
+        <p id="explore-count" class="explore-result" role="status" aria-live="polite">Đang tải danh mục phòng…</p>
+        <div id="explore-grid" class="explore-grid"></div>
+    </section>
+    <section id="explore-detail-view" hidden aria-labelledby="explore-room-title">
+        <a href="explore.html" class="explore-back">← Tất cả phòng</a>
+        <div class="explore-detail-layout"><div id="explore-detail-photo" class="explore-detail-photo"></div><article class="explore-detail-copy">
+            <p id="explore-room-type" class="explore-eyebrow"></p><h1 id="explore-room-title"></h1><p id="explore-room-code" class="text-muted"></p>
+            <h2>Thông tin phòng</h2><p id="explore-room-description" class="explore-description"></p>
+            <dl class="explore-prices"><div><dt>Giá theo đêm</dt><dd id="explore-night-price"></dd></div><div><dt>Giá theo giờ</dt><dd id="explore-hour-price"></dd></div></dl>
+            <p class="explore-booking-note">Chọn thời gian trong lịch đặt để kiểm tra phòng còn trống và giá cho lượt lưu trú của bạn. Đăng nhập khi tiếp tục đặt phòng.</p>
+            <a id="explore-book-link" class="stay-button stay-button-dark" href="bookings.html">Xem lịch & đặt phòng <span aria-hidden="true">↗</span></a>
+        </article></div>
+    </section>
+    <section id="explore-error" class="explore-empty" hidden role="status"><h2>Chưa thể hiển thị thông tin phòng</h2><p id="explore-error-message"></p><button id="explore-retry" class="btn btn-primary">Thử lại</button><a href="explore.html">Xem tất cả phòng</a></section>
+</main>
+<footer class="explore-footer"><a href="landing.html">Homestay · Trang chủ</a><span>Một khoảng nghỉ, đúng lúc bạn cần.</span></footer>
+<script src="../js/api.js"></script><script src="../js/explore.js"></script>
+</body>
+</html>

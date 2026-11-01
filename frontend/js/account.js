@@ -57,8 +57,8 @@ function addAccountControls(user) {
         document.getElementById('account-old-password').focus();
     });change.id = 'account-change-btn';
     const logout = actionButton('Đăng xuất','btn btn-danger',logoutAccount);logout.id = 'account-logout-btn';
-    const info=textNode('a','Thông tin tài khoản','account-menu-link');info.href='account.html';info.id='account-info-link';
-    const admin=textNode('a','Khu quản trị','account-menu-link');admin.href='account.html#quan-tri';admin.id='account-admin-link';admin.setAttribute('data-admin-only','');admin.hidden=user.role!=='admin';
+    const info=textNode('a','Thông tin tài khoản','account-menu-link');info.href='account.html#ho-so';info.id='account-info-link';
+    const admin=textNode('a','Khu quản trị','account-menu-link');admin.href='statistics.html';admin.id='account-admin-link';admin.setAttribute('data-admin-only','');admin.hidden=user.role!=='admin';
     [profile,info,admin].forEach(link=>link.addEventListener('click',event=>{
         event.preventDefault();if(!accountBusy)window.location.href=link.href;
     }));
@@ -77,10 +77,10 @@ function addAccountControls(user) {
     box.append(textNode('p','Cập nhật mật khẩu cho tài khoản đang đăng nhập.','account-password-intro'));
     const form = document.createElement('form');form.id = 'account-password-form';form.noValidate = true;
     form.setAttribute('aria-busy','false');
-    const help = textNode('p','Mật khẩu mới cần 12–128 ký tự, khác mật khẩu hiện tại. Sau khi đổi, bạn cần đăng nhập lại.','form-help');help.id='account-password-help';form.append(help);
+    const help = textNode('p','Mật khẩu mới cần 6–128 ký tự, có chữ hoa, chữ thường, chữ số và ký tự đặc biệt, khác mật khẩu hiện tại. Sau khi đổi, bạn cần đăng nhập lại.','form-help');help.id='account-password-help';form.append(help);
     for (const [key,label,autocomplete,max,min] of [
         ['old','Mật khẩu hiện tại','current-password',256,1],
-        ['new','Mật khẩu mới (12–128 ký tự)','new-password',128,12],
+        ['new','Mật khẩu mới (6–128 ký tự)','new-password',128,6],
         ['confirm','Nhập lại mật khẩu mới','new-password',128,12]
     ]) {
         const group = textNode('div','','form-group');
@@ -109,8 +109,8 @@ function addAccountControls(user) {
         const newPassword = document.getElementById('account-new-password').value;
         const confirmation = document.getElementById('account-confirm-password').value;
         ['old','new','confirm'].forEach(key=>document.getElementById('account-'+key+'-password').setAttribute('aria-invalid','false'));
-        if (!oldPassword || oldPassword.length > 256 || newPassword.length < 12 || newPassword.length > 128 || !newPassword.trim() || newPassword === oldPassword) {
-            accountPasswordError('Nhập mật khẩu hiện tại; mật khẩu mới cần 12–128 ký tự, không chỉ khoảng trắng và khác mật khẩu cũ.',!oldPassword || oldPassword.length>256 ? 'account-old-password':'account-new-password');return;
+        if (!oldPassword || oldPassword.length > 256 || !validAccountPassword(newPassword) || newPassword === oldPassword) {
+            accountPasswordError('Mật khẩu mới cần 6–128 ký tự, có chữ hoa, chữ thường, chữ số, ký tự đặc biệt và khác mật khẩu cũ.',!oldPassword || oldPassword.length>256 ? 'account-old-password':'account-new-password');return;
         }
         if (newPassword !== confirmation) { accountPasswordError('Hai mật khẩu mới chưa khớp.','account-confirm-password');return; }
         accountOperation='password';accountBusy = true;accountPasswordError('');setAccountBusy(true);
@@ -150,7 +150,10 @@ async function refreshAccountSession() {
     const previous = currentUser;
     setSessionState(true);
     const user = await checkLogin(true);
-    if (!user) { setSessionState(true,'Không xác nhận được phiên đăng nhập. Vui lòng thử lại.');return; }
+    if (!user) {
+        if(window.location.pathname.endsWith('/landing.html')) { setSessionState(false); return; }
+        setSessionState(true,'Không xác nhận được phiên đăng nhập. Vui lòng thử lại.');return;
+    }
     if (previous && (previous.userId !== user.userId || previous.role !== user.role)) { window.location.reload();return; }
     addAccountControls(user);
     if (typeof initializeShell === 'function') initializeShell(user);
@@ -159,7 +162,10 @@ async function refreshAccountSession() {
 document.addEventListener('DOMContentLoaded',async () => {
     document.getElementById('session-retry')?.addEventListener('click',() => window.location.reload());
     const user = await checkLogin();
-    if (!user) { setSessionState(true,'Không xác nhận được phiên đăng nhập. Vui lòng thử lại.');return; }
+    if (!user) {
+        if(window.location.pathname.endsWith('/landing.html')) { setSessionState(false); return; }
+        setSessionState(true,'Không xác nhận được phiên đăng nhập. Vui lòng thử lại.');return;
+    }
     addAccountControls(user);
     if (typeof initializeShell === 'function') initializeShell(user);
     setSessionState(false);

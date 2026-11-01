@@ -12,12 +12,12 @@
 .sidebar-logo-mark { display:grid; place-items:center; width:29px; height:31px; flex-shrink:0; border-radius:9px 9px 9px 2px; background:var(--color-accent); color:#293e32; }
 .sidebar-logo-mark svg { width:19px; height:19px; fill:none; stroke:currentColor; stroke-width:1.65; stroke-linecap:round; stroke-linejoin:round; }
 .sidebar-brand-details { flex:1; min-width:0; }
-.sidebar-brand-details > summary { display:flex; align-items:center; justify-content:space-between; gap:6px; min-height:36px; padding-right:5px; border-radius:7px; list-style:none; cursor:pointer; }
-.sidebar-brand-details > summary::-webkit-details-marker,.property-summary::-webkit-details-marker { display:none; }
-.sidebar-brand-details > summary::after,.property-summary::after { content:''; display:block; width:6px; height:6px; flex-shrink:0; border-right:1.5px solid #cfdbc3; border-bottom:1.5px solid #cfdbc3; transform:rotate(45deg); margin-left:auto; margin-right:3px; transition:transform .15s; }
-.sidebar-brand-details[open] > summary::after,.property-switcher[open] > summary::after { transform:rotate(225deg); }
-.sidebar-brand-details > summary:hover { background:#ffffff09; }
-.sidebar-home-link { display:block; color:#e6c595; font-size:10px; margin-top:8px; text-decoration:none; }
+.sidebar-brand-home { display:flex; align-items:center; min-height:36px; border-radius:7px; text-decoration:none; color:inherit; }
+.sidebar-brand-home:hover { background:#ffffff09; color:inherit; }
+.sidebar-brand-home:focus-visible { outline:2px solid var(--color-accent); outline-offset:3px; }
+.property-summary::-webkit-details-marker { display:none; }
+.property-summary::after { content:''; display:block; width:6px; height:6px; flex-shrink:0; border-right:1.5px solid #cfdbc3; border-bottom:1.5px solid #cfdbc3; transform:rotate(45deg); margin-left:auto; margin-right:3px; transition:transform .15s; }
+.property-switcher[open] > summary::after { transform:rotate(225deg); }
 .sidebar-subtitle { margin-top: 4px; color:#b1c0a6; }
 .sidebar-section-label { padding-inline: 20px; font-size: 10px; letter-spacing: .11em; color:#acbaa1; }
 .sidebar-links { padding-inline: 12px; scrollbar-width:thin; scrollbar-color:#708264 transparent; }

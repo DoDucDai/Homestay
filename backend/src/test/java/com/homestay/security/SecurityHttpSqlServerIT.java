@@ -226,6 +226,11 @@ public class SecurityHttpSqlServerIT {
             base="http://localhost:"+context.getWebServer().getPort();
             Client anonymous=new Client();
             status(anonymous.get("/pages/login.html"),200);status(anonymous.get("/js/api.js"),200);
+            status(anonymous.get("/pages/landing.html"),200);
+            status(anonymous.get("/pages/explore.html"),200);
+            var catalog=anonymous.get("/api/public/rooms");status(catalog,200);
+            require(!catalog.body().contains("customerId") && !catalog.body().contains("bookingId"),"Public catalog leaked operational data");
+            status(anonymous.send("POST","/api/public/rooms",Map.of(),Map.of()),401);
             status(anonymous.get("/api/rooms"),401);status(anonymous.get("/api/auth/me"),401);
             status(anonymous.send("POST","/api/bookings",Map.of(),Map.of()),401);
             status(anonymous.get("/pages/rooms.html"),302);
@@ -270,14 +275,19 @@ public class SecurityHttpSqlServerIT {
             status(staff.get("/pages/customers.html?workspace=admin"),403);
             status(staff.get("/pages/customers.html"),200);
             status(staff.get("/pages/account.html"),200);
-            for(String path:List.of("/api/rooms","/api/services")) status(staff.write("POST",path,Map.of()),403);
-            for(String path:List.of("/api/rooms/1","/api/services/1")) status(staff.write("PUT",path,Map.of()),403);
+            status(staff.write("POST","/api/rooms",Map.of()),403);
+            status(staff.write("PUT","/api/rooms/1",Map.of()),403);
             status(staff.write("PUT","/api/rooms/1/status",Map.of("status","Bảo trì")),403);
             status(staff.get("/api/rooms?type=Single&status=Tr%E1%BB%91ng&search=P"),200);
             status(staff.get("/api/payments"),200);
-            for(String path:List.of("/api/rooms/1","/api/services/1","/api/customers/1")) status(staff.write("DELETE",path,null),403);
+            for(String path:List.of("/api/rooms/1","/api/customers/1")) status(staff.write("DELETE",path,null),403);
+            status(staff.write("POST","/api/services",Map.of("serviceName","Staff catalog test","unitPrice",12000,"status","Hoạt động")),200);
+            int staffService=Integer.parseInt(value("SELECT service_id FROM Services WHERE service_name=N'Staff catalog test'"));
+            status(staff.write("PUT","/api/services/"+staffService,Map.of("serviceName","Staff catalog updated","unitPrice",15000,"status","Ngừng")),200);
+            require("15000".equals(value("SELECT CONVERT(varchar(20),unit_price) FROM Services WHERE service_id="+staffService)),"Staff service update not persisted");
+            status(staff.write("DELETE","/api/services/"+staffService,null),200);
             status(staff.send("PUT","/api/rooms/1",Map.of("role","admin","userId",1),Map.of("X-CSRF-TOKEN",staff.token,"X-Role","admin")),403);
-            pass("staff reads allowed but admin statistics/catalog writes/customer deletion and forged role are denied");
+            pass("staff service create/edit/delete allowed; room writes, admin statistics/customer deletion and forged role denied");
 
             var customer=staff.write("POST","/api/customers",Map.of("fullName","Test guest","cccd","000000000001","phone","0900000000"));
             status(customer,200);require(Boolean.TRUE.equals(data(customer).get("success")),"Staff customer create failed");

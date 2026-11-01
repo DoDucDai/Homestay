@@ -48,7 +48,8 @@
             <div class="card-header"><div><h2 id="customers-list-title">Danh sách khách hàng</h2>
                 <p id="customers-result" class="text-muted" role="status" aria-live="polite">Đang tải khách hàng…</p></div>
                 <button id="customers-export" class="btn btn-secondary" disabled onclick="exportCustomers()">Xuất CSV</button></div>
-            <div class="table-scroll" role="region" aria-label="Bảng khách hàng, cuộn ngang để xem đầy đủ" tabindex="0">
+            <p class="form-help customer-table-help">Bấm họ tên hoặc thông tin rút gọn để xem đầy đủ hồ sơ khách hàng.</p>
+            <div class="table-scroll" role="region" aria-label="Danh sách khách hàng" tabindex="0">
             <table id="customers-table">
                 <caption class="visually-hidden">Khách hàng theo từ khóa tìm kiếm, thông tin giấy tờ và liên hệ.</caption>
                 <thead>
@@ -71,6 +72,14 @@
     </main>
 </div>
 
+<div class="modal-overlay" id="customer-details-modal" role="dialog" aria-modal="true" aria-labelledby="customer-details-title">
+    <div class="modal-box customer-details-box">
+        <h3 id="customer-details-title">Hồ sơ khách hàng</h3>
+        <dl id="customer-details-fields" class="customer-details-fields"></dl>
+        <p id="customer-details-warning" class="customer-legacy-warning"></p>
+        <div class="modal-footer"><button class="btn btn-secondary" data-modal-close onclick="document.getElementById('customer-details-modal').classList.remove('show')">Đóng</button></div>
+    </div>
+</div>
 <!-- MODAL THEM / SUA KHACH HANG -->
 <div class="modal-overlay" id="customer-modal">
     <div class="modal-box customer-editor">

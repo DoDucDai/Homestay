@@ -16,5 +16,5 @@ public class WebConfig implements WebMvcConfigurer {
             registry.addResourceHandler("/**").addResourceLocations(directory.toUri().toString(),"classpath:/static/");
         } else registry.addResourceHandler("/**").addResourceLocations("classpath:/static/");
     }
-    @Override public void addViewControllers(ViewControllerRegistry registry) {registry.addRedirectViewController("/","/pages/login.html");}
+    @Override public void addViewControllers(ViewControllerRegistry registry) {registry.addRedirectViewController("/","/pages/landing.html");}
 }

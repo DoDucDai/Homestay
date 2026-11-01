@@ -65,8 +65,40 @@ public class AuthController {
         }
     }
     @GetMapping("/me")
-    public Map<String,Object> me(Authentication auth) {
-        return Map.of("success",true,"user",((AppUser)auth.getPrincipal()).profile());
+    public Map<String,Object> me(Authentication auth) throws SQLException {
+        AppUser user=(AppUser)auth.getPrincipal();
+        Map<String,Object> profile=new HashMap<>(user.profile());
+        try(Connection conn=DBConnection.getConnection();PreparedStatement st=conn.prepareStatement(
+                "SELECT full_name,phone,email,birth_date,city FROM Users WHERE user_id=?")) {
+            st.setInt(1,user.userId());
+            try(ResultSet rs=st.executeQuery()) {
+                if(rs.next()) {
+                    profile.put("fullName",rs.getString("full_name"));
+                    for(String key:List.of("phone","email","city")) profile.put(key,rs.getString(key));
+                    profile.put("birthDate",rs.getString("birth_date"));
+                }
+            }
+        }
+        return Map.of("success",true,"user",profile);
+    }
+    @PutMapping("/profile")
+    public ResponseEntity<Map<String,Object>> updateProfile(@RequestBody(required=false) Map<String,Object> body,Authentication auth) throws SQLException {
+        String name=text(body,"fullName").trim(),phone=text(body,"phone").trim(),email=text(body,"email").trim(),city=text(body,"city").trim();
+        java.time.LocalDate birth;
+        try { birth=java.time.LocalDate.parse(text(body,"birthDate")); }
+        catch(Exception e) { return error(400,"INVALID_PROFILE","Ngày sinh không hợp lệ!"); }
+        if(name.isEmpty() || name.length()>100 || !AccountPolicy.phone(phone) || !AccountPolicy.email(email)
+                || city.isEmpty() || city.length()>100
+                || birth.isAfter(java.time.LocalDate.now(java.time.ZoneId.of("Asia/Ho_Chi_Minh"))) || birth.getYear()<1900)
+            return error(400,"INVALID_PROFILE","Nhập đủ họ tên, số điện thoại đúng 10 chữ số bắt đầu bằng 0, email dạng ten@gmail.com, ngày sinh và thành phố hợp lệ!");
+        AppUser user=(AppUser)auth.getPrincipal();
+        try(Connection conn=DBConnection.getConnection();PreparedStatement st=conn.prepareStatement(
+                "UPDATE Users SET full_name=?,phone=?,email=?,birth_date=?,city=? WHERE user_id=? AND auth_version=?")) {
+            st.setString(1,name);st.setString(2,phone);st.setString(3,email);st.setDate(4,java.sql.Date.valueOf(birth));st.setString(5,city);
+            st.setInt(6,user.userId());st.setInt(7,user.authVersion());
+            if(st.executeUpdate()!=1) return error(401,"UNAUTHENTICATED","Vui lòng đăng nhập lại!");
+        }
+        return ResponseEntity.ok(me(auth));
     }
     private void endSession(HttpServletRequest request,HttpServletResponse response,Authentication auth) {
         new SecurityContextLogoutHandler().logout(request,response,auth);
@@ -83,9 +115,8 @@ public class AuthController {
                     HttpServletRequest request,HttpServletResponse response,Authentication auth) {
         AppUser user=(AppUser)auth.getPrincipal();
         String oldPassword=text(body,"oldPassword"),newPassword=text(body,"newPassword");
-        if (oldPassword.isEmpty() || oldPassword.length()>256 || newPassword.length()<12 || newPassword.length()>128
-                || newPassword.isBlank() || newPassword.equals(oldPassword)) {
-            return error(400,"INVALID_PASSWORD","Mật khẩu mới cần 12–128 ký tự, không chỉ khoảng trắng và khác mật khẩu cũ!");
+        if (oldPassword.isEmpty() || oldPassword.length()>256 || !AccountPolicy.password(newPassword) || newPassword.equals(oldPassword)) {
+            return error(400,"INVALID_PASSWORD","Mật khẩu mới cần 6–128 ký tự, có chữ hoa, chữ thường, chữ số, ký tự đặc biệt và khác mật khẩu cũ!");
         }
         String limitKey="change:"+user.userId();
         if (!throttle.allow(request.getRemoteAddr(),limitKey)) return error(429,"RATE_LIMITED","Đã thử quá nhiều lần. Vui lòng thử lại sau 15 phút!");

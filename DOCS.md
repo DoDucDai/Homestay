@@ -52,7 +52,12 @@ Frontend gọi API của backend; backend kiểm tra quyền, dữ liệu và ng
 
 ### Đăng nhập và tài khoản
 
+- Trang chủ cho phép xem khi chưa đăng nhập; khi chọn chức năng quản lý, người dùng đăng nhập rồi quay lại chức năng đã chọn.
+- Trang `explore.html` giới thiệu phòng công khai, có tìm kiếm, lọc loại, sắp xếp giá và xem chi tiết từng phòng. Ảnh phòng để chỗ cập nhật sau. API công khai chỉ trả thông tin giới thiệu và giá, không trả khách hàng hoặc booking; phòng bảo trì không xuất hiện trong danh mục này.
 - Đăng nhập, đăng xuất, đọc thông tin tài khoản hiện tại và đổi mật khẩu.
+- Chỉnh sửa họ tên, số điện thoại, email, ngày sinh và thành phố của tài khoản đang đăng nhập. Migration `007_account_profile.sql` bổ sung các trường hồ sơ.
+- Hồ sơ yêu cầu số điện thoại đúng 10 chữ số bắt đầu bằng 0 và địa chỉ Gmail hợp lệ. Mật khẩu mới có 6–128 ký tự, gồm chữ hoa, chữ thường, chữ số và ký tự đặc biệt. Biểu mẫu đăng ký xem trước yêu cầu tên đăng nhập từ 6 ký tự.
+- Trang tài khoản dành cho hồ sơ cá nhân và bảo mật. Các chức năng quản trị truy cập trực tiếp từ thanh bên; menu Khu quản trị mở trang thống kê.
 - Xác thực bằng phiên server; mật khẩu được băm, có cơ chế giới hạn thử đăng nhập và bảo vệ CSRF.
 - Phân quyền admin/staff cho API và trang quản trị; xử lý phiên hết hạn trên giao diện.
 
@@ -68,6 +73,7 @@ Frontend gọi API của backend; backend kiểm tra quyền, dữ liệu và ng
 - Thêm, sửa, tìm kiếm khách hàng theo tên hoặc giấy tờ; xóa theo quyền và ràng buộc dữ liệu.
 - Hỗ trợ CCCD và hộ chiếu, kiểm tra định dạng giấy tờ, điện thoại và trường bắt buộc.
 - Xem lịch sử lưu trú và truy cập hóa đơn của khách.
+- Bảng khách hàng tự thu gọn nội dung dài bằng dấu ba chấm; bấm thông tin để xem hồ sơ đầy đủ. Màn hình nhỏ hiển thị khách hàng theo dạng thẻ.
 
 ### Đặt phòng và nhận phòng
 
@@ -75,10 +81,12 @@ Frontend gọi API của backend; backend kiểm tra quyền, dữ liệu và ng
 - Hỗ trợ đặt theo đêm và theo giờ. Thời gian lưu trú theo giờ được tính theo giờ Việt Nam, số giờ tính tiền làm tròn lên.
 - Kiểm tra lịch trùng, phòng bảo trì và thời gian không hợp lệ trước khi ghi dữ liệu.
 - Hủy booking ở trạng thái Confirmed; nhận phòng theo điều kiện nghiệp vụ và chuyển sang CheckedIn.
+- Trang nhận phòng có bộ đếm, tìm theo khách/phòng/mã booking, lọc lượt đến lịch/chưa đến lịch/cần xử lý, bảng gọn và dạng thẻ trên điện thoại.
 - Giao diện có xác nhận thao tác, xử lý xung đột và hạn chế gửi yêu cầu lặp.
 
 ### Dịch vụ trong thời gian lưu trú
 
+- Admin và nhân viên có thể thêm, sửa và xóa dịch vụ chưa được sử dụng; dịch vụ đã có dữ liệu sử dụng được giữ để bảo toàn lịch sử, có thể chuyển sang Ngừng.
 - Quản lý danh mục dịch vụ, đơn giá và trạng thái hoạt động.
 - Thêm hoặc hủy dòng dịch vụ cho booking đang ở; kiểm tra số lượng, trạng thái dịch vụ và giới hạn tổng tiền.
 - Lưu tên và giá dịch vụ tại thời điểm gọi, không tính lại theo giá danh mục mới.

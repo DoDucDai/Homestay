@@ -76,15 +76,15 @@ function renderTable(customers) {
             : 'Chưa có khách hàng trong danh mục.'); return;
     }
     pageRows('customers', customers, renderTable).forEach(customer => {
-        const documentCell = textNode('span', `${customer.documentType === 'PASSPORT' ? 'Hộ chiếu' : customer.documentType === 'LEGACY' ? 'Chưa xác định' : 'CCCD'}: ${customer.cccd}`);
+        const documentCell = customerDetailLink(`${customer.documentType === 'PASSPORT' ? 'Hộ chiếu' : customer.documentType === 'LEGACY' ? 'Chưa xác định' : 'CCCD'}: ${customer.cccd}`,customer);
         documentCell.title = (customer.validationWarnings || []).join(' ');
         if (customer.documentType === 'LEGACY' || customer.validationWarnings?.length) {
             documentCell.appendChild(textNode('span',customer.validationWarnings?.length
                 ? customer.validationWarnings.join(' ') : 'Dữ liệu cũ: cần kiểm tra loại giấy tờ.','customer-document-warning'));
         }
         const identity = document.createElement('div');
-        identity.appendChild(textNode('strong',customer.fullName));
-        identity.appendChild(textNode('span',customer.address || 'Chưa có địa chỉ','customer-secondary'));
+        identity.appendChild(customerDetailLink(customer.fullName,customer,'customer-name-link'));
+        identity.appendChild(customerDetailLink(customer.address || 'Chưa có địa chỉ',customer,'customer-secondary'));
         const actions = [actionButton('Sửa', 'btn btn-primary', () => openEditModal(customer)),
             actionButton('Lịch sử lưu trú','btn btn-secondary',() => openCustomerHistory(customer.customerId))];
         if (currentUser?.role === 'admin') actions.push(actionButton('Xóa', 'btn btn-danger', () => deleteCustomer(customer.customerId, customer.fullName)));
@@ -92,8 +92,24 @@ function renderTable(customers) {
             button.disabled = customerDeleting.has(customer.customerId);
             button.setAttribute('aria-label',button.textContent+' khách hàng KH'+customer.customerId);
         });
-        appendTableRow(tbody, [textNode('strong', 'KH' + customer.customerId), identity, documentCell, customer.phone, customer.email || 'Chưa có email'], actions);
+        const row=appendTableRow(tbody, [textNode('strong', 'KH' + customer.customerId), identity, documentCell, customer.phone, customerDetailLink(customer.email || 'Chưa có email',customer)], actions);
+        Array.from(row.children).forEach((cell,index)=>cell.setAttribute('data-label',['Mã KH','Họ tên / Địa chỉ','Giấy tờ','Điện thoại','Email','Thao tác'][index]));
     });
+}
+function customerDetailLink(value,customer,className='') {
+    const button=actionButton(value,'customer-detail-link '+className,()=>openCustomerDetails(customer));
+    button.title=value;
+    button.setAttribute('aria-label','Xem đầy đủ hồ sơ KH'+customer.customerId+': '+value);
+    return button;
+}
+function openCustomerDetails(customer) {
+    document.getElementById('customer-details-title').textContent='Hồ sơ KH'+customer.customerId;
+    const fields=document.getElementById('customer-details-fields');fields.replaceChildren();
+    for(const [label,value] of [['Họ và tên',customer.fullName],['Loại giấy tờ',customer.documentType],['Số giấy tờ',customer.cccd],['Số điện thoại',customer.phone],['Email',customer.email],['Địa chỉ',customer.address]]) {
+        const field=textNode('div','');field.append(textNode('dt',label),textNode('dd',value||'Chưa cập nhật'));fields.append(field);
+    }
+    document.getElementById('customer-details-warning').textContent=(customer.validationWarnings||[]).join(' ');
+    openModal('customer-details-modal');
 }
 
 function openAddModal() {
