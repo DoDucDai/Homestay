@@ -566,8 +566,8 @@
   },
   {
     "path": "frontend/css/images/rooms/SOURCES.md",
-    "bytes": 750,
-    "sha256": "1043831ac7d660ea4f83b1ec4ee68b43fc82cce93feb9602d4026b3947f6ee15"
+    "bytes": 987,
+    "sha256": "6f075056916222847b84a7441c0d24eece5ee3726f37618783225c06f43ae86e"
   },
   {
     "path": "frontend/css/images/SOURCES.md",
@@ -606,8 +606,8 @@
   },
   {
     "path": "frontend/css/room-photos.css",
-    "bytes": 1625,
-    "sha256": "4499e79e2a84650e31cb660ce1e3d4d8e54ca96913dce1a4aaae5a0165199e1a"
+    "bytes": 1602,
+    "sha256": "10449d46c49e9697cf3351919e48205f44bbfacda641cf17a5ec01bd823f454c"
   },
   {
     "path": "frontend/css/rooms.css",
@@ -721,8 +721,8 @@
   },
   {
     "path": "frontend/js/room-photos.js",
-    "bytes": 4434,
-    "sha256": "c08e825a4211ac4cd440db46c19c4a1e892a998d9670fa1a5c4d786fecf50ffa"
+    "bytes": 5498,
+    "sha256": "4ce2276007fa782a723c05cb3828b517186c76239370b9031a28642933d1adbf"
   },
   {
     "path": "frontend/js/room-stay.js",
