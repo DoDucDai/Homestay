@@ -1,0 +1,104 @@
+/* Dedicated assistant workspace; isolated from the management pages. */
+.ai-page { background:#f8f7f2; color:#293e32; }
+.ai-page .policy-header { height:80px; box-sizing:border-box; padding:18px 34px; background:#f8f7f2; color:#293e32; border-bottom:1px solid #e0e3d9; }
+.ai-brand-badge { font-size:9px; font-weight:500; letter-spacing:.14em; color:#7c8575; margin-left:12px; padding-left:18px; border-left:1px solid #cdd3c4; }
+.ai-page .policy-header nav a { font-size:12px; padding:10px 2px; }
+.ai-page .policy-header [aria-current] { border-bottom:2px solid #8b9b73; }
+.ai-page .ai-workspace { max-width:none; min-height:calc(100dvh - 80px); grid-template-columns:280px minmax(0,1fr); }
+.ai-page .ai-side { padding:32px 26px; background:#edf0e6; border-right:1px solid #e0e3d9; gap:22px; }
+.ai-page .ai-side .policy-eyebrow { font-size:9px; letter-spacing:.1em; }
+.ai-side-symbol { width:48px; height:48px; display:grid; place-items:center; border-radius:16px; background:#dfe5d3; font-size:32px; color:#7e9166; }
+.ai-page .ai-side h1 { font-size:29px; letter-spacing:-1px; line-height:1.35; }
+.ai-page .ai-side>p:not(.policy-eyebrow) { font-size:13px; }
+.ai-page #ai-new-chat { width:100%; text-align:left; background:#293e32; color:white; border-color:#293e32; padding:12px 18px; border-radius:10px; font-size:12px; }
+.ai-side-links { display:grid; gap:18px; padding:8px 0; }
+.ai-side-links a { text-decoration:none; color:#59684f; font-size:12px; }
+.ai-side-card { margin-top:auto; padding:17px; border:1px solid #d8decc; border-radius:12px; background:#f8f9f340; }
+.ai-side-card strong { font-size:11px; }
+.ai-side-card p { font-size:11px; margin:8px 0 0; line-height:1.7; }
+#ai-session { color:#65735b; font-size:11px; line-height:1.6; }
+.ai-page .ai-main { padding:0 clamp(24px,6vw,100px) 30px; width:100%; max-width:1250px; margin:0 auto; box-sizing:border-box; }
+.ai-page .ai-chat-heading { padding:22px 0; font-size:13px; }
+.ai-private-label { font-size:10px; color:#8c9585; }
+.ai-page .ai-chat-root { min-height:calc(100dvh - 170px); gap:16px; }
+.ai-page .ai-dates { max-width:490px; gap:18px; align-self:center; width:100%; padding-top:22px; }
+.ai-page .ai-dates label { font-size:10px; text-transform:uppercase; letter-spacing:.06em; }
+.ai-page .ai-dates input { background:#fdfcf8; border-color:#dce1d3; border-radius:9px; font-size:12px; padding:10px 12px; }
+.ai-page .ai-thread { flex:1; min-height:230px; max-height:50dvh; padding:16px 0; }
+.ai-page .ai-welcome { align-self:center; text-align:center; background:transparent; max-width:570px; padding:0 16px; }
+.ai-welcome img { display:block; margin:0 auto 10px; }
+.ai-welcome h2 { font-size:clamp(23px,2.5vw,34px); line-height:1.35; letter-spacing:-1px; margin:0 0 14px; font-weight:500; color:#293e32; }
+.ai-page .ai-welcome>small { display:none; }
+.ai-page .ai-welcome>p { font-size:13px; line-height:1.8; color:#7a8471; max-width:400px; margin:auto; }
+.ai-page .ai-prompts { justify-content:center; gap:8px; }
+.ai-page .ai-prompts button { background:#fffefa; padding:10px 14px; border-radius:10px; border-color:#e0e3d9; font-size:11px; }
+.ai-page .ai-composer { border-color:#d6ddcc; border-radius:17px; background:#fffefa; padding:10px; }
+.ai-page .ai-composer textarea { font-size:13px; }
+.ai-page .ai-send { border-radius:10px; padding:12px 18px; font-size:12px; }
+.ai-page .ai-chat-status { text-align:center; font-size:10px; padding:0 10px; }
+.ai-page .ai-admin-panel { margin-top:25px; }
+.ai-page .ai-main { padding-bottom:100px; }
+.ai-page { height:100dvh; overflow:hidden; }
+.ai-page .ai-workspace { height:calc(100dvh - 80px); min-height:0; }
+.ai-page .ai-side { overflow-y:auto; padding-bottom:110px; }
+.ai-page .ai-main { height:100%; display:flex; flex-direction:column; padding-bottom:16px; overflow-y:auto; }
+.ai-page .ai-chat-heading { flex-shrink:0; }
+.ai-page .ai-chat-root { flex:1; min-height:0; }
+.ai-page .ai-thread { min-height:0; max-height:none; flex:1; }
+.ai-page .ai-dates,.ai-page .ai-composer,.ai-page .ai-prompts,.ai-page .ai-chat-status { flex-shrink:0; }
+.ai-page .ai-admin-panel { flex-shrink:0; }
+.ai-page .ai-mascot-wrap { left:auto; right:18px; --patrol-distance:55px; }
+.ai-page .ai-mascot-hint { display:none; }
+@media(min-width:651px) { .ai-page .ai-composer { margin-right:145px; } }
+@media(max-height:700px) and (min-width:651px) {
+ .ai-page .ai-side-card { display:none; }
+ .ai-page .ai-side { gap:16px; }
+ .ai-page .ai-side-symbol { display:none; }
+ .ai-page .ai-dates { padding-top:8px; }
+ .ai-page .ai-chat-root { gap:8px; }
+ .ai-page .ai-welcome img { width:55px;height:65px;margin-bottom:4px; }
+ .ai-page .ai-welcome h2 { font-size:25px;margin-bottom:8px; }
+ .ai-page .ai-welcome>p { font-size:11px; }
+ .ai-page .ai-thread { padding:8px 0; }
+ .ai-page .ai-composer textarea { max-height:52px; }
+}
+@media(min-width:1500px) { .ai-page .ai-thread { max-height:55dvh; } }
+@media(max-height:600px) and (min-width:651px) {
+ .ai-page .ai-welcome img { display:none; }
+ .ai-page .ai-welcome h2 { font-size:25px; }
+ .ai-page .ai-side { padding-top:24px;gap:14px; }
+ .ai-page .ai-side h1 { font-size:24px; }
+ .ai-page .ai-side>p:not(.policy-eyebrow) { display:none; }
+ .ai-page .ai-side-links { gap:12px; }
+}
+@media(max-width:900px) {
+ .ai-page .ai-workspace { grid-template-columns:225px minmax(0,1fr); }
+ .ai-page .ai-side { padding:28px 20px; }
+ .ai-page .ai-main { padding:0 24px 100px; }
+ .ai-brand-badge { display:none; }
+ .ai-private-label { display:none; }
+}
+@media(max-width:650px) {
+ .ai-page .policy-header { height:auto; min-height:72px; padding:16px 20px; gap:10px; flex-wrap:wrap; }
+ .ai-page .policy-brand { font-size:20px; }
+ .ai-page .policy-header nav { gap:14px; }
+ .ai-page .policy-header nav a { font-size:11px; }
+ .ai-page .ai-workspace { display:block; }
+ .ai-page .ai-side { display:flex; flex-direction:row; align-items:center; padding:14px 20px; border-bottom:1px solid #e0e3d9; gap:12px; }
+ .ai-page .ai-side>* { display:none; }
+ .ai-page .ai-side #ai-new-chat { display:block; width:auto; margin-right:auto; padding:10px 14px; }
+ .ai-page #ai-session { display:block; max-width:135px; font-size:10px; text-align:right; }
+ .ai-page .ai-main { padding:0 18px 110px; }
+ .ai-page .ai-chat-root { min-height:calc(100dvh - 210px); }
+ .ai-page .ai-chat-heading { padding:16px 0; }
+ .ai-page .ai-thread { max-height:43dvh; min-height:230px; }
+ .ai-page .ai-prompts { justify-content:flex-start; flex-wrap:nowrap; overflow-x:auto; padding-bottom:4px; }
+ .ai-page .ai-prompts button { flex-shrink:0; font-size:10px; }
+ .ai-page { overflow:auto;height:auto;min-height:100dvh; }
+ .ai-page .ai-workspace { height:auto;min-height:calc(100dvh - 72px); }
+ .ai-page .ai-side { overflow:visible; }
+ .ai-page .ai-main { height:calc(100dvh - 150px);min-height:500px;padding-bottom:90px; }
+ .ai-page .ai-chat-root { min-height:0; }
+ .ai-page .ai-thread { min-height:100px;max-height:none; }
+ .ai-page .ai-mascot-wrap { left:auto;right:10px;--patrol-distance:55px; }
+}

@@ -65,8 +65,8 @@
     .account-role.badge { color:#e6c394; background:transparent; padding-inline:0; }
     .account-actions { flex-wrap: nowrap; gap: 6px; }
     .account-actions .btn { min-height: 35px; padding: 7px 8px; font-size: 10px; flex: 1; }
-    body:not(.landing-page) .account-actions .btn-secondary { --btn-bg:transparent; --btn-text:#e3e9da; --btn-hover:#3c5441; border-color:#607057; }
-    body:not(.landing-page) .account-actions .btn-danger { --btn-bg:transparent; --btn-text:#ecc0af; --btn-hover:#5e493b; border-color:#786452; }
+    body:not(.landing-page):not(.explore-page):not(.public-header-page) .account-actions .btn-secondary { --btn-bg:transparent; --btn-text:#e3e9da; --btn-hover:#3c5441; border-color:#607057; }
+    body:not(.landing-page):not(.explore-page):not(.public-header-page) .account-actions .btn-danger { --btn-bg:transparent; --btn-text:#ecc0af; --btn-hover:#5e493b; border-color:#786452; }
 }
 @media (max-width:1199px) {
     .main-content { padding: 20px; }

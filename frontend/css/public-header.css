@@ -1,0 +1,11 @@
+.public-header { background:#293e32; color:#fff; }
+#public-account { flex-shrink:0;min-width:104px; }
+#public-account>.stay-button { white-space:nowrap;justify-content:center; }
+.public-header-page .stay-account-menu .account-actions { text-align:left; }
+.public-header-page .stay-top-nav [aria-current] { color:#e4b67a; }
+@media(max-width:767px){
+ .public-header-page .stay-header { gap:16px; }
+ .public-header-page .stay-top-nav { display:flex;order:3;flex-basis:100%;justify-content:flex-start;gap:10px 18px;padding-top:8px;border-top:1px solid #ffffff20; }
+ .public-header-page .stay-top-nav a { font-size:10px;padding:4px 0; }
+}
+.public-header-page { --stay-gold:#e4b67a; }

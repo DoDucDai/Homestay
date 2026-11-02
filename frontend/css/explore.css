@@ -45,3 +45,5 @@
 .explore-footer a { color:inherit; }
 @media(max-width:1000px) { .explore-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }.explore-nav { gap:15px; }.explore-detail-layout { gap:26px; } }
 @media(max-width:767px) { .explore-main { width:calc(100% - 36px); padding-top:32px; }.explore-header { flex-wrap:wrap; padding:18px; gap:16px; }.explore-nav { order:3; width:100%; justify-content:space-between; }.explore-filters { grid-template-columns:1fr; padding:18px; }.explore-grid,.explore-detail-layout { grid-template-columns:minmax(0,1fr); }.explore-detail-copy h1 { font-size:30px; }.explore-footer { flex-direction:column; padding:24px 18px; }.explore-prices dd { font-size:16px; } }
+
+#explore-account .account-actions { text-align:left; }

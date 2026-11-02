@@ -10,6 +10,9 @@ public class WebConfig implements WebMvcConfigurer {
     private final String frontendDirectory;
     public WebConfig(@Value("${FRONTEND_DIRECTORY:}") String frontendDirectory) {this.frontendDirectory=frontendDirectory;}
     @Override public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        Path aiDirectory=Path.of("ai-rag/web").toAbsolutePath().normalize();
+        if(!Files.isDirectory(aiDirectory)) aiDirectory=Path.of("../ai-rag/web").toAbsolutePath().normalize();
+        registry.addResourceHandler("/ai/**").addResourceLocations(aiDirectory.toUri().toString(),"classpath:/static/ai/");
         if(!frontendDirectory.isBlank()) {
             Path directory=Path.of(frontendDirectory);
             if(!directory.isAbsolute() || !Files.isDirectory(directory)) throw new IllegalStateException("FRONTEND_DIRECTORY must be an existing absolute directory.");

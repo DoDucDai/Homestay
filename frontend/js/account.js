@@ -1,6 +1,38 @@
 // Shared account UI. All session checks and requests go through api.js.
 let accountBusy = false;
 let accountOperation = '';
+function hasPublicHeader(){return ['/pages/landing.html','/pages/explore.html','/pages/policies.html','/pages/support.html'].includes(window.location.pathname);}
+function wireAccountMenu(menu) {
+    const summary=menu.querySelector('summary'),actions=menu.querySelector('.account-actions');
+    if(!summary || menu.dataset.wired)return;
+    menu.dataset.wired='true';
+    const icon=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    icon.setAttribute('viewBox','0 0 20 20');icon.setAttribute('aria-hidden','true');icon.setAttribute('class','account-menu-chevron');
+    const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d','m5 7.5 5 5 5-5');icon.append(path);summary.append(icon);
+    if(actions){actions.id='account-menu-actions';summary.setAttribute('aria-controls',actions.id);}
+    summary.setAttribute('aria-expanded',String(menu.open));
+    menu.addEventListener('toggle',()=>summary.setAttribute('aria-expanded',String(menu.open)));
+    document.addEventListener('click',event=>{if(menu.open && !menu.contains(event.target))menu.open=false;});
+    document.addEventListener('keydown',event=>{if(event.key==='Escape' && menu.open){menu.open=false;summary.focus();}});
+    menu.addEventListener('click',event=>{if(event.target.closest('.account-actions a,.account-actions button'))menu.open=false;});
+}
+function renderPublicAccount(host,user) {
+    if(!host)return;
+    if(user){
+        addAccountControls(user);
+        const account=document.getElementById('account-controls');
+        host.replaceChildren(account);
+        const actions=account.querySelector('.account-actions');
+        if(actions && !account.querySelector('.stay-account-menu')){
+            const menu=document.createElement('details');menu.className='stay-account-menu';
+            const summary=document.createElement('summary');summary.setAttribute('aria-label','Mở menu tài khoản');
+            menu.append(summary,actions);account.append(menu);wireAccountMenu(menu);
+        }
+    }else{
+        const link=textNode('a','Đăng nhập','stay-button stay-button-gold');link.href='login.html?next='+encodeURIComponent(window.location.pathname+window.location.search);host.replaceChildren(link);
+    }
+    host.setAttribute('aria-busy','false');
+}
 function resetAccountPasswordForm() {
     const form = document.getElementById('account-password-form');
     form?.reset(); form?.setAttribute('aria-busy', 'false');
@@ -41,7 +73,7 @@ function addAccountControls(user) {
         document.getElementById('account-admin-link').hidden=user.role!=='admin';
         return;
     }
-    const main = document.querySelector('.main-content');
+    const main = document.querySelector('.main-content, .explore-main, .public-page-main');
     if (!main) return;
     bar = textNode('header','','account-controls');bar.id = 'account-controls';
     const profile = textNode('a','','account-profile');profile.id='account-profile-link';profile.href='account.html';profile.setAttribute('aria-label','Xem thông tin tài khoản');
@@ -63,11 +95,12 @@ function addAccountControls(user) {
         event.preventDefault();if(!accountBusy)window.location.href=link.href;
     }));
     actions.append(info,admin,change,logout);bar.append(profile,actions);main.prepend(bar);
-    if(!window.location.pathname.endsWith('/landing.html')){
+    if(!hasPublicHeader()){
         const menu=document.createElement('details');menu.className='workspace-account-menu';
         const summary=document.createElement('summary');summary.className='account-profile workspace-account-toggle';summary.id='workspace-account-toggle';
         summary.setAttribute('aria-label','Mở menu tài khoản');summary.append(identity);
         menu.append(summary,actions);bar.replaceChildren(menu);
+        wireAccountMenu(menu);
     }
 
     const overlay = textNode('div','','modal-overlay');overlay.id = 'account-password-modal';
@@ -151,7 +184,7 @@ async function refreshAccountSession() {
     setSessionState(true);
     const user = await checkLogin(true);
     if (!user) {
-        if(window.location.pathname.endsWith('/landing.html')) { setSessionState(false); return; }
+        if(hasPublicHeader()) { setSessionState(false); return; }
         setSessionState(true,'Không xác nhận được phiên đăng nhập. Vui lòng thử lại.');return;
     }
     if (previous && (previous.userId !== user.userId || previous.role !== user.role)) { window.location.reload();return; }

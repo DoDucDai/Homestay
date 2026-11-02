@@ -65,7 +65,7 @@ async function checkLogin(force = false) {
             currentUser = null;
             authPromise = null;
             if (error.status === 401) {
-                if (!['/pages/landing.html','/pages/explore.html'].includes(window.location.pathname)) goToLogin();
+                if (!['/pages/landing.html','/pages/explore.html','/pages/policies.html','/pages/support.html'].includes(window.location.pathname)) goToLogin();
             }
             else showAlert(error.message || 'Không thể kiểm tra đăng nhập.', 'error');
             return null;
