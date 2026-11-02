@@ -4,6 +4,9 @@
   "installCommand": "echo No dependencies required",
   "buildCommand": "node -e \"require('fs').mkdirSync('public',{recursive:true});require('fs').writeFileSync('public/deployment.txt','Homestay demo gateway')\"",
   "outputDirectory": "public",
+  "redirects": [
+    { "source": "/", "destination": "/pages/landing.html", "permanent": false }
+  ],
   "rewrites": [
     {
       "source": "/:path*",
