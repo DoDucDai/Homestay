@@ -68,7 +68,6 @@ document.addEventListener('DOMContentLoaded',async()=>{
     document.getElementById('explore-retry').addEventListener('click',loadExplore);
     loadExplore();
     const user=await checkLogin();
-    const link=textNode('a',user?(user.fullName||user.username):'Đăng nhập','stay-button stay-button-gold');link.href=user?'account.html':'login.html?next='+encodeURIComponent(window.location.pathname+window.location.search);
-    const host=document.getElementById('explore-account');host.replaceChildren(link);host.setAttribute('aria-busy','false');
+    renderPublicAccount(document.getElementById('explore-account'),user);
     window.addEventListener('pageshow',event=>{if(event.persisted)window.location.reload();});
 });

@@ -1,21 +1,6 @@
 let landingLoading=false,landingReady=false,landingRefreshTimer=null;
 function renderLandingAccount(user) {
-    const host=document.getElementById('landing-account');
-    if(user) {
-        addAccountControls(user);
-        const account=document.getElementById('account-controls');
-        host.replaceChildren(account);
-        const profile=account.querySelector('.account-profile'),actions=account.querySelector('.account-actions');
-        if(profile && actions && !account.querySelector('.stay-account-menu')) {
-            const menu=document.createElement('details');menu.className='stay-account-menu';
-            const summary=textNode('summary','');summary.setAttribute('aria-label','Mở menu tài khoản');
-            menu.append(summary,actions);account.append(menu);
-        }
-    } else {
-        const login=textNode('a','Đăng nhập','stay-button stay-button-gold');login.href='login.html';
-        host.replaceChildren(login);
-    }
-    host.setAttribute('aria-busy','false');
+    renderPublicAccount(document.getElementById('landing-account'),user);
 }
 function startLandingRefresh(){clearInterval(landingRefreshTimer);landingRefreshTimer=setInterval(()=>{if(!document.hidden)loadLandingRooms();},30000);}
 async function loadLandingRooms(){
@@ -44,7 +29,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
         ['Single','Double','VIP','Family'].forEach(type=>roomType.append(selectOption(type,type)));
         document.querySelectorAll('a[href]').forEach(link=>{
             const target=new URL(link.href,window.location.href);
-            if(target.origin===window.location.origin && target.pathname.startsWith('/pages/') && !['/pages/landing.html','/pages/explore.html','/pages/login.html'].includes(target.pathname))
+            if(target.origin===window.location.origin && target.pathname.startsWith('/pages/') && !['/pages/landing.html','/pages/explore.html','/pages/login.html','/pages/policies.html'].includes(target.pathname))
                 link.href='login.html?next='+encodeURIComponent(target.pathname+target.search+target.hash);
         });
     } else {

@@ -5,12 +5,14 @@
     <meta name="description" content="Khám phá các phòng Homestay, xem thông tin phòng và giá lưu trú.">
     <title>Khám phá phòng — Homestay</title>
     <link rel="stylesheet" href="../css/style.css"><link rel="stylesheet" href="../css/landing.css"><link rel="stylesheet" href="../css/explore.css">
-</head>
+    <link rel="icon" type="image/svg+xml" href="../css/images/homestay-logo.svg">
+<link rel="stylesheet" href="../ai/assistant.css">
+<link rel="stylesheet" href="../css/site-footer.css"></head>
 <body class="explore-page">
 <a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
 <header class="stay-header explore-header">
-    <a class="stay-brand" href="landing.html" aria-label="Homestay, trang chủ"><span class="stay-brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 11 8-7 8 7v9H4Z M9 20v-7h6v7"/></svg></span><span>Homestay<span class="stay-brand-tag">A LITTLE TIME FOR YOURSELF</span></span></a>
-    <nav class="explore-nav" aria-label="Điều hướng"><a href="landing.html">Trang chủ</a><a href="explore.html" aria-current="page">Khám phá phòng</a><a href="bookings.html">Lịch đặt phòng</a></nav>
+    <a class="stay-brand" href="landing.html" aria-label="Homestay, trang chủ"><span class="stay-brand-mark"><img src="../css/images/homestay-logo.svg" alt="" width="32" height="32"></span><span>Homestay<span class="stay-brand-tag">A LITTLE TIME FOR YOURSELF</span></span></a>
+    <nav class="stay-top-nav" aria-label="Khám phá Homestay"><a href="explore.html">Khám phá phòng</a><a href="bookings.html">Đặt phòng</a><a href="services.html">Dịch vụ</a><a href="policies.html">Bảo mật &amp; điều khoản</a><a href="assistant.html">Trợ lý AI</a><a href="support.html">Support</a></nav>
     <div id="explore-account" aria-busy="true"></div>
 </header>
 <main id="main-content" class="explore-main" tabindex="-1">
@@ -37,7 +39,8 @@
     </section>
     <section id="explore-error" class="explore-empty" hidden role="status"><h2>Chưa thể hiển thị thông tin phòng</h2><p id="explore-error-message"></p><button id="explore-retry" class="btn btn-primary">Thử lại</button><a href="explore.html">Xem tất cả phòng</a></section>
 </main>
-<footer class="explore-footer"><a href="landing.html">Homestay · Trang chủ</a><span>Một khoảng nghỉ, đúng lúc bạn cần.</span></footer>
-<script src="../js/api.js"></script><script src="../js/explore.js"></script>
-</body>
+<footer data-site-footer id="cuoi-trang"></footer>
+<script src="../js/api.js"></script><script src="../js/account.js"></script><script src="../js/explore.js"></script>
+<script src="../ai/widget.js"></script>
+<script src="../js/site-footer.js"></script></body>
 </html>

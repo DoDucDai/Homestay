@@ -54,6 +54,7 @@
 
     <build>
         <resources>
+            <resource><directory>../ai-rag/web</directory><targetPath>static/ai</targetPath><filtering>false</filtering></resource>
             <resource><directory>src/main/resources</directory><filtering>false</filtering></resource>
             <resource><directory>../frontend</directory><targetPath>static</targetPath><filtering>false</filtering></resource>
         </resources>

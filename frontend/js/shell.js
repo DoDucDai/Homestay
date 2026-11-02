@@ -58,7 +58,7 @@ function initializeShell(user) {
         shellInitialized = true; shellMedia = window.matchMedia('(max-width: 1199px)');
         const brand = textNode('div', '', 'sidebar-brand');
         const logo = textNode('div','','logo');
-        const logoMark=textNode('span','','sidebar-logo-mark');logoMark.append(sidebarIcon('house'));
+        const logoMark=textNode('span','','sidebar-logo-mark');const brandImage=document.createElement('img');brandImage.src='../css/images/homestay-logo.svg';brandImage.alt='';brandImage.width=29;brandImage.height=29;logoMark.append(brandImage);
         logo.append(logoMark,textNode('span','Homestay','sidebar-logo-text'));
         const subtitle = textNode('p', 'Quản lý lưu trú', 'sidebar-subtitle');
         const close = actionButton('Đóng menu', 'btn btn-ghost navigation-close', () => setShellMenu(false));

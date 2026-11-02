@@ -1,0 +1,6 @@
+'use strict';
+const byId=id=>document.getElementById(id);
+function node(tag,value,cls){const e=document.createElement(tag);e.textContent=value||'';if(cls)e.className=cls;return e;}
+function report(value){byId('support-status').textContent=value;}
+async function submitForm(form,action){const controls=[...form.querySelectorAll('button')];controls.forEach(b=>b.disabled=true);try{await action();}catch(e){report(e.message);}finally{controls.forEach(b=>b.disabled=false);}}
+async function loadDocuments(){const data=await apiGet('/assistant/documents');const host=byId('ai-documents');host.replaceChildren();for(const doc of data.documents){const card=node('article','','ai-document');const edit=node('button','Chỉnh sửa','btn btn-secondary');edit.onclick=()=>{byId('document-id').value=doc.id;byId('document-title').value=doc.title;byId('document-content').value=doc.content;byId('document-title').focus();};const remove=node('button','Gỡ khỏi RAG','btn btn-secondary');remove.onclick=async()=>{if(!confirm('Gỡ tài liệu này khỏi kho RAG?'))return;remove.disabled=true;try{await apiPost('/assistant/documents',{id:doc.id,delete:true});await loadDocuments();}catch(e){report(e.message);remove.disabled=false;}};card.append(node('h3',doc.title+' · v'+doc.version),node('p',doc.content),edit,remove);host.append(card);}}

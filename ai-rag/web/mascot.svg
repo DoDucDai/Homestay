@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140" role="img" aria-label="Mochi, người bạn nhỏ của Homestay">
+<defs>
+ <radialGradient id="fur" cx=".35" cy=".25" r=".8"><stop stop-color="#fffdf6"/><stop offset=".7" stop-color="#fff5df"/><stop offset="1" stop-color="#ecdbb7"/></radialGradient>
+ <linearGradient id="scarf" x2=".8" y2="1"><stop stop-color="#a9c3a0"/><stop offset="1" stop-color="#718f71"/></linearGradient>
+ <radialGradient id="blush"><stop stop-color="#eea897" stop-opacity=".85"/><stop offset="1" stop-color="#eea897" stop-opacity="0"/></radialGradient>
+</defs>
+<style>
+ .mochi{animation:bounce .85s ease-in-out infinite alternate;transform-origin:60px 110px}.paw-left{transform-origin:44px 109px;animation:walk .65s ease-in-out infinite alternate}.paw-right{transform-origin:76px 109px;animation:walk .65s ease-in-out infinite alternate-reverse}.ear{transform-origin:80px 46px;animation:ear 5s ease-in-out infinite}.eyes{transform-origin:60px 68px;animation:blink 5.5s infinite}.leaf{transform-origin:60px 28px;animation:leaf 2.6s ease-in-out infinite alternate}.wave{transform-origin:91px 88px;animation:wave 2s ease-in-out infinite alternate}.spark{animation:spark 2.4s ease-in-out infinite alternate}
+ @keyframes bounce{to{transform:translateY(-3px) rotate(2deg)}}@keyframes walk{from{transform:rotate(-12deg)}to{transform:rotate(12deg)}}@keyframes blink{0%,42%,46%,100%{transform:scaleY(1)}44%{transform:scaleY(.08)}}@keyframes leaf{to{transform:rotate(12deg)}}@keyframes ear{0%,80%,100%{transform:rotate(0)}85%,93%{transform:rotate(8deg)}}@keyframes wave{to{transform:rotate(-14deg)}}@keyframes spark{from{opacity:.4}to{opacity:1}}
+ @media(prefers-reduced-motion:reduce){.mochi,.paw-left,.paw-right,.ear,.eyes,.leaf,.wave,.spark{animation:none}}
+</style>
+<ellipse cx="60" cy="128" rx="31" ry="5" fill="#726b4a" opacity=".12"/>
+<g class="paw-left"><ellipse cx="44" cy="118" rx="12" ry="8" fill="#e5d5b5"/><ellipse cx="43" cy="116" rx="11" ry="7" fill="#fff3d9"/></g>
+<g class="paw-right"><ellipse cx="77" cy="118" rx="12" ry="8" fill="#e5d5b5"/><ellipse cx="77" cy="116" rx="11" ry="7" fill="#fff3d9"/></g>
+<g class="mochi">
+ <path d="M35 48Q21 18 34 21Q49 23 51 42" fill="url(#fur)" stroke="#d9c9a5" stroke-width="1.3"/><path d="M34 30Q31 24 32 39L42 43Z" fill="#efb7a7" opacity=".8"/>
+ <g class="ear"><path d="M72 41Q81 13 91 23Q100 37 85 51" fill="url(#fur)" stroke="#d9c9a5" stroke-width="1.3"/><path d="M80 40Q87 24 88 31L87 43Z" fill="#efb7a7" opacity=".8"/></g>
+ <path d="M22 71C20 43 40 34 60 35C83 34 102 46 99 74L96 96C94 112 80 118 59 117C35 117 24 108 23 94Z" fill="url(#fur)" stroke="#d9c9a5" stroke-width="1.4"/>
+ <path d="M29 89Q20 80 17 89Q15 101 29 101" fill="#fff5e2" stroke="#d9c9a5" stroke-width="1.3"/>
+ <g class="wave"><path d="M91 88Q105 78 108 86Q111 96 97 101" fill="#fff5e2" stroke="#d9c9a5" stroke-width="1.3"/></g>
+ <ellipse cx="60" cy="101" rx="21" ry="14" fill="#fffdf8" opacity=".65"/>
+ <ellipse cx="35" cy="76" rx="12" ry="9" fill="url(#blush)"/><ellipse cx="84" cy="76" rx="12" ry="9" fill="url(#blush)"/>
+ <g class="eyes"><ellipse cx="43" cy="66" rx="4.2" ry="5.3" fill="#4b4a38"/><ellipse cx="78" cy="66" rx="4.2" ry="5.3" fill="#4b4a38"/><circle cx="44" cy="64" r="1.5" fill="white"/><circle cx="79" cy="64" r="1.5" fill="white"/></g>
+ <path d="M57 73Q60 70 63 73L60 76Z" fill="#c68e7c"/>
+ <path d="M60 76Q56 83 52 78M60 76Q64 83 68 78" fill="none" stroke="#826b55" stroke-width="1.7" stroke-linecap="round"/>
+ <path d="M28 88Q59 101 94 88L92 98Q62 109 29 98Z" fill="url(#scarf)"/>
+ <path d="M76 98L85 98L88 115Q80 119 75 115Z" fill="#829e7b"/><path d="M77 111L87 111" stroke="#c5d9b8" stroke-width="2"/>
+ <g class="leaf"><path d="M60 36Q59 26 65 21" fill="none" stroke="#7b9868" stroke-width="2" stroke-linecap="round"/><path d="M61 28Q43 28 48 17Q61 13 63 25" fill="#b4cc94"/><path d="M63 23Q65 10 77 13Q80 24 63 26" fill="#89ae78"/><path d="M64 23L72 17" stroke="#b5d59b" stroke-width="1"/></g>
+ <path d="M37 45Q44 41 50 42" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+</g>
+<g class="spark" fill="#ddb976"><path d="M12 43l2-6 2 6 6 2-6 2-2 6-2-6-6-2Z"/><path d="M104 24l1.5-4 1.5 4 4 1.5-4 1.5-1.5 4-1.5-4-4-1.5Z"/></g>
+</svg>

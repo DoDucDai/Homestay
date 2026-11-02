@@ -2,6 +2,8 @@
 # ENV / Config bi mat
 # ========================
 .env
+__pycache__/
+ai-rag/data/
 
 # ========================
 # Java / Maven
