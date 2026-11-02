@@ -1,0 +1,752 @@
+[
+  {
+    "path": "ai-rag/app/server.py",
+    "bytes": 16409,
+    "sha256": "f842348f22f4f80de87ac141d803d2a2bf16d7257af26691e2fd20e557668ae2"
+  },
+  {
+    "path": "ai-rag/import-knowledge.py",
+    "bytes": 8701,
+    "sha256": "5d4556ccd276037488200b5e02f34418ac0c287a3fbbd428261b36146ee57aef"
+  },
+  {
+    "path": "ai-rag/knowledge/published.json",
+    "bytes": 84209,
+    "sha256": "ecbbb12f11063794e4267b9110a3f2496ce77a6e8acab9a5fb9a3d35d3026f43"
+  },
+  {
+    "path": "ai-rag/web/ai-page.css",
+    "bytes": 7707,
+    "sha256": "53877835fd444a0aa3cc6f19c1926ee7edbbcd69c4e6659c48418eb1a6f42e12"
+  },
+  {
+    "path": "ai-rag/web/assistant-page.js",
+    "bytes": 3257,
+    "sha256": "f4623a25ee7c3ab9232ae5544459b68600d4442e0c7a9900fd86a8f275e26c4e"
+  },
+  {
+    "path": "ai-rag/web/assistant.css",
+    "bytes": 7434,
+    "sha256": "eb789cb37772810e8fea65262d90f130d026335b9f66b1aab4efe19c88b08956"
+  },
+  {
+    "path": "ai-rag/web/chat-client.js",
+    "bytes": 7297,
+    "sha256": "6d017ea09bd7b784f8168c439938599738a2fbff69ae457f3879af6a74c4f91f"
+  },
+  {
+    "path": "ai-rag/web/chat-history.js",
+    "bytes": 1079,
+    "sha256": "3df10286e8e0e7fa90b3dd6e24b3e5f4d5a0c5df720886eca97d99159126c858"
+  },
+  {
+    "path": "ai-rag/web/documents-page.css",
+    "bytes": 908,
+    "sha256": "0786c180c83805ca42eb51d2839e82cc7db1e16d77c2129765a1a23907f945b6"
+  },
+  {
+    "path": "ai-rag/web/documents-page.js",
+    "bytes": 751,
+    "sha256": "8bfd63d3861387c4fa529d9fb3916bb6bdeea80d5de94ed47ba9ee0db47256f0"
+  },
+  {
+    "path": "ai-rag/web/documents.js",
+    "bytes": 1339,
+    "sha256": "0e18f80e0b2648faf9dab3e1e856ecbf2d21977b1eced5369f59ec600f77b5f3"
+  },
+  {
+    "path": "ai-rag/web/mascot.svg",
+    "bytes": 4244,
+    "sha256": "2c3b75ff83d2e577c700ff15ce531ae681cdc9b3e64e21db4eac38b2d5a89f7c"
+  },
+  {
+    "path": "ai-rag/web/support.js",
+    "bytes": 2414,
+    "sha256": "aea87ec9347ddc9a202b15338ad286c4a83be6951a0f9decef27440d58ea7a05"
+  },
+  {
+    "path": "ai-rag/web/widget.js",
+    "bytes": 3222,
+    "sha256": "cc3188921fecda4c26f782a657162fcde78da7c81ecdb6b99d3879cb85fd655b"
+  },
+  {
+    "path": "backend/pom.xml",
+    "bytes": 2508,
+    "sha256": "309983c0e811bf723560170d10452b440b25b440e5358ade0fff21497f7262b4"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/api/ApiErrors.java",
+    "bytes": 2668,
+    "sha256": "1dbd2a519d9e869d20cbb7b7b4345a1ef2a0123233524f47bc91ff8e251a12ed"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/api/ApiExceptionHandler.java",
+    "bytes": 2758,
+    "sha256": "7c583875196a735bbf6a02cd625ebe3dfe40c4157e0d438f556418c6cf7ad90e"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/api/ApiProblem.java",
+    "bytes": 254,
+    "sha256": "34c2f0313e774eb6f2fc68b100d6e861294aa73432e27ba6e6773a599c580595"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/api/Input.java",
+    "bytes": 3155,
+    "sha256": "4b40bd263456f6db4b1dd9a64a396b9cc107d71a4ef5ed723182ef290cb990f0"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/controller/AssistantBridgeController.java",
+    "bytes": 2096,
+    "sha256": "cff510c344e118a1b16348652acc2a96b95fb3cc47da852901c43e6d4b54da26"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/controller/AuthController.java",
+    "bytes": 10151,
+    "sha256": "7813c767c38dfeecc436dc7f5aab37f96cbe880df71ba565104be29d6b431a4a"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/controller/BookingController.java",
+    "bytes": 28980,
+    "sha256": "212526d949a57b317c76e49c8f866149aca2a47b0ee685b657860be7f28894c7"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/controller/BookingInvoiceSnapshot.java",
+    "bytes": 10748,
+    "sha256": "74eb213eee98a970918d43482da7a3ae9c552a72e306e2299f3727d654d7f578"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/controller/CustomerController.java",
+    "bytes": 12154,
+    "sha256": "cee79bc2b8beb55f8e78c423ecb6750fe5e51402f734bbd0b43847600b3e91e8"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/controller/HealthController.java",
+    "bytes": 955,
+    "sha256": "8d0a83ff2fec4d8533e4ff0aa3d024b72c2d8252b7139be7e928968640f53808"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/controller/HourlyStay.java",
+    "bytes": 1695,
+    "sha256": "2f2572883a7e2bc9adb135dd6749496f4b2a7c0d87482eee7288f50c81e1bb34"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/controller/PublicRoomController.java",
+    "bytes": 2005,
+    "sha256": "2b04de5687daf7a61c791cc9e8d5e2d5bd7899bf4cc19a3492ae70ad2995ad4f"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/controller/RoomController.java",
+    "bytes": 10975,
+    "sha256": "e017f5eabfc8f2a07357e9e2105bd0e8cbb289c419e0dd2b926795007cddf493"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/controller/RoomSchedule.java",
+    "bytes": 10058,
+    "sha256": "6e44aba30dd541522c49f643acc2c322fa8c1b7749212fc7dbb394234a4589f4"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/controller/ServiceStatController.java",
+    "bytes": 12871,
+    "sha256": "590e8c6622d87174a784b72aa8f964cfd6825f23eb4bbb051ae365320eee3ae4"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/DatabaseSettings.java",
+    "bytes": 322,
+    "sha256": "be6143172bd3e9981691230c38b3c5d2a2f0a62aec5aad0730822c6ff8807ff4"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/db/DBConnection.class",
+    "bytes": 2778,
+    "sha256": "26adc349264b4ec11c88adc8c8e6a89bbeea8f5c7b5f49aee0181a8f69dc1d1f"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/db/DBConnection.java",
+    "bytes": 5385,
+    "sha256": "c3f5749e1eee4cd3848afad17d8939214179083ab11be32378076b8a23e8530e"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/HomestayApplication.java",
+    "bytes": 550,
+    "sha256": "d3f54240f62f72a1d9104cf1da2d03cab23040d77555963c08eaddcf40844067"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/security/AccountPolicy.java",
+    "bytes": 787,
+    "sha256": "1cfea8a779701c08b8ea36b059abeb49dd703b091aa3bd78358cc193da1c2196"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/security/AppUser.java",
+    "bytes": 1238,
+    "sha256": "7e2516c60fff4579a628e52ca3f4dfc0c026aa3441e90fc8a29b793aa33c8eb6"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/security/LoginThrottle.java",
+    "bytes": 1449,
+    "sha256": "5d013ff4f1f66cce949446e666c485819660d0994dcaf9b248f59fc07a714e87"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/security/PasswordHashing.java",
+    "bytes": 565,
+    "sha256": "b8fc7f5d55f992883f6e82f74ad75126ac3a80e77edc455c8fb03d7194233a5a"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/security/PasswordMigration.java",
+    "bytes": 3026,
+    "sha256": "e47a24e2b0e427809d85d8eca1fcd7a9d265da21bd8f32983cc7dcba4354ef10"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/security/SecurityConfig.java",
+    "bytes": 10400,
+    "sha256": "38a39f6109a6213025403896f0244356c6dbd496deddee668f40d5050b653a62"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/security/SecurityJson.java",
+    "bytes": 679,
+    "sha256": "35d4c7efb7b08f435bcd829bc54f6a7e166f1c9deb476ba1ef70aa7ec7b9fa8e"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/security/UserAccounts.java",
+    "bytes": 2007,
+    "sha256": "686e1c17f99cee66237571ca93f114156638f552e7d600aca12a57de5c3cb9c2"
+  },
+  {
+    "path": "backend/src/main/java/com/homestay/WebConfig.java",
+    "bytes": 1512,
+    "sha256": "e37b6b415a39158b9950be4fb30b137068d9c004670f96acecdc0b3a9f64ca35"
+  },
+  {
+    "path": "backend/src/main/resources/application-prod.properties",
+    "bytes": 325,
+    "sha256": "ed4ee560ba5896761de2fb6fa7fc726c52fde81814b312f336f98928a97e9238"
+  },
+  {
+    "path": "backend/src/main/resources/application.properties",
+    "bytes": 1125,
+    "sha256": "de0842369956871fd3ab790af391f99c4b00fd25f6abd1c02ffdd777850d5bf6"
+  },
+  {
+    "path": "backend/src/test/java/com/homestay/controller/BookingControllerSqlServerIT.java",
+    "bytes": 12916,
+    "sha256": "a0c2d0ca09c60ba9a013a8cc9603237b4d8ba882e4801a37b572b1eba64aed19"
+  },
+  {
+    "path": "backend/src/test/java/com/homestay/controller/BookingPriceSnapshotSqlServerIT.java",
+    "bytes": 14179,
+    "sha256": "4ade4eb325f9f5b676c8591da64184410459175fcfba4f8da2dd415b17682e5e"
+  },
+  {
+    "path": "backend/src/test/java/com/homestay/controller/BookingScheduleSqlServerIT.java",
+    "bytes": 23526,
+    "sha256": "71af832967b7567638950bd646e5d8f15797f6510de7536c5ab0297c7dfdfe8a"
+  },
+  {
+    "path": "backend/src/test/java/com/homestay/controller/BookingServicesSqlServerIT.java",
+    "bytes": 22191,
+    "sha256": "9214492bf5b8f058133ce7af8c9003be62d4170a3fee8046e0114789c392e414"
+  },
+  {
+    "path": "backend/src/test/java/com/homestay/controller/BranchContributionSqlServerIT.java",
+    "bytes": 7274,
+    "sha256": "5b4c9dccc98640a7aec631cb7a4687618f572df2b4ba9eaaafa4de5c2c6ff506"
+  },
+  {
+    "path": "backend/src/test/java/com/homestay/controller/HourlyBookingSqlServerIT.java",
+    "bytes": 8288,
+    "sha256": "3355fe3e6665894984693a13e9101b7ca958e83897f92731d33fea3bba1d61e2"
+  },
+  {
+    "path": "backend/src/test/java/com/homestay/controller/ReleaseSqlServerIT.java",
+    "bytes": 14706,
+    "sha256": "5efd5badf3b1901a90f6426fa6b313c2691deda2134b262589c3e8a508441bf0"
+  },
+  {
+    "path": "backend/src/test/java/com/homestay/security/AccountPolicyChecks.java",
+    "bytes": 1120,
+    "sha256": "5b2b979b00dc6f227d92303d73bfbc7f6c5e0bd84c3cb0e5431095db5833bde1"
+  },
+  {
+    "path": "backend/src/test/java/com/homestay/security/AccountProfileSqlServerIT.java",
+    "bytes": 4351,
+    "sha256": "333a6b151164546b13decc496de028bbc165e0f4b1de7e95baa63f41889862d6"
+  },
+  {
+    "path": "backend/src/test/java/com/homestay/security/SecurityHttpSqlServerIT.java",
+    "bytes": 25228,
+    "sha256": "3cd9fceabd47fe6cbaf87e82f66aa1a47fee7bb2ffeb4ce7449d2d7a6844c24a"
+  },
+  {
+    "path": "backend/src/test/java/com/homestay/security/ValidationHttpSqlServerIT.java",
+    "bytes": 45455,
+    "sha256": "581782b65d5f1cde34d833f2030cf0ffc864a3cb43c4b9dd7a272dfc69f0e6dc"
+  },
+  {
+    "path": "backend/src/test/js/account-policy.test.cjs",
+    "bytes": 2719,
+    "sha256": "9bbf36bbab49cd17fcb4d3c843dc4796a8ff06c5f4d3679f3421c842c7de73bc"
+  },
+  {
+    "path": "backend/src/test/js/booking-checkin.test.cjs",
+    "bytes": 20624,
+    "sha256": "69361ba676ba556867362d998dddb0537cefe96f3c9e006f6e9df96abc5f5852"
+  },
+  {
+    "path": "backend/src/test/js/calendar-dashboard.test.cjs",
+    "bytes": 4776,
+    "sha256": "765be0dd335b9b4d2a3bb36a0e773aad8a72da40beeb56806bbd56b045e8be04"
+  },
+  {
+    "path": "backend/src/test/js/chat-history.test.cjs",
+    "bytes": 1826,
+    "sha256": "7ad8a12dbff802afd15dde40ec59071ffe72a4f3ec82266c4fe56207e43b0856"
+  },
+  {
+    "path": "backend/src/test/js/checkout-rooms.test.cjs",
+    "bytes": 13159,
+    "sha256": "d5986c7d1384eb775aee28048b31a231659fa1d735a57d9df367ba2846d8470e"
+  },
+  {
+    "path": "backend/src/test/js/customer-details.test.cjs",
+    "bytes": 1461,
+    "sha256": "cb2237087a61531accb81cc7b756634963eef2db6edfa8929c859eabe1954b84"
+  },
+  {
+    "path": "backend/src/test/js/customers-account.test.cjs",
+    "bytes": 18476,
+    "sha256": "204f1032716ffc725536e4e9f21b931d111d05436dc6f049e7b09b8c61dd54e9"
+  },
+  {
+    "path": "backend/src/test/js/explore.test.cjs",
+    "bytes": 1667,
+    "sha256": "ad740b1200b7066ede00425c80dcfc72bf663e5b5ce2bedd8bf5ff616e706992"
+  },
+  {
+    "path": "backend/src/test/js/frontend-test-env.cjs",
+    "bytes": 3971,
+    "sha256": "8c2b2b4f3db086ddd2fe5e7fc47ae142b28dd53baa7a00d40a081fb54c0111c2"
+  },
+  {
+    "path": "backend/src/test/js/landing-navigation.test.cjs",
+    "bytes": 4752,
+    "sha256": "3076b20042f59fcc8bbf0216f4b664abda3fb0314c97abff467d69ed7304a433"
+  },
+  {
+    "path": "backend/src/test/js/landing.test.cjs",
+    "bytes": 2581,
+    "sha256": "95981264d54cf629b25033a8af4fb999cbd1536b38dddcb14c1a413b72ca9a53"
+  },
+  {
+    "path": "backend/src/test/js/profile.test.cjs",
+    "bytes": 2099,
+    "sha256": "fc2dad37723aab69f48cbe1342c29a11c8e912f9fad1a640cadc35fa17ce4b4d"
+  },
+  {
+    "path": "backend/src/test/js/room-stay.test.cjs",
+    "bytes": 5097,
+    "sha256": "3efcccf06234f5d037902e8b3186703783bf6d5a40bfe49b06f7d582594cb049"
+  },
+  {
+    "path": "backend/src/test/js/security-client.test.cjs",
+    "bytes": 15203,
+    "sha256": "f39cb96f731f0dea436a1cd7a2ab96648d6c54471b3c036039417bfce53abdef"
+  },
+  {
+    "path": "backend/src/test/js/services.test.cjs",
+    "bytes": 4190,
+    "sha256": "2242b51dec32522fd828ba9d2620acc33d74c1d56704cd855a58f2c6c30f7964"
+  },
+  {
+    "path": "backend/src/test/js/shell-accessibility.test.cjs",
+    "bytes": 8174,
+    "sha256": "e16d8e57e565705568516324464ae0030a7dfe057ac2c5e6afe20090d93e2a3d"
+  },
+  {
+    "path": "backend/src/test/js/ui-extras.test.cjs",
+    "bytes": 10606,
+    "sha256": "d6b1cba32714bd930b1b507be4151130bb8d8a6f58080a316350357eb102324c"
+  },
+  {
+    "path": "backend/src/test/js/validation-render.test.cjs",
+    "bytes": 8808,
+    "sha256": "dd7b2b8b29b557452b521102501798015f9d88834407df2e5110519ed9747a65"
+  },
+  {
+    "path": "backend/src/test/ui/css/components-preview.css",
+    "bytes": 651,
+    "sha256": "95fc6ae755f59847b6a924a812170f3d551ba44532f7b80eee8a36911ecd46c9"
+  },
+  {
+    "path": "backend/src/test/ui/js/components-preview.js",
+    "bytes": 644,
+    "sha256": "66d119cb107be4ebaf5703c6cbe98c3a57b6877108aeb9fa251cf3ffb6e0d864"
+  },
+  {
+    "path": "backend/src/test/ui/pages/components.html",
+    "bytes": 6205,
+    "sha256": "77c6829dcdcb5cfc9f3f0231d3d7ffcb34cc1c5c37038a24d22991da22f19cd0"
+  },
+  {
+    "path": "DEPLOY.md",
+    "bytes": 12312,
+    "sha256": "7ae9e19f1141be6dad097fbc08d7710034c1e094308e7e270a32897f9441644e"
+  },
+  {
+    "path": "docker/healthcheck.py",
+    "bytes": 590,
+    "sha256": "043a86ddeecc95ea67f2818d429efefc826b49b2bad235b51fd144ed0c96682b"
+  },
+  {
+    "path": "docker/start.py",
+    "bytes": 3743,
+    "sha256": "7c033f6347ec5aea60c377be4db4b37f4918428e8949c76ff029d2fb916dee02"
+  },
+  {
+    "path": "docker/tests/test_start.py",
+    "bytes": 2527,
+    "sha256": "a32d5a8bb45d84fb26b0b77dfedc619f140b8159190fcdd5d62df1151404b78a"
+  },
+  {
+    "path": "Dockerfile",
+    "bytes": 1608,
+    "sha256": "5c11f620aeea597d4bc5ba0be1b4b8da765c776b851c3e4eb2bf71f593e3c043"
+  },
+  {
+    "path": "frontend/css/account.css",
+    "bytes": 4569,
+    "sha256": "49268d8565b8b518b0c78038e8966b8f124ca726e71a8999fe8ce006daa8c84b"
+  },
+  {
+    "path": "frontend/css/bookings.css",
+    "bytes": 16539,
+    "sha256": "f896cb7f92d7be748dfae7bb8cc9f1e74158a236723822159af46e2f3fa21ffe"
+  },
+  {
+    "path": "frontend/css/checkin.css",
+    "bytes": 4553,
+    "sha256": "bacf37d9d46336123b9f35926220dc43fcda411ffb24d0b0be85279b9dd9f7d8"
+  },
+  {
+    "path": "frontend/css/checkout.css",
+    "bytes": 3824,
+    "sha256": "9f8bb30d75c5f784fb56afa04de64335e20daca86ac954bfb5fe83a57a840889"
+  },
+  {
+    "path": "frontend/css/customers.css",
+    "bytes": 5405,
+    "sha256": "5212f9fbeca66c653d3b94e63b00a05090ecd38e17c202f8182086ab09f84e3a"
+  },
+  {
+    "path": "frontend/css/design-system.css",
+    "bytes": 13515,
+    "sha256": "03192d65ab2b302d44a58a9b463b3332e6ad96f8d74e638655def77cf95808a1"
+  },
+  {
+    "path": "frontend/css/explore.css",
+    "bytes": 4711,
+    "sha256": "358b9196f2b782ebd09ee41d4510b17176071287a4dcee55b0696261e13d65aa"
+  },
+  {
+    "path": "frontend/css/fonts/be-vietnam-pro-400.woff",
+    "bytes": 51324,
+    "sha256": "e39b753ee004c301dca6c0f4907cc31d92e10fc6aa37979b1bd43d620b6e5486"
+  },
+  {
+    "path": "frontend/css/fonts/be-vietnam-pro-600.woff",
+    "bytes": 54156,
+    "sha256": "3575f1f53be696afb319d3b1d2330d499236d92afeedaed87fad4c9dec4f7dd9"
+  },
+  {
+    "path": "frontend/css/fonts/be-vietnam-pro-700.woff",
+    "bytes": 55108,
+    "sha256": "7c380138f07fc64c450eb50ff751efcb0bcd4691fad34186182aba4343af8797"
+  },
+  {
+    "path": "frontend/css/fonts/OFL.txt",
+    "bytes": 4490,
+    "sha256": "adba7f9c81d62e8b3c6c2ebfd24b1e86b162fcba89995497ec0bf32108ca95e5"
+  },
+  {
+    "path": "frontend/css/fonts/sources.json",
+    "bytes": 1028,
+    "sha256": "086cf2f48c80e17053795df66eb2d2ffe9ef3fbb7eef3e15767213a1411f6d15"
+  },
+  {
+    "path": "frontend/css/icons.svg",
+    "bytes": 1816,
+    "sha256": "c82a22f3bc1500a44ef5204a49d641cd91d2cfe9afae159045b2d27d84e18c97"
+  },
+  {
+    "path": "frontend/css/images/homestay-hero.avif",
+    "bytes": 269222,
+    "sha256": "fffbc681c8460fe138236fa91767bd32971d0f394d3d54ea09ff5e7ac87397ad"
+  },
+  {
+    "path": "frontend/css/images/homestay-interior.avif",
+    "bytes": 72210,
+    "sha256": "0e1ac32bed9e5613565a296550919272ed28f3c3abaa72ab3b9126d1dba9d5bb"
+  },
+  {
+    "path": "frontend/css/images/homestay-logo.svg",
+    "bytes": 265,
+    "sha256": "684a873708bedec7b921b7f15175f9a0a8683a1943ba560b1a020f1645f07943"
+  },
+  {
+    "path": "frontend/css/images/homestay-moments.avif",
+    "bytes": 755867,
+    "sha256": "aa50c8885a95355ae6c59278bcb20d3ccbe5279d56aa5a3b36091507b3210ac5"
+  },
+  {
+    "path": "frontend/css/images/SOURCES.md",
+    "bytes": 674,
+    "sha256": "fec46c0edf05da4d7b758a90a6a6d406228f103414a43ccebea0894f52c9ca28"
+  },
+  {
+    "path": "frontend/css/invoice-print.css",
+    "bytes": 2344,
+    "sha256": "e95c21fa65c7d34b24b02609547a90d3479cf9d54f91012c6887b06708c2b825"
+  },
+  {
+    "path": "frontend/css/landing.css",
+    "bytes": 26589,
+    "sha256": "9c691276aca3b33cda56a755f1b780c05eb26b2f82f8f1a943567f18a326ce1a"
+  },
+  {
+    "path": "frontend/css/login.css",
+    "bytes": 6225,
+    "sha256": "483de0ec4477fb2de9253661f927596f5ce755060be7a2698f27a0a1dcaa1480"
+  },
+  {
+    "path": "frontend/css/policies.css",
+    "bytes": 2734,
+    "sha256": "f2c6c1e06f908b27333108c47a6aebe63432c609c0b2a964bfd093f6a66a3892"
+  },
+  {
+    "path": "frontend/css/profile.css",
+    "bytes": 3865,
+    "sha256": "3b814c33b1ad3436532323807b0cafcae6cfc87bceca88aed4e9dd1cab0dafe2"
+  },
+  {
+    "path": "frontend/css/public-header.css",
+    "bytes": 679,
+    "sha256": "f78a032a17927ff463932bc79d4f9f57affc266b33d082685aa59580169e8f1b"
+  },
+  {
+    "path": "frontend/css/rooms.css",
+    "bytes": 6612,
+    "sha256": "eacbb2c56b4d7dc72689ffbd274f8c89855e3fc64f946e03da4fff7cd1ca6063"
+  },
+  {
+    "path": "frontend/css/services.css",
+    "bytes": 1404,
+    "sha256": "b41fbaf6d12e613420fc45f83fb0eede9b61b73ef05c15d7c14fb0437a7055b7"
+  },
+  {
+    "path": "frontend/css/shell.css",
+    "bytes": 4718,
+    "sha256": "84328c6e6185609ce6b23505caebb9c51fcd09c798caadbc24520bc49cb81c98"
+  },
+  {
+    "path": "frontend/css/site-footer.css",
+    "bytes": 5399,
+    "sha256": "7b11fee616b0cf392789ff1462b4dda4ac4c2028c63ad6a05f27bdbf2a0d3dfa"
+  },
+  {
+    "path": "frontend/css/statistics.css",
+    "bytes": 9833,
+    "sha256": "1e5051ec33802c30afe67ebf66f9372d8d78ad4dbf6aadae3b6cbd21baf600fe"
+  },
+  {
+    "path": "frontend/css/style.css",
+    "bytes": 1166,
+    "sha256": "0a5b7d05321f080e779e23de7ceb6d5a2eeb29e23a2370452459cab24f9b461a"
+  },
+  {
+    "path": "frontend/css/support.css",
+    "bytes": 5667,
+    "sha256": "0c92728a737e52f4fab3bb0c2e379d0e9239cb3f9030afa711c07bd8e0e8d1a8"
+  },
+  {
+    "path": "frontend/css/workspace.css",
+    "bytes": 6901,
+    "sha256": "fb8baba8cb249fc40a0afde7f05adca3f7a385aac1f91e84dfee80494ddd40ff"
+  },
+  {
+    "path": "frontend/js/account.js",
+    "bytes": 15512,
+    "sha256": "c893fa3019ffd5f7d7716020cd60e708b294c62014fd29f9dfb52c0e72789f12"
+  },
+  {
+    "path": "frontend/js/api.js",
+    "bytes": 15795,
+    "sha256": "34a4e1a37a020a4a9de83f576e01a0cdc3e815006c2d65ffc0ee9cfe3448db43"
+  },
+  {
+    "path": "frontend/js/auth.js",
+    "bytes": 5264,
+    "sha256": "fb9f6130e79effb00985be9fd5c1acf7e52e12f9d104289fc3a63072b03d8bd5"
+  },
+  {
+    "path": "frontend/js/booking-calendar.js",
+    "bytes": 32423,
+    "sha256": "7a99de8a2f898119e83bd683a0423eb3ee7ef52f191df4b9b1c85cb0a89ebbd4"
+  },
+  {
+    "path": "frontend/js/bookings.js",
+    "bytes": 17790,
+    "sha256": "c1d4db420206edd158574cc9081c4e713b7a79b5ca863cf8fbe83040429ca482"
+  },
+  {
+    "path": "frontend/js/checkin.js",
+    "bytes": 10369,
+    "sha256": "660e9c2b52638485bcc2fb69c20b5bd6a9e41bc95e3e1bc9cff8ac09774ecf09"
+  },
+  {
+    "path": "frontend/js/checkout.js",
+    "bytes": 18538,
+    "sha256": "90ac117e89430f5555828392fb20e7411c4fff25574c4ff36cc30ce7e48352e6"
+  },
+  {
+    "path": "frontend/js/customers.js",
+    "bytes": 19016,
+    "sha256": "513ae2e20b8c5d32e7e9ae1e1681e294facffab7a75b56814c52cee3321a32fb"
+  },
+  {
+    "path": "frontend/js/dashboard.js",
+    "bytes": 12337,
+    "sha256": "edf42a6c002a99fdf04cff975dc1b219abbc559f564ef4e62b01860d91e84866"
+  },
+  {
+    "path": "frontend/js/explore.js",
+    "bytes": 5682,
+    "sha256": "bf20b0537e6165ac06431b2fdfb5298bbbdd77b9b0023c874b62a67521a7652f"
+  },
+  {
+    "path": "frontend/js/landing.js",
+    "bytes": 4358,
+    "sha256": "ed0eb7168c116fd233a9cdf18b5b617594822c024d3e622c1560251f32a1e82b"
+  },
+  {
+    "path": "frontend/js/member-preview.js",
+    "bytes": 4796,
+    "sha256": "fa56c52e4df3eeeef172e1713318beae7f799fa439fce7ab3c6b281387e7bf8f"
+  },
+  {
+    "path": "frontend/js/profile.js",
+    "bytes": 3068,
+    "sha256": "48243a3f5884b479b535de338ff5efcc51e4daf01d803aced4aebf7ec68cdc91"
+  },
+  {
+    "path": "frontend/js/public-page.js",
+    "bytes": 162,
+    "sha256": "171ca03d31ba35229f16af591f01abcd98beba81f085849e8ef668ab835acfdf"
+  },
+  {
+    "path": "frontend/js/room-stay.js",
+    "bytes": 13903,
+    "sha256": "3bd2fe8565496687e55a2ee4c89cbb1e34e257166d97368bf767b9304e963e8f"
+  },
+  {
+    "path": "frontend/js/rooms.js",
+    "bytes": 11905,
+    "sha256": "c7893d548bf58454cd08a19167fa6ed379ebf17211aa20ef9159a8b53408adc1"
+  },
+  {
+    "path": "frontend/js/services.js",
+    "bytes": 7584,
+    "sha256": "5e36a51e9bf0047a4a9f96f65d091c05f87c745ed0976bab69cca9ffe4cede51"
+  },
+  {
+    "path": "frontend/js/shell.js",
+    "bytes": 15586,
+    "sha256": "1159ab43d918443f3cb9294cabb3f9850647b1bf80c6ce3e6164e7e7e64153d5"
+  },
+  {
+    "path": "frontend/js/site-footer.js",
+    "bytes": 2712,
+    "sha256": "8cf5f84bd1bc17a429ffee07aa49df1a9ef52ebcb92a2049b94c9990da877262"
+  },
+  {
+    "path": "frontend/js/statistics.js",
+    "bytes": 11391,
+    "sha256": "b47820e0d685cfdc852b6403e976bc6ea59faceefc8357598576370ba18b2191"
+  },
+  {
+    "path": "frontend/js/support-page.js",
+    "bytes": 5410,
+    "sha256": "7a1cc77f6f9e1f5b3c8589c330d0c9265e9df7bdecd8a13c53f9d17b266d452f"
+  },
+  {
+    "path": "frontend/pages/account.html",
+    "bytes": 4292,
+    "sha256": "846c51841ccd7a719879a8ad9de77edfb6b138352409d3ad744b57d806289a25"
+  },
+  {
+    "path": "frontend/pages/assistant.html",
+    "bytes": 2960,
+    "sha256": "4a39ace439ff248d6d5ca11b2a521d06e6d821a6a36da358a6c054bb1ee90e42"
+  },
+  {
+    "path": "frontend/pages/bookings.html",
+    "bytes": 13730,
+    "sha256": "2c245ddee47d8dea2b85817bcad9d38d9c54d6297010c22a69da893c3b4a2af6"
+  },
+  {
+    "path": "frontend/pages/checkin.html",
+    "bytes": 6658,
+    "sha256": "1c171cc4a588dd6c99909d239cf2462bf41afa4fad7a7c32f896ff12b8fd2c50"
+  },
+  {
+    "path": "frontend/pages/checkout.html",
+    "bytes": 10525,
+    "sha256": "2f4eb8d2781f95bb42bdae13247a37ebfabb7b3e1a7dc2e3eb5bebda9925ae79"
+  },
+  {
+    "path": "frontend/pages/customers.html",
+    "bytes": 10850,
+    "sha256": "b576c4f95b2e09dcae40269a52cc7e72200f3f9b16bed43942c864141e3582d0"
+  },
+  {
+    "path": "frontend/pages/explore.html",
+    "bytes": 4670,
+    "sha256": "2060a7f2d9ead87ff534a10843e9385fb7ddd6b4d8e2f0eaddc5987b3e787b30"
+  },
+  {
+    "path": "frontend/pages/landing.html",
+    "bytes": 10942,
+    "sha256": "6223d1c85205e58b9841c0dfc6a726523cdfa2c6ca8112c7d0dbf31a013d4b03"
+  },
+  {
+    "path": "frontend/pages/login.html",
+    "bytes": 10409,
+    "sha256": "77a66bb988fa4e1db916c6c95fc62536e2849ac0323cee54387075e943a9b116"
+  },
+  {
+    "path": "frontend/pages/policies.html",
+    "bytes": 6569,
+    "sha256": "5f8486056f546e1d4bcacf4d4568288d7e0523d6b8e0ed2f0d522821744e59db"
+  },
+  {
+    "path": "frontend/pages/rag-documents.html",
+    "bytes": 2806,
+    "sha256": "cebbfeda8baa8996fe442532864c5c7ee6c3e84aad9818d85cba2112715f9e18"
+  },
+  {
+    "path": "frontend/pages/rooms.html",
+    "bytes": 10936,
+    "sha256": "5478106bc649afa89d7344681571f606ef4f45f28a7380e495dea330a05d580c"
+  },
+  {
+    "path": "frontend/pages/services.html",
+    "bytes": 6056,
+    "sha256": "e8053e9241b2f25e8c7f2cd9e5041f3bd59b347eea8ff11fc26a3051eae2748a"
+  },
+  {
+    "path": "frontend/pages/statistics.html",
+    "bytes": 11906,
+    "sha256": "b7ef3c2c6f005e609036cc06a20699b450fb54086bc6442e679fbc7f0a14d380"
+  },
+  {
+    "path": "frontend/pages/support.html",
+    "bytes": 6664,
+    "sha256": "fcd4dc238834e815f9cc89b94e039a184aead37d7281d9c2058ad2b01c6170e6"
+  }
+]
