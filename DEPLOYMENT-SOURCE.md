@@ -4,6 +4,8 @@ Build exclusively with `Dockerfile.render`. It unpacks the existing base `deploy
 
 Base archive SHA-256: `0b40e7d9d0c378df3f5a30c3a62eedd5edd67c1ee6821f88d68610a8b4a730c9` (commit 8819698).
 
-Overlay SHA-256: `eeb73c478e7b397a14e81f08fe24f6aba97a628ef237b9366af25c4fb64e026f`.
+Overlay SHA-256: `997a377af8b44ba1e9e477036b6f4808d80ab854458e6364aeb0c8a9d028e7e0`.
 
 The final file checksums are in `deployment-manifest.json`. No environment files, SQL exports, SQLite databases or customer records are included.
+
+Room expansion: `room-assets-expansion.tar.gz` adds 74 reviewed WebP posters after the source overlay. Asset archive SHA-256: `2643680462024faa721843f0fc95f047f63cab603c3750ec232b6d851a7b4472`. Duplicate source numbers 408–413 are excluded.

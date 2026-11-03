@@ -11,8 +11,8 @@
   },
   {
     "path": "ai-rag/knowledge/published.json",
-    "bytes": 87700,
-    "sha256": "5e9b07d15d52e213968017fb1881af30724167b952b343c0fb761bde4b0f4fd4"
+    "bytes": 171562,
+    "sha256": "d1363c32312e96954e6363153877593645673c75a9e4e2bc9752a1dc092c3794"
   },
   {
     "path": "ai-rag/web/ai-page.css",
@@ -106,8 +106,8 @@
   },
   {
     "path": "backend/src/main/java/com/homestay/controller/BookingController.java",
-    "bytes": 30270,
-    "sha256": "1e51af28ff615571663d19eeadc6c79e733034fa7610e66726f442837b52b8c2"
+    "bytes": 30935,
+    "sha256": "366dd438d2bd4a854babdd72dc4a23b42e3386e98590c5a15c1c375a362f3b5e"
   },
   {
     "path": "backend/src/main/java/com/homestay/controller/BookingInvoiceSnapshot.java",
@@ -140,14 +140,19 @@
     "sha256": "9f4f8544d1d99f72fe40f22f84cf6e716a4bbd2afd1c78b8a64b8eaba981862a"
   },
   {
+    "path": "backend/src/main/java/com/homestay/controller/PropertyController.java",
+    "bytes": 1678,
+    "sha256": "cd6aa7d1f65a291fbef382d03d28915ca99ea882cfbdd840ec4c7a449b7694a4"
+  },
+  {
     "path": "backend/src/main/java/com/homestay/controller/PublicRoomController.java",
     "bytes": 2452,
     "sha256": "8a8ec77942982095c6703ed780f64b9ea237d609f0000447f5f5d9735cf53075"
   },
   {
     "path": "backend/src/main/java/com/homestay/controller/RoomController.java",
-    "bytes": 13626,
-    "sha256": "1a63f6ef1f92c18730da0d290a64e2f5d6e87c709ec536103f526f0f544e1f43"
+    "bytes": 14654,
+    "sha256": "72c0ecd2cc23e124cee093c947134a2b47b7098cbfc0ec333c4eaa9b2e52aaca"
   },
   {
     "path": "backend/src/main/java/com/homestay/controller/RoomSchedule.java",
@@ -156,8 +161,8 @@
   },
   {
     "path": "backend/src/main/java/com/homestay/controller/ServiceStatController.java",
-    "bytes": 12871,
-    "sha256": "590e8c6622d87174a784b72aa8f964cfd6825f23eb4bbb051ae365320eee3ae4"
+    "bytes": 13791,
+    "sha256": "734298bdafe29572f95834a04f93a03e33100db9f98f92a3de438ec007820005"
   },
   {
     "path": "backend/src/main/java/com/homestay/DatabaseSettings.java",
@@ -185,6 +190,11 @@
     "sha256": "a850b1e4bbb500c1a26ee5d63a5b1cd60175ae86a7fa0024238f9f9a0a405412"
   },
   {
+    "path": "backend/src/main/java/com/homestay/db/RoomExpansionMigration.java",
+    "bytes": 4227,
+    "sha256": "c5a28ac9b6050b5a312385fbe6cd1cd5805f3bfcb1c48aa6ff7f6f97fdef4da7"
+  },
+  {
     "path": "backend/src/main/java/com/homestay/db/RoomPropertiesMigration.java",
     "bytes": 1606,
     "sha256": "d9d62a5f2c9de2353660a954bf696cc34de52d2c83371848540d1890c2f02c2e"
@@ -196,8 +206,8 @@
   },
   {
     "path": "backend/src/main/java/com/homestay/HourlyPricingStartup.java",
-    "bytes": 769,
-    "sha256": "c4e7c06bb3a87f954d28fdd2b6a0fe305ebfb3f1fd1b697534e16b1a49f3c115"
+    "bytes": 825,
+    "sha256": "a0cb5de28a8f26568f112c73995ced02b2476bbe9e00c978a352b135b4641baa"
   },
   {
     "path": "backend/src/main/java/com/homestay/security/AccountPolicy.java",
@@ -226,8 +236,8 @@
   },
   {
     "path": "backend/src/main/java/com/homestay/security/SecurityConfig.java",
-    "bytes": 10400,
-    "sha256": "38a39f6109a6213025403896f0244356c6dbd496deddee668f40d5050b653a62"
+    "bytes": 10425,
+    "sha256": "63dbf1939b7147783ac008c199d94fb6db7c2ef72d18dd33e9cfc10ac9894b22"
   },
   {
     "path": "backend/src/main/java/com/homestay/security/SecurityJson.java",
@@ -258,6 +268,11 @@
     "path": "backend/src/main/resources/room-catalog.json",
     "bytes": 5143,
     "sha256": "52ef49aff16a581878ced3c490c4e8b735329cfe0a4efbac0e933b1b4b41146e"
+  },
+  {
+    "path": "backend/src/main/resources/room-expansion.json",
+    "bytes": 23889,
+    "sha256": "b726d25db328aafee4e7fd47d91348fb18e35bb6cd11a040c7028ea0a99e918f"
   },
   {
     "path": "backend/src/test/java/com/homestay/controller/BookingControllerSqlServerIT.java",
@@ -308,6 +323,11 @@
     "path": "backend/src/test/java/com/homestay/controller/RoomCatalogSqlServerIT.java",
     "bytes": 7756,
     "sha256": "5f390caa29f86af0422e5715ae1db30123ce7fc97031ce0001f9db4e741928ff"
+  },
+  {
+    "path": "backend/src/test/java/com/homestay/controller/RoomExpansionSqlServerIT.java",
+    "bytes": 7033,
+    "sha256": "b5930046c186ca303c76b7b1e965429e7c2a3c0d17b7f0f861ccd30d905d92ec"
   },
   {
     "path": "backend/src/test/java/com/homestay/security/AccountPolicyChecks.java",
@@ -398,6 +418,11 @@
     "path": "backend/src/test/js/profile.test.cjs",
     "bytes": 2099,
     "sha256": "fc2dad37723aab69f48cbe1342c29a11c8e912f9fad1a640cadc35fa17ce4b4d"
+  },
+  {
+    "path": "backend/src/test/js/property-scope.test.cjs",
+    "bytes": 2119,
+    "sha256": "04edf706223bef515e7569745bc7ceabf8c3e1e7de6091e2ddecd3937b4b395e"
   },
   {
     "path": "backend/src/test/js/room-stay.test.cjs",
@@ -501,8 +526,8 @@
   },
   {
     "path": "frontend/css/explore.css",
-    "bytes": 8261,
-    "sha256": "0a47f0ae499c2180774b0e34163d757e3b1551e07e0465e938a5160856f13f60"
+    "bytes": 8265,
+    "sha256": "0fad901590c47a90f8549c046d98ac505ceeca662e88991fddbed8e943c841a2"
   },
   {
     "path": "frontend/css/fonts/be-vietnam-pro-400.woff",
@@ -570,6 +595,41 @@
     "sha256": "c58a4661363bffc3cf795dfddda0ef03ac1fe3a3568cc8a9e920591bb2bafe54"
   },
   {
+    "path": "frontend/css/images/rooms/room-104.webp",
+    "bytes": 156494,
+    "sha256": "948577cdd3ef07433f6a828b64713ecc5370e406686607798ec826b3b3956301"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-105.webp",
+    "bytes": 164458,
+    "sha256": "d314fb3eb19b6d707f9aeda3d206dc2053b414a370e9fbd93b2de315dcdc4bfe"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-106.webp",
+    "bytes": 204850,
+    "sha256": "2be1795150dfc4e7b40de0cd1095604ef0216d3d6483f3065560af11e844ffbe"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-107.webp",
+    "bytes": 151762,
+    "sha256": "8553468900705605f40682bfad4df132daa33dc5ec79fbd945afb5e06e401205"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-108.webp",
+    "bytes": 165608,
+    "sha256": "787e91239e14c23e3c649290bce9fa089d29618d5aebaf48204ddfb1ade4de00"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-109.webp",
+    "bytes": 195298,
+    "sha256": "9c8f0303d319300e30f9d7b55ccc64ae66362c5b9fe5954b2cdae8ccd7088c19"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-110.webp",
+    "bytes": 136216,
+    "sha256": "d2b368f1d3e76af22bf93510e00717d104f04e11d1367e49cab7d5f6a74fa8a8"
+  },
+  {
     "path": "frontend/css/images/rooms/room-201.webp",
     "bytes": 175648,
     "sha256": "3674412660f60c31553b53d7c3c26ac1f13f666322348709f800448c9771b662"
@@ -580,9 +640,89 @@
     "sha256": "02d4bfbff5c764ddd9d5f4b65984ff5aaaa1c694a4c1bb8334c3bc7d0b725a56"
   },
   {
+    "path": "frontend/css/images/rooms/room-203.webp",
+    "bytes": 149242,
+    "sha256": "0b1bfda255a0b48434e326895a90935d02e2fe39f71c970653b55af24abb54d6"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-204.webp",
+    "bytes": 155558,
+    "sha256": "ea707a42c36fee9b64044c82aa3c32284c641bef827520783413759f5483ea53"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-205.webp",
+    "bytes": 178648,
+    "sha256": "0947bf0ad5627ebd19b63453bef86994291e4eab3c29cd6d4b641862bf0fd491"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-206.webp",
+    "bytes": 177920,
+    "sha256": "d169dfb7866874096d67f14e38fa45b1d41fedba3330f9668fe9c24ad5a4ddf9"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-207.webp",
+    "bytes": 169390,
+    "sha256": "73e35baf40e9b6b410bdbb6179b5021f887c0c5accaca8689faa88f84852113b"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-208.webp",
+    "bytes": 173390,
+    "sha256": "2a70bb1e55c258ef9e84fad1b1b885db38ba71602d459d0666758ab63b831a9c"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-209.webp",
+    "bytes": 177626,
+    "sha256": "4ac966da32f69f77fbeebcad04688959a5e68da59cbf819f14dde8d21f8e8ccc"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-210.webp",
+    "bytes": 210464,
+    "sha256": "575d70f5aae4a08539db1845bce8a030b8693b73b0f5760059e37ea046e8aebc"
+  },
+  {
     "path": "frontend/css/images/rooms/room-301.webp",
     "bytes": 184014,
     "sha256": "088d75786714238660323df40323562bd219eca25cac2fafb90e77e06f20e912"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-303.webp",
+    "bytes": 215850,
+    "sha256": "e3deb76411594528fe5ddb11bcd3081e71962991e18d298e555570e9e6ab0867"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-304.webp",
+    "bytes": 156934,
+    "sha256": "2f39bcddf1014bc1abbfd5549b29ef75267228c71f52e1513355921195a9d633"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-305.webp",
+    "bytes": 165082,
+    "sha256": "6bfa03d630be91e7f5d54e7a8b46202f3ebf70d0e5f64e51be292f0bb3a62e9d"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-306.webp",
+    "bytes": 161414,
+    "sha256": "640dbb0fc294eabd3b4e26449c034565af96c32cb260dd0da289990bc0842d48"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-307.webp",
+    "bytes": 162124,
+    "sha256": "0ac7b6987c482dcee9d3f056e3cdcbc4d8dfe6f51a3d937ce745304e15d5bf80"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-308.webp",
+    "bytes": 157108,
+    "sha256": "4404ed2c20dfdd09347005b9714c69faf8f3122b69073710ea2ccc287383df2f"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-309.webp",
+    "bytes": 198016,
+    "sha256": "64aad16d22995d9a8d195a32cc74241fb054d647607e746f9db5cab006c5888e"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-310.webp",
+    "bytes": 150198,
+    "sha256": "97b1fc6e98e40747d7a9f35418eb126ea69c335f5a291cdc9bdbd8bd9a9f50b0"
   },
   {
     "path": "frontend/css/images/rooms/room-401.webp",
@@ -620,9 +760,264 @@
     "sha256": "84e9c7b53e76b77f68a4d1452f55b9b15cd75f830834bb21519ec28219beb758"
   },
   {
+    "path": "frontend/css/images/rooms/room-414.webp",
+    "bytes": 150582,
+    "sha256": "ea091996ee51030c8ae53bae54dabc35f50e7d75ec5e56ab2d23f44012c28c36"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-415.webp",
+    "bytes": 192784,
+    "sha256": "3ebfc06f0ca7acf1bb9d14bb54ff1f7d4b4402f7b0436d0746b7e12a2b9a2cb9"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-416.webp",
+    "bytes": 148834,
+    "sha256": "7b1dd1021e5b50ebe3832b944a918840ccd9829f4dccc76a6c7c0196f03f8769"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-417.webp",
+    "bytes": 151216,
+    "sha256": "932950ebd66e6a963f5211370d105c620cbe1d1d939f88a2a0c77a7eb6e535e2"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-418.webp",
+    "bytes": 187398,
+    "sha256": "d45f208cce288008843d57528c3b206153e62beb30516034865bff8f9f9c68a2"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-419.webp",
+    "bytes": 153758,
+    "sha256": "bfe1fb0514f7274f901f4bef40419d4c6ecba98c193fdcdba0c43bdaf50fcb5b"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-420.webp",
+    "bytes": 216286,
+    "sha256": "1bd73a072b50dab0a6a2a5195050a177b54fcc109f324b0ac7724eca0993c11f"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-421.webp",
+    "bytes": 158868,
+    "sha256": "da7dfb36d19e1de8a7f57f93ce9dd6977391da766241350ab1edcb70b4e57077"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-422.webp",
+    "bytes": 157698,
+    "sha256": "b1a2c104ed973b5d3ade8a9291c0fb409da805c08e4a504a08e16d7dc1c0fe52"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-423.webp",
+    "bytes": 155404,
+    "sha256": "d906a28af04b01d2e7b994d643c40797c79e6a65475d8fc0bad07941fb757e8e"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-424.webp",
+    "bytes": 241882,
+    "sha256": "b00dd3dcc43249a374632898f4c4d568a854863e48e4b9b59b4d91217e8cfb0f"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-425.webp",
+    "bytes": 157864,
+    "sha256": "ad7653bfa73fad13227c020368d51b5d14d088648b865c7dc10893aeca108e99"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-426.webp",
+    "bytes": 191516,
+    "sha256": "7060c0b9f8cdac5e88010d8abd979741fc83b9cac83aef8c6720add7502bf685"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-427.webp",
+    "bytes": 161366,
+    "sha256": "15698d7ade4f2dd286585e2b857bcbffed26dea4beb11f96c1ca13624270585c"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-501.webp",
+    "bytes": 149552,
+    "sha256": "d874fa7541475e20badd1b869cf616f1b6de60142c76001fecb98c31c65dd73f"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-502.webp",
+    "bytes": 182446,
+    "sha256": "531c2d719e539a2bd7e32704c05e24eb154fd88c0320161423c8cf7668b611b8"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-503.webp",
+    "bytes": 170276,
+    "sha256": "b558f817045228b845cba4c74db5b50df9320bfad3d938cc1779a7c29c262182"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-504.webp",
+    "bytes": 147540,
+    "sha256": "a362dee2d936442d49a1cbd49ef062baa26064dc697c8319cbea7cdd6d1d845c"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-505.webp",
+    "bytes": 196784,
+    "sha256": "67e1090d6e7aa701067350cf18bf334b8cbfc0d8f9c1602f97d3c047be799e88"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-506.webp",
+    "bytes": 170716,
+    "sha256": "94e8d8317d4db9a0300b5f1094ae2be42661f3b72c4a52daf8ac41a01b9ac026"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-507.webp",
+    "bytes": 156572,
+    "sha256": "6831f084d9d179af5e96252aa02c55de031fa9d4f54b4d9a2e17da5a978ebabc"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-508.webp",
+    "bytes": 152718,
+    "sha256": "7b1642f8fd0889a36d5d8c00ba22870d6c862f73c607304f218201db08a1ee4f"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-509.webp",
+    "bytes": 167434,
+    "sha256": "a9a637bc2dd5790c3f1db4d9c8d35b69ddee531da4fcfa2bdf46871b7d50747e"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-510.webp",
+    "bytes": 223642,
+    "sha256": "5d4d59a56171d4c779cd543939010294f02954e4a338118f8bb35e1c2fa7fde2"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-601.webp",
+    "bytes": 141776,
+    "sha256": "b4887688c4f9c64ba0f019db5de758fe88252e69348d8a7adfe3f6c5d38b690f"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-602.webp",
+    "bytes": 163830,
+    "sha256": "1089e6523410b68dff84a934bc04c7098ca570d2f48aada21f2dff404f2e07af"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-603.webp",
+    "bytes": 175594,
+    "sha256": "23425a22261c070d1d198e1f413711f99481eabda45528cbf2c2edd7884e59d5"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-604.webp",
+    "bytes": 181098,
+    "sha256": "ea51e5b6b3e6be30bfc6607932b04014f4d3ef6c0b5ff2325f6dc49afce6b70d"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-605.webp",
+    "bytes": 126712,
+    "sha256": "7d3aef26c655ea1eb73da2c505ef583bd7fb9134d3629d26c2842630b00e246d"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-606.webp",
+    "bytes": 156052,
+    "sha256": "660375b85da292924879884b216a518701d70b72cf383b511476f10c1b36c528"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-607.webp",
+    "bytes": 172826,
+    "sha256": "b9c71e5d84a34396b4649042a7c07db2f35c48bece8a581570fe6bd94808fcd0"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-608.webp",
+    "bytes": 173564,
+    "sha256": "d7112a07ecbdc5ed70b466d4ad427f6d0ed60c211c1b551b1c9fef8121d702d5"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-609.webp",
+    "bytes": 144220,
+    "sha256": "ca57521893fff6f35774fbeac2a156549acacc3481b1cd50198230518498ffd5"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-610.webp",
+    "bytes": 189636,
+    "sha256": "636c23c33247445955d4608852bfb2505d459ad984a83a5226a36de2c3c0b566"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-701.webp",
+    "bytes": 149704,
+    "sha256": "2ae3345bcc19c95158707ce8c37e2d14fd3e22de1fc575b70d84447a0ec85765"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-702.webp",
+    "bytes": 183082,
+    "sha256": "d380d493bc335b6bbb477174e9fdd25600a3c838fdd523f43998e175543c5603"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-703.webp",
+    "bytes": 168390,
+    "sha256": "c9dba5aafaa77936b955689028bf7ca76c7618337053e9ab44e2db5fb6363f01"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-704.webp",
+    "bytes": 182040,
+    "sha256": "d33da3cbfc1cd317c4e6358800d55f6284f6712f52c8fc8fd005c00f0d22a858"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-705.webp",
+    "bytes": 183224,
+    "sha256": "bd9a5b457133dcf21c6c713ebf77527e12aaf90604cbc61484858ee65add56cf"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-706.webp",
+    "bytes": 211534,
+    "sha256": "04c3028fddb8c1ed36c28acb25a45e9e60453ee173c66e5d18b27227946a1b22"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-707.webp",
+    "bytes": 165986,
+    "sha256": "cb2c1e1e892efb39499870b989af7df7cae4e1618acbb758af5f663b9d0e2a6f"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-708.webp",
+    "bytes": 164972,
+    "sha256": "c1c11c919ed3188249bc91846046ad6d1e1fc550f8df33c29442382233c2ba42"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-709.webp",
+    "bytes": 249080,
+    "sha256": "7e73af0f459d6de8afdb62ce79c28c361f0c9f1414fe4f1e5ea1906f1b56e86e"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-710.webp",
+    "bytes": 156490,
+    "sha256": "7c42eff5650a8353ffbfd75c325472c14d538fbf2c4bb3fb96b8c9df6aac86b8"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-801.webp",
+    "bytes": 172034,
+    "sha256": "fe44b36df369f9ab3418219c85f61d28cfe34a761b81551ad0fa7041f20224f8"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-802.webp",
+    "bytes": 219782,
+    "sha256": "6ee1b0d8b16decf549626686d33ddfcf7101f4b40da662b4aabc2f1c202d8f6c"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-803.webp",
+    "bytes": 151796,
+    "sha256": "4b3b7c6e5d8a513be1be216fa35e45a072e7e7015a2f7a9bc8f95f31f6109ca7"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-804.webp",
+    "bytes": 237604,
+    "sha256": "8ac6b4b519f31a8c2761f89b00f3be7c3edf212b1e1df5a32ead4680adf15d70"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-805.webp",
+    "bytes": 146714,
+    "sha256": "d9b8b2765c5faf8a83d4a3ec9d49f1af71899c52e6ce81684fb1a824d33fea5d"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-806.webp",
+    "bytes": 194844,
+    "sha256": "84d93a9f1f058b16f8ff4b8685a66f8f4483bb7eeadf4cacc60405f6e6641603"
+  },
+  {
+    "path": "frontend/css/images/rooms/room-807.webp",
+    "bytes": 190026,
+    "sha256": "34a3d45dc096ce609facbb8518fbb63f3d093055a81be972e414fff168254948"
+  },
+  {
     "path": "frontend/css/images/rooms/sources.json",
-    "bytes": 2540,
-    "sha256": "4b21202e8fea3f2c53ed1817bec85f8f9a4273044cf664da143e3361ad0f91c7"
+    "bytes": 22692,
+    "sha256": "4bbacee46d252f065e00683438b97c7d67daad56986fb0662869d89c5f1721bd"
   },
   {
     "path": "frontend/css/images/rooms/SOURCES.md",
@@ -716,8 +1111,8 @@
   },
   {
     "path": "frontend/js/api.js",
-    "bytes": 20235,
-    "sha256": "739fb9b163a98d302cf30186280354db7254a02585cb048be94f07ef1037023f"
+    "bytes": 21402,
+    "sha256": "0e3a20fe1265dcd593d8d0e444ec6015908142eed9a18d1ac4d60cf8018dc26c"
   },
   {
     "path": "frontend/js/auth.js",
@@ -726,13 +1121,13 @@
   },
   {
     "path": "frontend/js/booking-calendar.js",
-    "bytes": 32783,
-    "sha256": "5428b34a978451fed40c7c811611f61515420c54db57d3c98adc0d197c42757e"
+    "bytes": 32733,
+    "sha256": "143fc1ce13fc9c93919a903d4861e2bf2ccc803da4dbda40fa6af7347091056a"
   },
   {
     "path": "frontend/js/bookings.js",
-    "bytes": 17463,
-    "sha256": "8d031e73fcf10dcfb91f0078825968bb7ef515c2619a9888db42e64661589128"
+    "bytes": 17478,
+    "sha256": "d7222c5a9fbf88828bf9e0d57646295010d931ddbf07e3bf94d22e41ce6e7e81"
   },
   {
     "path": "frontend/js/checkin.js",
@@ -756,8 +1151,8 @@
   },
   {
     "path": "frontend/js/explore.js",
-    "bytes": 8836,
-    "sha256": "0114f75d81c92ff8e32891b02cdfc056fe269d24220ad4852be48ae6f2cb2362"
+    "bytes": 9967,
+    "sha256": "1f78f71d50579587af0012d94bd8e205b1adccbdb2d18920f4253b61479eb437"
   },
   {
     "path": "frontend/js/landing.js",
@@ -781,8 +1176,8 @@
   },
   {
     "path": "frontend/js/room-photos.js",
-    "bytes": 5517,
-    "sha256": "f0283110f194186d6cfeaaffb8649a192df366007f5a805a67d92bf6786f1dd4"
+    "bytes": 6352,
+    "sha256": "96ce6d6aeb84f81a6b6f2884b8f46bc8a6a6ac9573ff6247a34ba35c48998f2b"
   },
   {
     "path": "frontend/js/room-stay.js",
@@ -791,8 +1186,8 @@
   },
   {
     "path": "frontend/js/rooms.js",
-    "bytes": 14425,
-    "sha256": "2849b3de9d6c3f9b3d78c81997bef9eed90f25c4fe6f2db657a796c50fa4f256"
+    "bytes": 15496,
+    "sha256": "e0085ea80f5c8c6983278e993f7b4d65f9682c2cd4c32142ac303843eb87eb26"
   },
   {
     "path": "frontend/js/services.js",
@@ -801,8 +1196,8 @@
   },
   {
     "path": "frontend/js/shell.js",
-    "bytes": 14670,
-    "sha256": "95cffbd770e90c6a9131722df11017b131b2e1515be7ae06e00810897909be20"
+    "bytes": 16334,
+    "sha256": "9b23e756813ac0f3af371c78a3e857abb274de48acf3e475da75972cd9c362f3"
   },
   {
     "path": "frontend/js/site-footer.js",
@@ -851,8 +1246,8 @@
   },
   {
     "path": "frontend/pages/explore.html",
-    "bytes": 5830,
-    "sha256": "b5f7962f50616b71e1bdbc555db1d00c5bf8bbde2a05d7237a7038229866991d"
+    "bytes": 6004,
+    "sha256": "b0a829a0c941cd5bd52d50e2d6c676e20ed06cdafae53f1a16e89e82b935f7e0"
   },
   {
     "path": "frontend/pages/landing.html",
@@ -876,8 +1271,8 @@
   },
   {
     "path": "frontend/pages/rooms.html",
-    "bytes": 12749,
-    "sha256": "f43034d80f089b64fd011633f4ec495c72b8541f3eecdf32c7f09d68b78b366e"
+    "bytes": 12868,
+    "sha256": "963f78be9274bde4f5da263ccd43ed8d71c1e653586acd8e58c5370bc8aa3137"
   },
   {
     "path": "frontend/pages/services.html",
