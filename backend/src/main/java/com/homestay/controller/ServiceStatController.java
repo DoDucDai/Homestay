@@ -92,8 +92,10 @@ public class ServiceStatController {
 
     // GET /api/statistics/overview
     // Return: { totalRooms, availableRooms, bookedRooms, occupiedRooms, maintenanceRooms, totalCustomers, totalBookingsThisMonth, revenueThisMonth }
+    public Map<String,Object> getOverview(){return getOverview(null);}
     @GetMapping("/statistics/overview")
-    public Map<String, Object> getOverview() {
+    public Map<String, Object> getOverview(@RequestParam(required=false) Integer propertyId) {
+        if(propertyId!=null)Input.id(propertyId);
         return ApiErrors.guard(() -> {
             Map<String, Object> result = new LinkedHashMap<>();
             java.time.LocalDate today=RoomSchedule.today(clock);
@@ -108,7 +110,7 @@ public class ServiceStatController {
                         SUM(CASE WHEN status = N'Đang sử dụng' THEN 1 ELSE 0 END) AS occupied_rooms,
                         SUM(CASE WHEN status = N'Bảo trì' THEN 1 ELSE 0 END) AS maintenance_rooms
                     FROM (
-                    """ + RoomSchedule.selectRooms() + ") room_snapshot";
+                    """ + RoomSchedule.selectRooms() + ") room_snapshot"+(propertyId==null?"":" WHERE property_id="+propertyId);
                 try (PreparedStatement stmt = conn.prepareStatement(roomSql)) {
                     RoomSchedule.bindToday(stmt, RoomSchedule.today(clock));
                     try (ResultSet rs = stmt.executeQuery()) {
@@ -123,7 +125,7 @@ public class ServiceStatController {
                 }
 
                 // Query 2 - Tổng số khách hàng
-                String customerSql = "SELECT COUNT(*) AS total_customers FROM Customers";
+                String customerSql = "SELECT COUNT(*) AS total_customers FROM Customers"+(propertyId==null?"":" WHERE customer_id IN (SELECT customer_id FROM Bookings WHERE room_id IN (SELECT room_id FROM Rooms WHERE property_id="+propertyId+"))");
                 try (PreparedStatement stmt = conn.prepareStatement(customerSql);
                      ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
@@ -136,7 +138,7 @@ public class ServiceStatController {
                     SELECT COUNT(*) AS total_bookings_this_month
                     FROM Bookings
                     WHERE MONTH(created_at) = ? AND YEAR(created_at) = ?
-                    """;
+                    """+PropertyController.roomScope(propertyId,"room_id");
                 try (PreparedStatement stmt = conn.prepareStatement(bookingSql)) {
                     stmt.setInt(1,today.getMonthValue());stmt.setInt(2,today.getYear());
                     try (ResultSet rs = stmt.executeQuery()) {
@@ -152,7 +154,7 @@ public class ServiceStatController {
                     FROM Payments
                     WHERE MONTH(paid_at) = ? AND YEAR(paid_at) = ?
                       AND payment_status = N'Đã thanh toán'
-                    """;
+                    """+PropertyController.paymentScope(propertyId,"booking_id");
                 try (PreparedStatement stmt = conn.prepareStatement(revenueSql)) {
                     stmt.setInt(1,today.getMonthValue());stmt.setInt(2,today.getYear());
                     try (ResultSet rs = stmt.executeQuery()) {
@@ -174,8 +176,11 @@ public class ServiceStatController {
 
     // GET /api/statistics/revenue?month=9&year=2026
     // Return: [ { paymentId, customerName, roomCode, roomTotal, serviceTotal, grandTotal, paymentMethod, paidAt } ]
-    @GetMapping("/statistics/revenue")
     public List<Map<String, Object>> getRevenue(@RequestParam int month, @RequestParam int year) {
+        return getRevenue(month,year,null);
+    }
+    @GetMapping("/statistics/revenue")
+    public List<Map<String,Object>> getRevenue(@RequestParam int month,@RequestParam int year,@RequestParam(required=false) Integer propertyId) {
         if(month<1 || month>12 || year<1 || year>9999) throw ApiErrors.invalid("Tháng cần từ 1–12, năm cần từ 1–9999!");
         List<Map<String, Object>> result = new ArrayList<>();
 
@@ -195,8 +200,7 @@ public class ServiceStatController {
             JOIN Rooms r ON b.room_id = r.room_id
             WHERE MONTH(p.paid_at) = ? AND YEAR(p.paid_at) = ?
               AND p.payment_status = N'Đã thanh toán'
-            ORDER BY p.paid_at DESC
-            """;
+            """+PropertyController.roomScope(propertyId,"r.room_id")+" ORDER BY p.paid_at DESC";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -225,15 +229,15 @@ public class ServiceStatController {
         return result;
     }
 
+    public List<java.math.BigDecimal> getYearly(int year){return getYearly(year,null);}
     @GetMapping("/statistics/yearly")
-    public List<java.math.BigDecimal> getYearly(@RequestParam int year) {
+    public List<java.math.BigDecimal> getYearly(@RequestParam int year,@RequestParam(required=false) Integer propertyId) {
         if(year<1 || year>9999) throw ApiErrors.invalid("Năm cần từ 1–9999!");
         List<java.math.BigDecimal> months=new ArrayList<>(Collections.nCopies(12,java.math.BigDecimal.ZERO));
         try(Connection conn=DBConnection.getConnection();PreparedStatement stmt=conn.prepareStatement("""
             SELECT MONTH(paid_at) AS month,SUM(grand_total) AS amount FROM Payments
             WHERE YEAR(paid_at)=? AND payment_status=N'Đã thanh toán'
-            GROUP BY MONTH(paid_at)
-            """)) {
+            """+PropertyController.paymentScope(propertyId,"booking_id")+" GROUP BY MONTH(paid_at)")) {
             stmt.setInt(1,year);try(ResultSet rs=stmt.executeQuery()) {
                 while(rs.next()) months.set(rs.getInt("month")-1,rs.getBigDecimal("amount"));
             }

@@ -87,13 +87,14 @@ final class RoomSchedule {
     // Two DATE parameters: <= today and > today. Only maintenance is manual.
     static String selectRooms() {
         return """
-            SELECT r.room_id,r.room_code,r.room_name,r.room_type,r.price,r.hourly_price,r.description,
+            SELECT r.room_id,r.room_code,r.room_name,r.room_type,r.price,r.weekend_price,r.weekend_days,r.hourly_price,r.hourly_package_2,r.hourly_package_4,r.hourly_package_8,r.description,
+                r.property_id,p.property_name,p.address AS property_address,
                 CASE WHEN r.status=N'Bảo trì' THEN N'Bảo trì'
                      WHEN EXISTS(SELECT 1 FROM Bookings b WHERE b.room_id=r.room_id AND b.status='CheckedIn') THEN N'Đang sử dụng'
                      WHEN EXISTS(SELECT 1 FROM Bookings b WHERE b.room_id=r.room_id AND b.status='Confirmed'
                           AND COALESCE(b.checkin_at,CAST(b.checkin_date AS datetime2))<=? AND COALESCE(b.checkout_at,CAST(b.checkout_date AS datetime2))>?) THEN N'Đã đặt'
                      ELSE N'Trống' END AS status
-            FROM Rooms r
+            FROM Rooms r JOIN Properties p ON p.property_id=r.property_id
             """;
     }
 
@@ -113,8 +114,14 @@ final class RoomSchedule {
         row.put("roomCode", rs.getString("room_code"));
         row.put("roomName", rs.getString("room_name"));
         row.put("roomType", rs.getString("room_type"));
+        row.put("propertyId",rs.getInt("property_id"));
+        row.put("propertyName",rs.getString("property_name"));
+        row.put("propertyAddress",rs.getString("property_address"));
         row.put("price", rs.getBigDecimal("price"));
+        var nightly=NightlyPricing.room(rs);
+        row.put("nightlyPricing",nightly);
         row.put("hourlyPrice", rs.getBigDecimal("hourly_price"));
+        row.put("hourlyPackages", HourlyPricing.packages(rs));
         row.put("description", rs.getString("description"));
         row.put("status", rs.getString("status"));
         return row;
