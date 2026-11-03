@@ -4,6 +4,15 @@ const roomPending = new Set();
 let roomSearchTimer, roomsBusinessDay = '';
 let roomsExportReady = false;
 let roomInitialLinkOpened=false;
+let roomProperties=[];
+async function roomPropertyOptions(selected){
+    const select=document.getElementById('room-property');select.disabled=true;select.dataset.propertyId=String(selected || selectedPropertyId() || 1);
+    try{
+        if(!roomProperties.length)roomProperties=expectList(await apiGet('/public/properties'));
+        select.replaceChildren();roomProperties.forEach(p=>select.append(selectOption(String(p.propertyId),p.propertyName)));
+        select.value=String(selected || selectedPropertyId() || 1);select.disabled=false;
+    }catch(_){select.replaceChildren(selectOption(String(selected || 1),'Cơ sở '+(selected || 1)));select.value=String(selected || 1);}
+}
 function roomAdmin() { return currentUser?.role === 'admin'; }
 document.addEventListener('DOMContentLoaded', async () => {
     if (!await checkLogin()) return;
@@ -61,7 +70,8 @@ async function loadRooms() {
 function exportRooms() {
     return downloadCsv('phong-'+vietnamToday()+'.csv',[
         {label:'Mã phòng',value:r=>r.roomCode,text:true},{label:'Tên phòng',value:r=>r.roomName,text:true},
-        {label:'Loại',value:r=>r.roomType},{label:'Giá mỗi đêm (VND)',value:r=>r.price},{label:'Giá mỗi giờ (VND)',value:r=>r.hourlyPrice ?? ''},{label:'Trạng thái',value:r=>roomCardStatus(r)[0]}
+        {label:'Cơ sở',value:r=>r.propertyName || '',text:true},{label:'Địa chỉ cơ sở',value:r=>r.propertyAddress || '',text:true},
+        {label:'Loại',value:r=>r.roomType},{label:'Giá đêm ngày thường (VND)',value:r=>r.price},{label:'Giá đêm cuối tuần (VND)',value:r=>r.nightlyPricing?.weekendPrice ?? ''},{label:'Đêm cuối tuần',value:r=>r.nightlyPricing?weekendDaysLabel(r.nightlyPricing.weekendDays):''},{label:'Giá giờ/giờ lẻ (VND)',value:r=>r.hourlyPrice ?? ''},{label:'Gói 2 giờ (VND)',value:r=>r.hourlyPackages?.twoHours ?? ''},{label:'Gói 4 giờ (VND)',value:r=>r.hourlyPackages?.fourHours ?? ''},{label:'Gói 8 giờ (VND)',value:r=>r.hourlyPackages?.eightHours ?? ''},{label:'Trạng thái',value:r=>roomCardStatus(r)[0]}
     ],currentRooms,roomsExportReady && !roomsLoadFailed);
 }
 function roomGridState(message) {
@@ -76,18 +86,20 @@ function renderTable(rooms) {
         const card=actionButton('','room-tile',()=>openRoomStay(room));
         card.setAttribute('aria-label','Mở phòng '+room.roomCode+' · '+room.roomName);
         card.disabled=roomPending.has(room.roomId);
+        const photo=RoomPhotos.create(room);if(photo)card.append(photo);
         const top=textNode('span','','room-tile-top');
         top.appendChild(textNode('span',room.roomCode,'room-code'));
         top.appendChild(textNode('span',room.roomType,'room-type'));card.appendChild(top);
         card.appendChild(textNode('strong',room.roomName,'room-tile-name'));
+        if(room.propertyName)card.appendChild(textNode('span',room.propertyName+' · '+room.propertyAddress,'room-property-address'));
         const [status,style]=roomCardStatus(room);
         card.className+=' room-tile-'+({'badge-available':'available','badge-booked':'booked','badge-occupied':'occupied','badge-maintenance':'maintenance'}[style] || 'available');
         card.appendChild(textNode('span',status,'badge '+style));
         const price=textNode('span','','room-tile-price');
-        price.appendChild(textNode('strong',room.hourlyPrice ? formatMoney(room.hourlyPrice) : 'Chưa có giá giờ',room.hourlyPrice?'':'price-unset'));
-        price.appendChild(textNode('span',room.hourlyPrice ? ' / giờ' : ''));
+        price.appendChild(textNode('strong',room.hourlyPackages ? formatMoney(room.hourlyPackages.twoHours) : room.hourlyPrice ? formatMoney(room.hourlyPrice) : 'Chưa có giá giờ',room.hourlyPrice?'':'price-unset'));
+        price.appendChild(textNode('span',room.hourlyPackages ? ' / 2 giờ' : room.hourlyPrice ? ' / giờ' : ''));
         card.appendChild(price);
-        card.appendChild(textNode('span',room.hourlyPrice ? 'Nhận đặt theo khung giờ' : 'Cần nhập giá để mở đặt theo giờ','room-night-price'));
+        card.appendChild(textNode('span',room.hourlyPackages ? hourlyPriceLabel(room) : room.hourlyPrice ? 'Nhận đặt theo khung giờ' : 'Cần nhập giá để mở đặt theo giờ','room-night-price'));
         const next=roomStayBookings(room.roomId)[0];
         card.appendChild(textNode('span',room.status==='Bảo trì' ? 'Tạm ngừng nhận đặt phòng' : next ? next.customerName+' · '+bookingTime(next,next.status==='CheckedIn'?'checkout':'checkin') : 'Sẵn sàng cho lượt đặt mới','room-tile-guest'));
         body.appendChild(card);
@@ -97,18 +109,28 @@ function openAddModal() {
     if (!roomAdmin() || roomSaving) return;
     clearRoomErrors();
     document.getElementById('modal-title').textContent = 'Thêm phòng mới';
-    ['id','code','name','type','price','hourly-price','desc'].forEach(key => { document.getElementById('room-'+key).value = ''; });
+    ['id','code','name','type','price','weekend-price','hourly-price','package-2','package-4','package-8','desc'].forEach(key => { document.getElementById('room-'+key).value = ''; });
+    document.getElementById('room-weekend-days').value='6,7';
+    roomPropertyOptions(selectedPropertyId() || 1);
     openModal('room-modal');
 }
 function openEditModal(room) {
     if (!roomAdmin() || roomSaving || roomPending.has(room.roomId)) return;
     clearRoomErrors();
     document.getElementById('modal-title').textContent = 'Sửa phòng';
+    roomPropertyOptions(room.propertyId || 1);
     for (const [key,value] of Object.entries({id:room.roomId,code:room.roomCode,name:room.roomName,type:room.roomType,price:room.price,'hourly-price':room.hourlyPrice ?? '',desc:room.description || ''})) {
         document.getElementById('room-'+key).value = String(value);
     }
     openModal('room-modal');
     document.getElementById('room-hourly-price').focus();
+    for(const [hours,key] of [[2,'twoHours'],[4,'fourHours'],[8,'eightHours']])document.getElementById('room-package-'+hours).value=String(room.hourlyPackages?.[key] ?? '');
+    document.getElementById('room-weekend-price').value=String(room.nightlyPricing?.weekendPrice ?? '');
+    const days=room.nightlyPricing?.weekendDays.join(',') || '6,7';
+    const select=document.getElementById('room-weekend-days');
+    select.replaceChildren(selectOption('6,7','Đêm thứ Bảy và Chủ nhật'),selectOption('5,6','Đêm thứ Sáu và thứ Bảy'));
+    if(!['6,7','5,6'].includes(days))select.append(selectOption(days,weekendDaysLabel(room.nightlyPricing.weekendDays)));
+    select.value=days;
 }
 function closeRoomModal() { if (!roomSaving) document.getElementById('room-modal').classList.remove('show'); }
 function clearRoomErrors() {
@@ -124,6 +146,9 @@ async function saveRoom() {
     const get = key => document.getElementById('room-'+key).value.trim();
     const id = get('id');
     const data = {};
+    const property=Number(get('property') || document.getElementById('room-property').dataset.propertyId || selectedPropertyId() || 1);
+    if(!Number.isInteger(property) || property<1){showAlert('Chọn cơ sở hợp lệ.','error');return;}
+    data.propertyId=property;
     let firstInvalid;
     for (const [key,property,validate] of [
         ['code','roomCode',() => validText(get('code'),'Mã phòng',20)],
@@ -141,6 +166,13 @@ async function saveRoom() {
         }
     }
     if (firstInvalid) { firstInvalid.focus(); return; }
+    try {
+        const values=[2,4,8].map(h=>get('package-'+h));
+        data.hourlyPackages=values.some(Boolean)?{twoHours:validMoney(values[0],'Gói 2 giờ',1),fourHours:validMoney(values[1],'Gói 4 giờ',1),eightHours:validMoney(values[2],'Gói 8 giờ',1)}:null;
+        if(data.hourlyPackages)quoteHourly(data.hourlyPrice,data.hourlyPackages,2);
+        data.nightlyPricing=get('weekend-price')?{weekendPrice:validMoney(get('weekend-price'),'Giá cuối tuần',1),weekendDays:get('weekend-days').split(',').map(Number)}:null;
+        if(data.nightlyPricing)quoteNightly(data.price,data.nightlyPricing,'2031-01-01','2031-01-08');
+    }catch(err){const error=document.getElementById('room-form-error');error.textContent=err.message;error.hidden=false;return;}
     try {
         roomSaving = true;
         document.getElementById('room-save-btn').textContent = 'Đang lưu…';

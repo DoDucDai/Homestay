@@ -1,7 +1,7 @@
 // Shared account UI. All session checks and requests go through api.js.
 let accountBusy = false;
 let accountOperation = '';
-function hasPublicHeader(){return ['/pages/landing.html','/pages/explore.html','/pages/policies.html','/pages/support.html'].includes(window.location.pathname);}
+function hasPublicHeader(){return ['/pages/landing.html','/pages/explore.html','/pages/policies.html','/pages/support.html','/pages/assistant.html'].includes(window.location.pathname);}
 function wireAccountMenu(menu) {
     const summary=menu.querySelector('summary'),actions=menu.querySelector('.account-actions');
     if(!summary || menu.dataset.wired)return;
@@ -29,7 +29,7 @@ function renderPublicAccount(host,user) {
             menu.append(summary,actions);account.append(menu);wireAccountMenu(menu);
         }
     }else{
-        const link=textNode('a','Đăng nhập','stay-button stay-button-gold');link.href='login.html?next='+encodeURIComponent(window.location.pathname+window.location.search);host.replaceChildren(link);
+        const link=textNode('a','Đăng nhập','stay-button stay-button-gold');link.href='login.html?next='+encodeURIComponent(window.location.pathname+window.location.search+window.location.hash);host.replaceChildren(link);
     }
     host.setAttribute('aria-busy','false');
 }
@@ -89,7 +89,7 @@ function addAccountControls(user) {
         document.getElementById('account-old-password').focus();
     });change.id = 'account-change-btn';
     const logout = actionButton('Đăng xuất','btn btn-danger',logoutAccount);logout.id = 'account-logout-btn';
-    const info=textNode('a','Thông tin tài khoản','account-menu-link');info.href='account.html#ho-so';info.id='account-info-link';
+    const info=textNode('a','Thông tin tài khoản','account-menu-link');info.href='account.html#profile-personal';info.id='account-info-link';
     const admin=textNode('a','Khu quản trị','account-menu-link');admin.href='statistics.html';admin.id='account-admin-link';admin.setAttribute('data-admin-only','');admin.hidden=user.role!=='admin';
     [profile,info,admin].forEach(link=>link.addEventListener('click',event=>{
         event.preventDefault();if(!accountBusy)window.location.href=link.href;
@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded',async () => {
     document.getElementById('session-retry')?.addEventListener('click',() => window.location.reload());
     const user = await checkLogin();
     if (!user) {
-        if(window.location.pathname.endsWith('/landing.html')) { setSessionState(false); return; }
+        if(hasPublicHeader()) { setSessionState(false); return; }
         setSessionState(true,'Không xác nhận được phiên đăng nhập. Vui lòng thử lại.');return;
     }
     addAccountControls(user);

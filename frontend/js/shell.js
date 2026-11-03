@@ -5,9 +5,9 @@ const shellNavigation = [
     ['services.html', 'Dịch vụ'], ['checkin.html', 'Nhận phòng'],
     ['checkout.html', 'Hóa đơn & trả phòng']
 ];
-const adminNavigation=[['account.html','Thông tin tài khoản'],['statistics.html','Thống kê'],['rooms.html','Quản lý phòng'],['customers.html?workspace=admin','Quản lý khách hàng'],['bookings.html','Quay lại vận hành']];
+const adminNavigation=[['account.html','Thông tin tài khoản'],['statistics.html','Thống kê'],['rooms.html','Quản lý phòng'],['customers.html?workspace=admin','Quản lý khách hàng'],['rag-documents.html','Tài liệu RAG'],['bookings.html','Quay lại vận hành']];
 function isAdminWorkspace(user,page,search=''){
-    return user.role==='admin' && (['account.html','statistics.html','rooms.html'].includes(page) || page==='customers.html' && new URLSearchParams(search).get('workspace')==='admin');
+    return user.role==='admin' && (['account.html','statistics.html','rooms.html','rag-documents.html'].includes(page) || page==='customers.html' && new URLSearchParams(search).get('workspace')==='admin');
 }
 function sidebarIcon(symbol){
     const icon=document.createElementNS('http://www.w3.org/2000/svg','svg');
@@ -17,6 +17,19 @@ function sidebarIcon(symbol){
 let shellInitialized = false, shellMenuOpen = false, shellMedia = null;
 let modalStack = [];
 const modalOrigins = new Map();
+async function loadShellProperties(select,current,caption){
+    try{
+        const rows=expectList(await apiGet('/public/properties'));
+        select.replaceChildren(selectOption('all','Tất cả cơ sở'));
+        rows.forEach(row=>select.append(selectOption(String(row.propertyId),row.propertyName)));
+        const chosen=rows.find(row=>row.propertyId===selectedPropertyId());
+        if(selectedPropertyId() && !chosen)setSelectedProperty(null);
+        select.value=chosen?String(chosen.propertyId):'all';select.disabled=false;
+        current.textContent=chosen?chosen.propertyName:'Tất cả cơ sở';
+        caption.textContent=chosen?chosen.propertyAddress:rows.length+' cơ sở · Chọn cơ sở để xem phòng và lịch';
+        document.querySelectorAll('[data-property-label]').forEach(el=>{el.textContent=current.textContent;});
+    }catch(_){caption.textContent='Chưa tải được danh sách cơ sở.';}
+}
 
 function focusableElements(root) {
     return Array.from(root.querySelectorAll('a[href],button,input:not([type="hidden"]),select,textarea,[tabindex]'))
@@ -79,7 +92,7 @@ function initializeShell(user) {
             icon.setAttribute('class','ui-icon'); icon.setAttribute('aria-hidden','true');
             const use = document.createElementNS('http://www.w3.org/2000/svg','use');
             const routePage=route.split('?')[0];
-            use.setAttribute('href','../css/icons.svg#'+({'account.html':'users','landing.html':'house','statistics.html':'chart','bookings.html':'calendar','rooms.html':'bed','customers.html':'users','services.html':'bell','checkin.html':'arrow-right','checkout.html':'print'}[routePage]));
+            use.setAttribute('href','../css/icons.svg#'+({'account.html':'users','landing.html':'house','rag-documents.html':'print','statistics.html':'chart','bookings.html':'calendar','rooms.html':'bed','customers.html':'users','services.html':'bell','checkin.html':'arrow-right','checkout.html':'print'}[routePage]));
             icon.append(use); link.append(icon,textNode('span', label));
             if (admin) { link.setAttribute('data-admin-only', ''); link.hidden = user.role !== 'admin'; }
             if (routePage === currentPage) { link.className = 'active'; link.setAttribute('aria-current', 'page'); }
@@ -90,26 +103,24 @@ function initializeShell(user) {
         logout.append(textNode('span', 'Đăng xuất')); footer.append(logout);
         const property = document.createElement('details');property.className='property-switcher';
         const propertySummary=document.createElement('summary');propertySummary.className='property-summary';
-        const propertyCurrent=textNode('span','Tất cả cơ sở','property-current');propertyCurrent.id='property-current';
+        const propertyCurrent=textNode('span',selectedPropertyId()?'Cơ sở '+selectedPropertyId():'Tất cả cơ sở','property-current');propertyCurrent.id='property-current';
         const propertyCopy=textNode('span','','property-summary-copy');
         propertyCopy.append(textNode('span','Cơ sở','property-summary-label'),propertyCurrent);
         const propertyIcon=textNode('span','','property-summary-icon');propertyIcon.append(sidebarIcon('house'));
         propertySummary.append(propertyIcon,propertyCopy);
         const propertyLabel = textNode('label','Chọn cơ sở','sidebar-section-label');propertyLabel.htmlFor='property-select';
         const propertySelect = document.createElement('select');propertySelect.id='property-select';
-        // The current database has one room inventory and no branch assignment.
-        propertySelect.append(selectOption('all','Tất cả cơ sở'),selectOption('current','Cơ sở hiện tại'));
-        try { propertySelect.value=localStorage.getItem('homestay-property') || 'all'; } catch (_) {}
-        propertyCurrent.textContent=propertySelect.value==='current'?'Cơ sở hiện tại':'Tất cả cơ sở';
+        propertySelect.disabled=true;
+        const propertyCaption=textNode('p','Đang tải cơ sở…','property-caption');
         propertySelect.addEventListener('change',()=>{
-            propertyCurrent.textContent=propertySelect.value==='current'?'Cơ sở hiện tại':'Tất cả cơ sở';
-            try {localStorage.setItem('homestay-property',propertySelect.value);} catch (_) {}
-            document.querySelectorAll('[data-property-label]').forEach(el=>{el.textContent=propertySelect.value==='current'?'Cơ sở hiện tại':'Tất cả cơ sở';});
-            document.dispatchEvent(new Event('propertychange'));
+            if(document.querySelector('.modal.show')){propertySelect.value=selectedPropertyId()?String(selectedPropertyId()):'all';showAlert('Đóng cửa sổ đang thao tác trước khi đổi cơ sở.','error');return;}
+            setSelectedProperty(propertySelect.value==='all'?null:Number(propertySelect.value));
+            const url=new URL(window.location.href);url.searchParams.set('property',selectedPropertyId() || 'all');url.searchParams.delete('room');url.searchParams.delete('roomId');window.location.href=url.href;
         });
-        property.append(propertySummary,propertyLabel,propertySelect,textNode('p','Một cơ sở · Danh mục phòng hiện tại','property-caption'));
+        property.append(propertySummary,propertyLabel,propertySelect,propertyCaption);
         sidebar.replaceChildren(brand, property, textNode('p',adminWorkspace?'KHU QUẢN TRỊ':'VẬN HÀNH LƯU TRÚ','sidebar-section-label'), list, footer);
-        document.querySelectorAll('[data-property-label]').forEach(el=>{el.textContent=propertySelect.value==='current'?'Cơ sở hiện tại':'Tất cả cơ sở';});
+        document.querySelectorAll('[data-property-label]').forEach(el=>{el.textContent=propertyCurrent.textContent;});
+        loadShellProperties(propertySelect,propertyCurrent,propertyCaption);
         const toggle = actionButton('Menu', 'btn btn-secondary navigation-toggle', () => setShellMenu(!shellMenuOpen));
         toggle.id = 'navigation-toggle'; toggle.setAttribute('aria-label', 'Mở menu');
         toggle.setAttribute('aria-controls', 'app-sidebar');

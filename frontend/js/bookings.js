@@ -26,8 +26,7 @@ function updateBookingControls() {
             const checkin = document.getElementById('booking-checkin-date').value;
             const checkout = document.getElementById('booking-checkout-date').value;
             validBookingDates(checkin, checkout);
-            validMoney((Date.parse(checkout + 'T00:00:00Z') - Date.parse(checkin + 'T00:00:00Z')) / 86400000
-                * validMoney(room.price, 'Giá phòng', 1), 'Tiền phòng', 1);
+            quoteNightly(room.price,room.nightlyPricing,checkin,checkout);
         } catch { ready = false; }
     }
     document.getElementById('booking-save-btn').disabled = !ready;
@@ -157,14 +156,14 @@ function refreshAvailableRooms(force = false) {
     pendingRange = key;
     pendingAvailability = (async () => {
         try {
-            const rooms = expectList(await apiGet('/bookings/available-rooms?checkin=' + encodeURIComponent(checkin) + '&checkout=' + encodeURIComponent(checkout)));
+            const rooms = propertyRooms(expectList(await apiGet('/bookings/available-rooms?checkin=' + encodeURIComponent(checkin) + '&checkout=' + encodeURIComponent(checkout))));
             if (!bookingModalOpen || version !== availabilityVersion || key !== dateRangeKey()) return;
             for (const room of rooms) {
                 if (!Number.isInteger(room.roomId) || room.roomId <= 0 || !Number.isSafeInteger(Number(room.price)) || Number(room.price) <= 0) throw new Error('Dữ liệu phòng trống không hợp lệ.');
             }
             bookingRooms = new Map(rooms.map(r => [r.roomId, r])); availableRange = key;
             select.replaceChildren(selectOption('', rooms.length ? '-- Chọn phòng --' : '-- Không có phòng trống --', 0));
-            rooms.forEach(r => select.appendChild(selectOption(r.roomId, `${r.roomCode} - ${r.roomName} (${formatMoney(r.price)})`, r.price)));
+            rooms.forEach(r => select.appendChild(selectOption(r.roomId, `${r.roomCode} - ${r.roomName} (${nightlyPriceLabel(r)})`, r.price)));
             if (bookingRooms.has(Number(previous))) select.value = previous;
             document.getElementById('booking-room-status').textContent = rooms.length
                 ? `Có ${rooms.length} phòng phù hợp khoảng ngày đã chọn.` : 'Không có phòng trống trong khoảng ngày này. Vui lòng chọn ngày khác.';
@@ -219,12 +218,10 @@ function calculateEstimate() {
         const checkin = document.getElementById('booking-checkin-date').value;
         const checkout = document.getElementById('booking-checkout-date').value;
         validBookingDates(checkin, checkout);
-        const nights = (Date.parse(checkout + 'T00:00:00Z') - Date.parse(checkin + 'T00:00:00Z')) / 86400000;
-        const price = validMoney(room.price, 'Giá phòng', 1);
-        const total = validMoney(nights * price, 'Tiền phòng', 1);
-        document.getElementById('estimated-nights').textContent = nights;
-        document.getElementById('room-price-display').textContent = formatMoney(price);
-        document.getElementById('total-price-display').textContent = formatMoney(total);
+        const quote=quoteNightly(room.price,room.nightlyPricing,checkin,checkout);
+        document.getElementById('estimated-nights').textContent = quote.nights;
+        document.getElementById('room-price-display').textContent = room.nightlyPricing?nightlyChargeLabel(quote,room.nightlyPricing):formatMoney(room.price);
+        document.getElementById('total-price-display').textContent = formatMoney(quote.total);
         preview.style.display = 'block';
     } catch (err) { document.getElementById('booking-status').textContent = err.message; }
 }
@@ -239,8 +236,7 @@ async function saveBooking() {
         validBookingDates(checkinDate, checkoutDate); validText(note, 'Ghi chú', 500, false);
         if (!customersReady || availableRange !== dateRangeKey() || !availableRange || !bookingCustomers.has(customerId) || !bookingRooms.has(roomId)) throw new Error('Chờ tải xong dữ liệu và chọn khách hàng, phòng phù hợp.');
         const room = bookingRooms.get(roomId);
-        const nights = (Date.parse(checkoutDate + 'T00:00:00Z') - Date.parse(checkinDate + 'T00:00:00Z')) / 86400000;
-        validMoney(nights * validMoney(room.price, 'Giá phòng', 1), 'Tiền phòng', 1);
+        quoteNightly(room.price,room.nightlyPricing,checkinDate,checkoutDate);
     } catch (err) { document.getElementById('booking-status').textContent = err.message; return; }
     bookingSubmitting = true; updateBookingControls();
     document.getElementById('booking-status').textContent = 'Đang tạo booking...';

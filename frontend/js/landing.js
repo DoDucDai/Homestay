@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
         ['Single','Double','VIP','Family'].forEach(type=>roomType.append(selectOption(type,type)));
         document.querySelectorAll('a[href]').forEach(link=>{
             const target=new URL(link.href,window.location.href);
-            if(target.origin===window.location.origin && target.pathname.startsWith('/pages/') && !['/pages/landing.html','/pages/explore.html','/pages/login.html','/pages/policies.html'].includes(target.pathname))
+            if(target.origin===window.location.origin && target.pathname.startsWith('/pages/') && !['/pages/landing.html','/pages/explore.html','/pages/login.html','/pages/policies.html','/pages/support.html','/pages/assistant.html'].includes(target.pathname))
                 link.href='login.html?next='+encodeURIComponent(target.pathname+target.search+target.hash);
         });
     } else {

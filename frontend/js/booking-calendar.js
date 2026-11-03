@@ -14,7 +14,7 @@ function calendarBounds(booking) {
     return [calendarTime(booking.checkinAt || booking.checkinDate),calendarTime(booking.checkoutAt || booking.checkoutDate)];
 }
 function calendarBookingDate(booking,which) { return (booking[which+'At'] || booking[which+'Date']).slice(0,10); }
-function calendarRoomScope() { return calendarRooms; } // One actual inventory until branch assignments exist.
+function calendarRoomScope() { return propertyRooms(calendarRooms); }
 function calendarTodayBookings() { return bookingRows.filter(b=>b.status!=='Cancelled'); }
 function calendarAttentionMatches(b, attention) {
     const today=vietnamToday();
@@ -132,7 +132,7 @@ function renderBookingCalendar() {
         const row=textNode('div','','calendar-grid-row');
         const roomLabel=actionButton('','calendar-room-label',()=>openCalendarRoom(room));
         roomLabel.append(textNode('strong',room.roomName),textNode('span',room.roomCode+' · '+room.roomType,'calendar-room-meta'));
-        roomLabel.append(textNode('span',Number(room.hourlyPrice)>0?formatMoney(room.hourlyPrice)+'/giờ':'Chưa thiết lập giá giờ','calendar-room-rate'+(Number(room.hourlyPrice)>0?'':' missing')));
+        roomLabel.append(textNode('span',room.hourlyPackages?formatMoney(room.hourlyPackages.twoHours)+'/2 giờ':Number(room.hourlyPrice)>0?formatMoney(room.hourlyPrice)+'/giờ':'Chưa thiết lập giá giờ','calendar-room-rate'+(Number(room.hourlyPrice)>0?'':' missing')));
         roomLabel.append(textNode('span',room.status==='Đang sử dụng'?'Đang ở':room.status==='Trống'?'Còn trống':room.status,'room-state '+(room.status==='Trống'?'free':room.status==='Bảo trì'?'maintenance':'')));
         row.append(roomLabel);
         const track=textNode('div','','calendar-track');
@@ -272,9 +272,9 @@ function renderBookingDetail() {
     }
     content.append(info);
     const [a,z]=calendarBounds(b),hours=b.billingUnit==='Hour',units=hours?Math.ceil((z-a)/3600000):Math.round((z-a)/calendarDay);
-    const rate=Number(hours?b.pricePerHour:b.price),total=units*rate;
+    const rate=Number(hours?b.pricePerHour:b.price),quote=hours?quoteHourly(rate,b.hourlyPackages,units):quoteNightly(rate,b.nightlyPricing,b.checkinDate,b.checkoutDate),total=quote.total;
     const cost=textNode('section','','detail-cost');
-    cost.append(textNode('h4','Tiền phòng theo giá đã chốt'),textNode('strong',Number.isSafeInteger(total)?formatMoney(total):'Chưa xác định'),textNode('p',units+(hours?' giờ':' đêm')+' × '+formatMoney(rate),'text-muted'));
+    cost.append(textNode('h4','Tiền phòng theo giá đã chốt'),textNode('strong',Number.isSafeInteger(total)?formatMoney(total):'Chưa xác định'),textNode('p',hours?hourlyChargeLabel(quote,units):nightlyChargeLabel(quote,b.nightlyPricing),'text-muted'));
     cost.append(textNode('p',b.status==='CheckedOut'?'Đã trả phòng. Xem hóa đơn để đối chiếu số tiền đã thu.':'Chưa gồm dịch vụ. Tổng thanh toán được tính khi trả phòng.','form-help'));
     content.append(cost);
     if(b.note){content.append(textNode('h4','Ghi chú'),textNode('p',b.note,'detail-note'));}
@@ -348,11 +348,11 @@ async function openHourlyBooking(room=null,date=vietnamToday(),hour=null){
         hourlyRooms=expectList(rooms).filter(r=>r.status!=='Bảo trì' && Number(r.hourlyPrice)>0);
         hourlyCustomers=expectList(customers);
         const select=document.getElementById('hourly-room');select.replaceChildren(selectOption('','Chọn phòng có giá giờ'));
-        hourlyRooms.forEach(r=>select.append(selectOption(r.roomId,r.roomCode+' · '+r.roomName+' · '+formatMoney(r.hourlyPrice)+'/giờ')));
+        hourlyRooms.forEach(r=>select.append(selectOption(r.roomId,r.roomCode+' · '+r.roomName+' · '+hourlyPriceLabel(r))));
         const customer=document.getElementById('hourly-customer');customer.replaceChildren(selectOption('','Chọn khách hàng'));
         hourlyCustomers.forEach(c=>customer.append(selectOption(c.customerId,c.fullName+' · '+c.phone)));
         if(room && hourlyRooms.some(r=>r.roomId===room.roomId))select.value=String(room.roomId);
-        hourlyBookingReady=true;document.getElementById('hourly-status').textContent=hourlyRooms.length?'Giờ Việt Nam · Làm tròn lên mỗi giờ. Máy chủ kiểm tra trùng lịch khi xác nhận.':'Chưa có phòng đang hoạt động được khai báo giá giờ. Quản trị viên có thể nhập giá tại Quản lý phòng.';
+        hourlyBookingReady=true;document.getElementById('hourly-status').textContent=hourlyRooms.length?'Giờ Việt Nam · Làm tròn lên mỗi giờ. Phòng có giá gói: tối thiểu 2 giờ, tự chọn gói có tổng tiền thấp nhất. Máy chủ kiểm tra trùng lịch khi xác nhận.':'Chưa có phòng đang hoạt động được khai báo giá giờ. Quản trị viên có thể nhập giá tại Quản lý phòng.';
         updateHourlyEstimate();
     }catch(err){if(version===hourlyBookingVersion)document.getElementById('hourly-status').textContent=err.message+' Đóng và mở lại để thử.';}
 }
@@ -367,13 +367,13 @@ function hourlyBookingInput(){
     if(start<vietnamNow().slice(0,16) || z<=a)throw new Error('Giờ nhận không trong quá khứ, giờ trả phải sau giờ nhận.');
     const conflict=bookingRows.some(b=>b.roomId===room.roomId && ['Confirmed','CheckedIn'].includes(b.status) && calendarBounds(b)[0]<z && calendarBounds(b)[1]>a);
     if(conflict)throw new Error('Phòng đã có lượt đặt trong khung giờ này. Chọn khung giờ hoặc phòng khác.');
-    const hours=Math.ceil((z-a)/3600000),total=validMoney(hours*Number(room.hourlyPrice),'Tiền phòng',1);
+    const hours=Math.ceil((z-a)/3600000),quote=quoteHourly(room.hourlyPrice,room.hourlyPackages,hours),total=quote.total;
     return {room,customerId,start,end,hours,total};
 }
 function updateHourlyEstimate(){
     const estimate=document.getElementById('hourly-estimate'),save=document.getElementById('hourly-save');save.disabled=true;
     try{
-        const value=hourlyBookingInput();estimate.textContent=value.hours+' giờ × '+formatMoney(value.room.hourlyPrice)+' = '+formatMoney(value.total)+' · Chưa gồm dịch vụ';
+        const value=hourlyBookingInput();estimate.textContent=hourlyChargeLabel(quoteHourly(value.room.hourlyPrice,value.room.hourlyPackages,value.hours),value.hours)+' = '+formatMoney(value.total)+' · Chưa gồm dịch vụ';
         save.disabled=hourlyBookingBusy || !hourlyCustomers.some(c=>c.customerId===value.customerId);
     }catch(err){estimate.textContent=err.message;}
 }

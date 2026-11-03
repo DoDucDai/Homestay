@@ -5,7 +5,7 @@ function loginDestination() {
     if(!next) return 'landing.html';
     try {
         const url=new URL(next,window.location.href);
-        const pages=['landing','explore','account','bookings','customers','services','checkin','checkout','rooms','statistics'];
+        const pages=['landing','explore','account','bookings','customers','services','checkin','checkout','rooms','statistics','assistant','support','policies'];
         if(url.origin===window.location.origin && pages.some(page=>url.pathname==='/pages/'+page+'.html'))
             return url.pathname+url.search+url.hash;
     } catch (_) {}

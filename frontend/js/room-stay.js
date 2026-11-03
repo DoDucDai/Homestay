@@ -38,7 +38,9 @@ async function openRoomStay(room) {
     if (stayBusy) return;
     const version = ++stayVersion; stayRoom = room; stayReady = false; stayPreview = null;
     stayEl('title').textContent = room.roomCode+' · '+room.roomName;
-    stayEl('summary').textContent = room.roomType+' · '+(room.hourlyPrice ? formatMoney(room.hourlyPrice)+'/giờ' : 'Chưa có giá giờ');
+    stayEl('summary').textContent = room.roomType+' · '+hourlyPriceLabel(room);
+    const photo=RoomPhotos.create(room);stayEl('photo').replaceChildren();stayEl('photo').hidden=!photo;
+    if(photo)stayEl('photo').append(photo);
     stayEl('bookings').replaceChildren(); stayEl('invoice').hidden = true;
     stayEl('customer').replaceChildren(); stayEl('note').value = '';
     const start = new Date(Date.now()+7*3600000+5*60000).toISOString().slice(0,16);
@@ -51,11 +53,11 @@ async function openRoomStay(room) {
         if (version !== stayVersion) return;
         if (fresh.roomId !== room.roomId) throw new Error('Chưa xác nhận được thông tin phòng.');
         roomBookings = expectList(bookings);stayCustomers = expectList(customers);stayRoom = fresh;stayReady = true;
-        stayEl('summary').textContent = fresh.roomType+' · '+roomCardStatus(fresh)[0]+' · '+(fresh.description || 'Chưa có mô tả');
+        stayEl('summary').textContent = [fresh.propertyName,fresh.propertyAddress,fresh.roomType,roomCardStatus(fresh)[0],fresh.description || 'Chưa có mô tả'].filter(Boolean).join(' · ');
         const placeholder = textNode('option','Chọn khách hàng');placeholder.value = '';stayEl('customer').appendChild(placeholder);
         stayCustomers.forEach(c => { const option=textNode('option',c.fullName+' · '+(c.phone || c.cccd || ''));option.value=String(c.customerId);stayEl('customer').appendChild(option); });
         renderStayBookings();renderTable(currentRooms);
-        stayMessage(fresh.hourlyPrice ? 'Giờ Việt Nam · Giá '+formatMoney(fresh.hourlyPrice)+'/giờ. Khung giờ đặt được làm tròn lên mỗi giờ.'
+        stayMessage(fresh.hourlyPrice ? 'Giờ Việt Nam · '+hourlyPriceLabel(fresh)+'. Làm tròn lên mỗi giờ.'+(fresh.hourlyPackages?' Tối thiểu gói 2 giờ; tự chọn gói có tổng tiền thấp nhất.':'')
             : 'Chưa khai báo giá giờ. Quản lý chọn “Sửa thông tin phòng” để nhập giá trước khi đặt.');
         stayEl('form').hidden = fresh.status === 'Bảo trì';
         stayEl('edit').hidden = !roomAdmin();
@@ -91,8 +93,8 @@ function renderStayBookings() {
 function updateStayEstimate() {
     stayEl('estimate').textContent='';
     try {
-        const {hours,total}=stayInput();
-        stayEl('estimate').textContent=hours+' giờ × '+formatMoney(stayRoom.hourlyPrice)+' = '+formatMoney(total)+' tiền phòng. Dịch vụ tính riêng khi trả phòng.';
+        const {hours,total,quote}=stayInput();
+        stayEl('estimate').textContent=hourlyChargeLabel(quote,hours)+' = '+formatMoney(total)+' tiền phòng. Dịch vụ tính riêng khi trả phòng.';
     } catch (_) { /* Inline validation is shown on submission. */ }
 }
 function stayInput() {
@@ -106,8 +108,8 @@ function stayInput() {
     };
     const a=parse(start),b=parse(end);
     if (start<vietnamNow().slice(0,16) || b<=a) throw new Error('Giờ nhận không trong quá khứ; giờ trả phải sau giờ nhận.');
-    const hours=Math.ceil((b-a)/3600000),total=validMoney(hours*validMoney(stayRoom.hourlyPrice,'Giá giờ',1),'Tiền phòng',1);
-    return {start,end,hours,total};
+    const hours=Math.ceil((b-a)/3600000),quote=quoteHourly(stayRoom.hourlyPrice,stayRoom.hourlyPackages,hours),total=quote.total;
+    return {start,end,hours,total,quote};
 }
 async function saveRoomStay() {
     if (stayBusy || !stayReady || stayRoom?.status === 'Bảo trì') return;
@@ -149,7 +151,7 @@ async function previewStayCheckout(booking) {
         stayPreview=p;stayEl('invoice').hidden=false;
         stayEl('invoice-summary').textContent='BK'+p.bookingId+' · '+p.customerName+' · Tiền phòng '+formatMoney(p.roomTotal)+' + dịch vụ '+formatMoney(p.serviceTotal)+' = '+formatMoney(p.grandTotal);
         const lines=stayEl('invoice-lines');lines.replaceChildren();
-        lines.appendChild(textNode('p',p.billingUnit==='Hour' ? p.billedHours+' giờ × '+formatMoney(p.pricePerHour)+'/giờ (khung giờ đã đặt, làm tròn lên).' : p.nights+' đêm × '+formatMoney(p.pricePerNight)+'/đêm.'));
+        lines.appendChild(textNode('p',p.billingUnit==='Hour' ? hourlyChargeLabel(quoteHourly(p.pricePerHour,p.hourlyPackages,p.billedHours),p.billedHours)+' (giá đã chốt).' : nightlyChargeLabel(quoteNightly(p.pricePerNight,p.nightlyPricing,p.checkinDate,p.checkoutDate),p.nightlyPricing)));
         p.services.forEach(s=>lines.appendChild(textNode('p',s.serviceName+' × '+s.quantity+' · '+formatMoney(s.totalPrice))));
         stayEl('services-link').href='checkout.html?bookingId='+p.bookingId;
         stayMessage('Kiểm tra tiền phòng, dịch vụ và phương thức thanh toán trước khi xác nhận.');
@@ -167,7 +169,7 @@ function validStayInvoice(p,id) {
         const elapsed=Date.parse(p.checkoutAt+'+07:00')-Date.parse(p.checkinAt+'+07:00');
         if(elapsed<=0 || Math.ceil(elapsed/3600000)!==units) return false;
     } else if((Date.parse(p.checkoutDate)-Date.parse(p.checkinDate))/86400000!==units) return false;
-    return Number.isSafeInteger(units) && units>0 && money(rate) && p.roomTotal===units*rate
+    return Number.isSafeInteger(units) && units>0 && money(rate) && (p.billingUnit==='Hour'?validHourlyInvoice(p):validNightlyInvoice(p))
         && p.grandTotal===p.roomTotal+p.serviceTotal && p.services.every(s=>money(s.totalPrice))
         && p.services.reduce((sum,s)=>sum+s.totalPrice,0)===p.serviceTotal;
 }

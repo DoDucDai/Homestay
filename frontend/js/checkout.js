@@ -45,12 +45,12 @@ function isValidCheckoutPreview(p, bookingId) {
     if (p.billingUnit === 'Hour') {
         const elapsed=Date.parse(p.checkoutAt+'+07:00')-Date.parse(p.checkinAt+'+07:00');
         if(!Number.isFinite(elapsed) || elapsed<=0 || Math.ceil(elapsed/3600000)!==p.billedHours
-            || !Number.isSafeInteger(p.pricePerHour) || p.pricePerHour<=0 || p.roomTotal!==p.pricePerHour*p.billedHours) return false;
+            || !validHourlyInvoice(p)) return false;
     } else {
     if (!Number.isInteger(p.nights) || p.nights <= 0) return false;
     if (![p.checkinDate,p.checkoutDate].every(value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)))) return false;
     if ((Date.parse(p.checkoutDate)-Date.parse(p.checkinDate))/86400000 !== p.nights) return false;
-    if(p.roomTotal !== p.pricePerNight*p.nights) return false;
+    if(!validNightlyInvoice(p)) return false;
     }
     return Array.isArray(p.services) && p.grandTotal === p.roomTotal+p.serviceTotal
         && p.services.every(s => Number.isInteger(s.bookingServiceId) && s.bookingServiceId > 0 && Number.isInteger(s.quantity) && s.quantity > 0
@@ -61,7 +61,7 @@ function renderInvoice(p, official = false) {
     document.getElementById('invoice-title').textContent = official ? 'Hóa đơn HD' + p.paymentId : 'Tạm tính BK' + p.bookingId;
     const values = {id: official ? 'HD'+p.paymentId : 'BK'+p.bookingId, customer:p.customerName || '', room:(p.roomCode || '')+' — '+(p.roomName || ''),
         checkin:bookingTime(p,'checkin'), checkout:bookingTime(p,'checkout'), nights:p.billingUnit==='Hour'?p.billedHours+' giờ':p.nights+' đêm',
-        'price-per-night':formatMoney(p.billingUnit==='Hour'?p.pricePerHour:p.pricePerNight)+(p.billingUnit==='Hour'?' / giờ':' / đêm'), 'room-total':formatMoney(p.roomTotal), 'service-total':formatMoney(p.serviceTotal),
+        'price-per-night':p.billingUnit==='Hour'?(p.hourlyPackages?hourlyChargeLabel(quoteHourly(p.pricePerHour,p.hourlyPackages,p.billedHours),p.billedHours):formatMoney(p.pricePerHour)+' / giờ'):p.nightlyPricing?nightlyChargeLabel(quoteNightly(p.pricePerNight,p.nightlyPricing,p.checkinDate,p.checkoutDate),p.nightlyPricing):formatMoney(p.pricePerNight)+' / đêm', 'room-total':formatMoney(p.roomTotal), 'service-total':formatMoney(p.serviceTotal),
         'grand-total':formatMoney(p.grandTotal), 'paid-at':official ? (p.paidAt || '--').replace('T',' ') : 'Chưa thanh toán',
         method:official ? p.paymentMethod : 'Chưa ghi nhận', warning:[p.snapshotEstimated ? 'Giá dữ liệu cũ được dựng lại, cần đối soát.' : '', p.reconciliationWarning || ''].filter(Boolean).join(' ')};
     Object.entries(values).forEach(([key,value]) => { document.getElementById('inv-'+key).textContent = value; });

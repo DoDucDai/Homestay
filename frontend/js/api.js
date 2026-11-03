@@ -1,5 +1,89 @@
 // Cookie sessions and CSRF. Set HOMESTAY_API_BASE before this file only for explicit dev CORS.
 const API_BASE = window.HOMESTAY_API_BASE || '/api';
+let activePropertyId=(()=>{
+    const requested=new URLSearchParams(window.location.search).get('property');
+    let saved='';try{saved=localStorage.getItem('homestay-property') || '';}catch(_){}
+    const raw=requested===null?saved:requested;
+    return /^[1-9]\d*$/.test(raw) && Number.isSafeInteger(Number(raw))?Number(raw):null;
+})();
+function selectedPropertyId(){return activePropertyId;}
+function setSelectedProperty(id){
+    activePropertyId=id?Number(id):null;
+    try{localStorage.setItem('homestay-property',activePropertyId?String(activePropertyId):'all');}catch(_){}
+}
+function propertyScopedEndpoint(endpoint){
+    if(!activePropertyId || !/^\/(?:rooms(?:\?|$)|bookings(?:\?|$)|payments(?:\?|$)|statistics\/)/.test(endpoint))return endpoint;
+    const [path,query='']=endpoint.split('?'),params=new URLSearchParams(query);params.set('propertyId',activePropertyId);
+    return path+'?'+params;
+}
+function propertyRooms(rows){return activePropertyId?rows.filter(room=>room.propertyId===activePropertyId):rows;}
+if(new URLSearchParams(window.location.search).has('property'))setSelectedProperty(activePropertyId);
+function quoteNightly(base,pricing,start,end) {
+    const money=n=>Number.isSafeInteger(n) && n>0 && n<=999999999999;
+    const date=value=>{
+        if(!/^\d{4}-\d{2}-\d{2}$/.test(value))throw new Error('Ngày lưu trú không hợp lệ.');
+        const time=Date.parse(value+'T00:00:00Z');
+        if(!Number.isFinite(time) || new Date(time).toISOString().slice(0,10)!==value)throw new Error('Ngày lưu trú không hợp lệ.');
+        return time;
+    };
+    const first=date(start),last=date(end),nights=(last-first)/86400000;
+    base=Number(base);
+    if(!money(base) || !Number.isSafeInteger(nights) || nights<=0)throw new Error('Giá hoặc ngày lưu trú không hợp lệ.');
+    let weekendNights=0,weekendPrice=base;
+    if(pricing!=null) {
+        weekendPrice=Number(pricing.weekendPrice);
+        const days=pricing.weekendDays;
+        if(!money(weekendPrice) || !Array.isArray(days) || !days.length || days.length>7 || new Set(days).size!==days.length || !days.every(d=>Number.isInteger(d)&&d>=1&&d<=7))throw new Error('Bảng giá cuối tuần không hợp lệ.');
+        weekendNights=Math.floor(nights/7)*days.length;
+        for(let i=0;i<nights%7;i++)if(days.includes((new Date(first+i*86400000).getUTCDay()+6)%7+1))weekendNights++;
+    }
+    const weekdayNights=nights-weekendNights,total=weekdayNights*base+weekendNights*weekendPrice;
+    if(!money(total))throw new Error('Tiền phòng vượt giới hạn lưu trữ.');
+    return {nights,weekdayNights,weekendNights,weekdayPrice:base,weekendPrice,total};
+}
+function weekendDaysLabel(days) {
+    return days.map(d=>d===7?'Chủ nhật':'thứ '+(d+1)).join(', ');
+}
+function nightlyPriceLabel(room) {
+    return room.nightlyPricing?'Ngày thường '+formatMoney(room.price)+' · Cuối tuần '+formatMoney(room.nightlyPricing.weekendPrice)+' / đêm ('+weekendDaysLabel(room.nightlyPricing.weekendDays)+')':formatMoney(room.price)+' / đêm';
+}
+function nightlyChargeLabel(quote,pricing) {
+    if(!pricing)return quote.nights+' đêm × '+formatMoney(quote.weekdayPrice)+'/đêm';
+    return [quote.weekdayNights?quote.weekdayNights+' đêm ngày thường × '+formatMoney(quote.weekdayPrice):'',quote.weekendNights?quote.weekendNights+' đêm cuối tuần × '+formatMoney(quote.weekendPrice):''].filter(Boolean).join(' + ');
+}
+function validNightlyInvoice(p) {
+    try{const q=quoteNightly(p.pricePerNight,p.nightlyPricing,p.checkinDate,p.checkoutDate);return q.nights===p.nights && q.total===p.roomTotal;}catch{return false;}
+}
+function quoteHourly(rate, packages, hours) {
+    const money=value=>Number.isSafeInteger(value) && value>0 && value<=999999999999;
+    rate=Number(rate);
+    if(!money(rate) || !Number.isSafeInteger(hours) || hours<=0)throw new Error('Giá giờ hoặc số giờ không hợp lệ.');
+    let best={packageHours:0,packagePrice:0,extraHours:hours,rate,total:rate*hours};
+    if(packages!=null) {
+        const values=['twoHours','fourHours','eightHours'].map(key=>Number(packages[key]));
+        if(!values.every(money) || values[0]>values[1] || values[1]>values[2])throw new Error('Bảng giá gói không hợp lệ.');
+        best=null;
+        [2,4,8].forEach((included,index)=>{
+            const extra=Math.max(0,hours-included),total=values[index]+extra*rate;
+            if(!best || total<best.total)best={packageHours:included,packagePrice:values[index],extraHours:extra,rate,total};
+        });
+    }
+    if(!money(best.total))throw new Error('Tiền phòng vượt giới hạn lưu trữ.');
+    return best;
+}
+function hourlyPriceLabel(room) {
+    const p=room.hourlyPackages;
+    if(p) return '2 giờ '+formatMoney(p.twoHours)+' · 4 giờ '+formatMoney(p.fourHours)+' · 8 giờ '+formatMoney(p.eightHours)+' · Giờ lẻ '+formatMoney(room.hourlyPrice)+'/giờ';
+    return Number(room.hourlyPrice)>0?formatMoney(room.hourlyPrice)+' / giờ':'Chưa có giá theo giờ';
+}
+function hourlyChargeLabel(quote,hours) {
+    return quote.packageHours ? hours+' giờ · Gói '+quote.packageHours+' giờ '+formatMoney(quote.packagePrice)+(quote.extraHours?' + '+quote.extraHours+' giờ lẻ × '+formatMoney(quote.rate):'')
+        : hours+' giờ × '+formatMoney(quote.rate);
+}
+function validHourlyInvoice(p) {
+    try {return quoteHourly(p.pricePerHour,p.hourlyPackages,p.billedHours).total===p.roomTotal;}
+    catch {return false;}
+}
 let authPromise = null;
 let currentUser = null;
 let csrfPromise = null;
@@ -65,7 +149,7 @@ async function checkLogin(force = false) {
             currentUser = null;
             authPromise = null;
             if (error.status === 401) {
-                if (!['/pages/landing.html','/pages/explore.html','/pages/policies.html','/pages/support.html'].includes(window.location.pathname)) goToLogin();
+                if (!['/pages/landing.html','/pages/explore.html','/pages/policies.html','/pages/support.html','/pages/assistant.html'].includes(window.location.pathname)) goToLogin();
             }
             else showAlert(error.message || 'Không thể kiểm tra đăng nhập.', 'error');
             return null;
@@ -123,7 +207,7 @@ async function apiRequest(endpoint, method = 'GET', data) {
         throw error;
     }
 }
-function apiGet(endpoint) { return apiRequest(endpoint); }
+function apiGet(endpoint) { return apiRequest(propertyScopedEndpoint(endpoint)); }
 function apiPost(endpoint, data) { return apiRequest(endpoint, 'POST', data); }
 function apiPut(endpoint, data) { return apiRequest(endpoint, 'PUT', data); }
 function apiDelete(endpoint) { return apiRequest(endpoint, 'DELETE'); }
