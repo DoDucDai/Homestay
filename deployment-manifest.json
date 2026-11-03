@@ -1,8 +1,8 @@
 [
   {
     "path": "ai-rag/app/server.py",
-    "bytes": 16409,
-    "sha256": "f842348f22f4f80de87ac141d803d2a2bf16d7257af26691e2fd20e557668ae2"
+    "bytes": 16749,
+    "sha256": "8d4c83ca186367743a292fccc45b627c2c688e56f384be978f7ed2162c3b1a05"
   },
   {
     "path": "ai-rag/import-knowledge.py",
@@ -11,8 +11,8 @@
   },
   {
     "path": "ai-rag/knowledge/published.json",
-    "bytes": 95219,
-    "sha256": "7279032ef43bd012a413619972619cab902c6eba9a20e5d9cfcfff641544f553"
+    "bytes": 104296,
+    "sha256": "fba5571b7b8e6938a531dfd1cb925a2ef195a916d24523d322f7060171bfed5f"
   },
   {
     "path": "ai-rag/web/ai-page.css",
@@ -31,8 +31,8 @@
   },
   {
     "path": "ai-rag/web/chat-client.js",
-    "bytes": 7297,
-    "sha256": "6d017ea09bd7b784f8168c439938599738a2fbff69ae457f3879af6a74c4f91f"
+    "bytes": 7734,
+    "sha256": "74dd67868fbc25b83b708c6a68977574991303fe6d106b32b8418c2a223394a5"
   },
   {
     "path": "ai-rag/web/chat-history.js",
@@ -106,13 +106,13 @@
   },
   {
     "path": "backend/src/main/java/com/homestay/controller/BookingController.java",
-    "bytes": 29322,
-    "sha256": "5f5287ee02b9a80fd5995e8cfe438736f1911e6e2829fd91e6ad5a333352ff5c"
+    "bytes": 30270,
+    "sha256": "1e51af28ff615571663d19eeadc6c79e733034fa7610e66726f442837b52b8c2"
   },
   {
     "path": "backend/src/main/java/com/homestay/controller/BookingInvoiceSnapshot.java",
-    "bytes": 11123,
-    "sha256": "f8ee2bd9940819ddd7d9097d80a361d9ce3edba84804f5f7770d0bd051a8f98b"
+    "bytes": 11538,
+    "sha256": "cc9feef8d69d1f598ef889b57db053b7b6f82bf6851b9299d43616b333ac5e62"
   },
   {
     "path": "backend/src/main/java/com/homestay/controller/CustomerController.java",
@@ -135,19 +135,24 @@
     "sha256": "2f2572883a7e2bc9adb135dd6749496f4b2a7c0d87482eee7288f50c81e1bb34"
   },
   {
+    "path": "backend/src/main/java/com/homestay/controller/NightlyPricing.java",
+    "bytes": 4300,
+    "sha256": "9f4f8544d1d99f72fe40f22f84cf6e716a4bbd2afd1c78b8a64b8eaba981862a"
+  },
+  {
     "path": "backend/src/main/java/com/homestay/controller/PublicRoomController.java",
-    "bytes": 2130,
-    "sha256": "4c93f35550506af5e65ebb2143d43e1e3c20ed9e9f6858a24eccd4eaea5778fa"
+    "bytes": 2228,
+    "sha256": "b56702af0b13cbaee51e0cf38ab2f2098c16c5a8ead03a2eb099af82dbb50b4a"
   },
   {
     "path": "backend/src/main/java/com/homestay/controller/RoomController.java",
-    "bytes": 12842,
-    "sha256": "4812e72f7c22a1c6e2bc0a5a59d915c61a10eeaa8196260d28104be77b3e661e"
+    "bytes": 13573,
+    "sha256": "73d9912fb3cb74746c3d875c6587c1768dc9b2a578c7278ed53dd1727bdc070a"
   },
   {
     "path": "backend/src/main/java/com/homestay/controller/RoomSchedule.java",
-    "bytes": 10179,
-    "sha256": "7d77b409b60bb85a8fa1d9f15e5d294b845ab581a0936bf976574d3c88f4b2c0"
+    "bytes": 10300,
+    "sha256": "b303b7eb053dbd6fd715bcecf1c9bdbb265ba6ca19b3e6ff7e361e0ebc30fd5b"
   },
   {
     "path": "backend/src/main/java/com/homestay/controller/ServiceStatController.java",
@@ -171,8 +176,8 @@
   },
   {
     "path": "backend/src/main/java/com/homestay/db/HourlyPricingMigration.java",
-    "bytes": 1778,
-    "sha256": "b6dd1cb6a5049d13acdf0c8438fd81ef6d25dfd41244048e034ad150ce3110a4"
+    "bytes": 2687,
+    "sha256": "f272e60a56f4be4d5c87bbe04dacd496d18ae527b02f3d16722f984be638bc01"
   },
   {
     "path": "backend/src/main/java/com/homestay/HomestayApplication.java",
@@ -266,13 +271,18 @@
   },
   {
     "path": "backend/src/test/java/com/homestay/controller/HourlyBookingSqlServerIT.java",
-    "bytes": 10648,
-    "sha256": "e80c527aea5fa8460546d4f1dfc417f652ccf1aa83cc2d9686664f878e95b1ad"
+    "bytes": 13314,
+    "sha256": "c2ec185ca411ed5197dc0c1ddeeb64e12d3d90f5cad37012dc4ae0e56abb8ede"
   },
   {
     "path": "backend/src/test/java/com/homestay/controller/HourlyPricingChecks.java",
     "bytes": 1291,
     "sha256": "319f76b556c5af03e8e50d26ecef79fcd5d53f1fa5618bc2350a7edecc3f4ae3"
+  },
+  {
+    "path": "backend/src/test/java/com/homestay/controller/NightlyPricingChecks.java",
+    "bytes": 1444,
+    "sha256": "3e6f73afcdeee4a67c72a51794b36b750c1898b28bf30a7f674e1d90ece890a2"
   },
   {
     "path": "backend/src/test/java/com/homestay/controller/ReleaseSqlServerIT.java",
@@ -360,6 +370,11 @@
     "sha256": "95981264d54cf629b25033a8af4fb999cbd1536b38dddcb14c1a413b72ca9a53"
   },
   {
+    "path": "backend/src/test/js/nightly-pricing.test.cjs",
+    "bytes": 1346,
+    "sha256": "b1415ff01530c620ff076895fac717e0ad052e4a5b0e020f00ce21950eacbb0b"
+  },
+  {
     "path": "backend/src/test/js/profile.test.cjs",
     "bytes": 2099,
     "sha256": "fc2dad37723aab69f48cbe1342c29a11c8e912f9fad1a640cadc35fa17ce4b4d"
@@ -411,8 +426,8 @@
   },
   {
     "path": "DEPLOY.md",
-    "bytes": 14683,
-    "sha256": "4267a523f4e268b5bf63c0c4c2e7306a14d284be8bc457c596febb9fa6cfbd16"
+    "bytes": 15185,
+    "sha256": "6406e5a2bb873b8731471b1eada5b1cc7a7410da85a55aa5b6bf9c5a1d8ab8ca"
   },
   {
     "path": "docker/healthcheck.py",
@@ -466,8 +481,8 @@
   },
   {
     "path": "frontend/css/explore.css",
-    "bytes": 4769,
-    "sha256": "ee660ab125bace9578a080556844f52152c0d162e62becd24ab9f957528d8604"
+    "bytes": 4828,
+    "sha256": "938aa2bcc5ca3ecba83c1e2ddd0b1a3643e296546a35e17e0138d205a5935f0e"
   },
   {
     "path": "frontend/css/fonts/be-vietnam-pro-400.woff",
@@ -681,8 +696,8 @@
   },
   {
     "path": "frontend/js/api.js",
-    "bytes": 17678,
-    "sha256": "cba9b3effe6b9b790e35c619fb619ea0e5f493eecd372dc4e2ce5447136db19e"
+    "bytes": 20235,
+    "sha256": "739fb9b163a98d302cf30186280354db7254a02585cb048be94f07ef1037023f"
   },
   {
     "path": "frontend/js/auth.js",
@@ -691,13 +706,13 @@
   },
   {
     "path": "frontend/js/booking-calendar.js",
-    "bytes": 32725,
-    "sha256": "ca06a7d740b473675c4e9530934b08141c7eac086765a26b5c4da57ac88f3a1e"
+    "bytes": 32774,
+    "sha256": "56eba52572a1ca3bf226be11585a51014e808588690225f6ce268693d50da5f8"
   },
   {
     "path": "frontend/js/bookings.js",
-    "bytes": 17790,
-    "sha256": "c1d4db420206edd158574cc9081c4e713b7a79b5ca863cf8fbe83040429ca482"
+    "bytes": 17463,
+    "sha256": "8d031e73fcf10dcfb91f0078825968bb7ef515c2619a9888db42e64661589128"
   },
   {
     "path": "frontend/js/checkin.js",
@@ -706,8 +721,8 @@
   },
   {
     "path": "frontend/js/checkout.js",
-    "bytes": 18555,
-    "sha256": "31e50af98831a60e2da4971c5d012ee3b7c28c7108d6e813239cc48cd7813254"
+    "bytes": 18668,
+    "sha256": "07075982db412091fcd2a430c201b193afa173ffceaeea383c5b208cfd3184e0"
   },
   {
     "path": "frontend/js/customers.js",
@@ -721,8 +736,8 @@
   },
   {
     "path": "frontend/js/explore.js",
-    "bytes": 5665,
-    "sha256": "c92165a907cce2a69317294b85ce797f9654c7917d13464aeb9940c1ef74fc84"
+    "bytes": 5643,
+    "sha256": "921a659e8a3c9fc5af93b5431343df606db529d9d4d093f745ff5420b4d98666"
   },
   {
     "path": "frontend/js/landing.js",
@@ -751,13 +766,13 @@
   },
   {
     "path": "frontend/js/room-stay.js",
-    "bytes": 14095,
-    "sha256": "3af916e64d783edd037dabcae9b06914d4e1fee6ba5f75ccf599a3b57021aa12"
+    "bytes": 14145,
+    "sha256": "41690e4e0eba9d181b268ebd9c3fbca17956fd740bc7278f550c7ae80291c48a"
   },
   {
     "path": "frontend/js/rooms.js",
-    "bytes": 13049,
-    "sha256": "0d10c98fa9090d719d1ef77cbad2996be30b849fb6b241ce2b0258a25de6ff83"
+    "bytes": 14145,
+    "sha256": "c52c4c890bbb99f8a77fc88b197cf3a80499620410816a10adf5f7a22957d6ab"
   },
   {
     "path": "frontend/js/services.js",
@@ -796,8 +811,8 @@
   },
   {
     "path": "frontend/pages/bookings.html",
-    "bytes": 13730,
-    "sha256": "2c245ddee47d8dea2b85817bcad9d38d9c54d6297010c22a69da893c3b4a2af6"
+    "bytes": 13740,
+    "sha256": "ab2a37a45933f5b7e3605b29599dd48149e2c2cb018a1e4ef06e391b73ae49c2"
   },
   {
     "path": "frontend/pages/checkin.html",
@@ -841,8 +856,8 @@
   },
   {
     "path": "frontend/pages/rooms.html",
-    "bytes": 11943,
-    "sha256": "c28b095c5c4797ec7d58c540cc260501b94bf0ebb6d39c618c6b7a334efed2f2"
+    "bytes": 12707,
+    "sha256": "f4cf29463c0254e1e765654e70eca9be4c81112bf801d4b8ee0a60c408832933"
   },
   {
     "path": "frontend/pages/services.html",
