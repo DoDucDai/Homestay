@@ -481,8 +481,8 @@
   },
   {
     "path": "frontend/css/explore.css",
-    "bytes": 4828,
-    "sha256": "938aa2bcc5ca3ecba83c1e2ddd0b1a3643e296546a35e17e0138d205a5935f0e"
+    "bytes": 8138,
+    "sha256": "f2befd9b8632cdda0a2054e35f6273dcb906b7a250da584fac0a8301b3cc0349"
   },
   {
     "path": "frontend/css/fonts/be-vietnam-pro-400.woff",
@@ -736,8 +736,8 @@
   },
   {
     "path": "frontend/js/explore.js",
-    "bytes": 5643,
-    "sha256": "921a659e8a3c9fc5af93b5431343df606db529d9d4d093f745ff5420b4d98666"
+    "bytes": 8405,
+    "sha256": "940b402e090f6c896af27340388f24bcb7fdf790afd5b140eede6fb8f89433a1"
   },
   {
     "path": "frontend/js/landing.js",
@@ -831,8 +831,8 @@
   },
   {
     "path": "frontend/pages/explore.html",
-    "bytes": 4773,
-    "sha256": "bddff384ded5c69199295b1dc48cf404cab98bf145e49028d1909848a9f45562"
+    "bytes": 5742,
+    "sha256": "9f58442c12db227478ee9087493d4e3680b54ab4b7007674eb631d8d1877119a"
   },
   {
     "path": "frontend/pages/landing.html",
