@@ -1,6 +1,7 @@
 package com.homestay.controller;
 
 import com.homestay.db.DBConnection;
+import com.homestay.db.HourlyPricingMigration;
 import java.nio.file.*;
 import java.sql.*;
 import java.time.*;
@@ -47,6 +48,9 @@ public class HourlyBookingSqlServerIT {
                 ('H3','Unset rate','VIP',1200000,NULL,N'Trống'),
                 ('H4','Maintenance','Single',500000,70000,N'Bảo trì');
             """);
+        sql("INSERT Rooms(room_code,room_name,room_type,price,status) VALUES('P101','Poster source','Single',400000,N'Trống');");
+        try(var conn=DBConnection.getConnection()){HourlyPricingMigration.migrate(conn);HourlyPricingMigration.migrate(conn);}
+        require(((Number)new RoomController(CLOCK).getRoomById(5).get("hourlyPrice")).longValue()==80000,"Poster hourly price not seeded");
         require(HourlyStay.billedHours(LocalDateTime.parse(at("10:00")),LocalDateTime.parse(at("11:00")))==1,"Exact hour rounded wrong");
         require(HourlyStay.billedHours(LocalDateTime.parse(at("10:00")),LocalDateTime.parse(at("11:01")))==2,"Partial hour not rounded up");
         require(!ok(book(1,at("09:59"),at("11:00"))) && !ok(book(1,at("10:00"),at("10:00"))),"Invalid range accepted");
@@ -90,5 +94,38 @@ public class HourlyBookingSqlServerIT {
             require(ok(a.get())!=ok(b.get()),"Concurrent overlapping bookings both accepted or both failed");
         } finally {pool.shutdownNow();}
         System.out.println("PASS HOUR-05 concurrent overlapping bookings serialized by room lock");
+        var packages=Map.of("twoHours",250000,"fourHours",350000,"eightHours",550000);
+        require(ok(rooms.updateRoom(3,Map.of("roomName","Package room","roomType","VIP","price",1200000,"hourlyPrice",80000,"hourlyPackages",packages))),"Cannot configure packages");
+        require(!ok(rooms.updateRoom(3,Map.of("roomName","Package room","roomType","VIP","price",1200000,"hourlyPackages",Map.of("twoHours",1)))),"Partial packages accepted");
+        int packageBooking=id(app.createBooking(Map.of("billingUnit","Hour","customerId",1,"roomId",3,"checkinAt",at("10:00"),"checkoutAt",at("13:00"),"hourlyPackages",Map.of("twoHours",1))));
+        require(ok(app.checkIn(packageBooking)),"Package checkin failed");
+        require(((Number)app.previewCheckout(packageBooking).get("roomTotal")).longValue()==330000,"Three-hour package price incorrect or client quote trusted");
+        sql("UPDATE Rooms SET hourly_price=90000,hourly_package_2=900000,hourly_package_4=950000,hourly_package_8=990000 WHERE room_id=3");
+        try(var conn=DBConnection.getConnection()){HourlyPricingMigration.migrate(conn);}
+        require(((Number)rooms.getRoomById(3).get("hourlyPrice")).longValue()==90000,"Restart reset admin price");
+        require(((Number)app.previewCheckout(packageBooking).get("roomTotal")).longValue()==330000,"Room edits changed captured package total");
+        var packagePaid=app.checkOut(packageBooking,Map.of("paymentMethod","Tiền mặt"));require(ok(packagePaid),packagePaid.toString());
+        var saved=(Map<?,?>)app.getPayment(((Number)packagePaid.get("paymentId")).intValue()).get("invoice");
+        require(((Number)saved.get("roomTotal")).longValue()==330000 && saved.get("hourlyPackages")!=null,"Saved package invoice lost prices");
+        System.out.println("PASS HOUR-06 package booking, server authority, captured prices, saved invoice and restart preservation");
+        var weekend=Map.of("weekendPrice",450000,"weekendDays",List.of(6,7));
+        require(ok(rooms.updateRoom(2,Map.of("roomName","Weekend room","roomType","Double","price",400000,"nightlyPricing",weekend))),"Cannot set weekend prices");
+        require(!ok(rooms.updateRoom(2,Map.of("roomName","Weekend room","roomType","Double","price",400000,"nightlyPricing",Map.of("weekendPrice",450000,"weekendDays",List.of(8))))),"Invalid weekday accepted");
+        var available=app.getAvailableRooms("2031-01-17","2031-01-20").stream().filter(r->r.get("roomId").equals(2)).findFirst().orElseThrow();
+        require(((Number)available.get("estimatedRoomTotal")).longValue()==1300000 && ((Number)available.get("nights")).longValue()==3,"Availability quote differs from weekend booking");
+        int mixed=id(app.createBooking(Map.of("customerId",1,"roomId",2,"checkinDate","2031-01-17","checkoutDate","2031-01-20","nightlyPricing",Map.of("weekendPrice",1))));
+        try(var conn=DBConnection.getConnection()) {
+            require(((Number)BookingInvoiceSnapshot.build(conn,mixed).get("roomTotal")).longValue()==1300000,"Friday to Monday should be 400k+450k+450k");
+            require(((Number)BookingInvoiceSnapshot.build(conn,nightly).get("roomTotal")).longValue()==800000,"Weekend setup changed legacy booking");
+        }
+        require(ok(rooms.updateRoom(2,Map.of("roomName","Weekend room","roomType","Double","price",999999,"nightlyPricing",Map.of("weekendPrice",999999,"weekendDays",List.of(5,6))))),"Catalog edit failed");
+        try(var conn=DBConnection.getConnection()){HourlyPricingMigration.migrate(conn);require(((Number)BookingInvoiceSnapshot.build(conn,mixed).get("roomTotal")).longValue()==1300000,"Weekend catalog change altered booked price");}
+        var fridayApp=new BookingController(Clock.fixed(Instant.parse("2031-01-17T03:00:00Z"),RoomSchedule.ZONE));
+        require(ok(fridayApp.checkIn(mixed)),"Mixed-night checkin failed");
+        var nightPaid=fridayApp.checkOut(mixed,Map.of("paymentMethod","Tiền mặt"));require(ok(nightPaid),nightPaid.toString());
+        var nightInvoice=(Map<?,?>)app.getPayment(((Number)nightPaid.get("paymentId")).intValue()).get("invoice");
+        require(((Number)nightInvoice.get("roomTotal")).longValue()==1300000 && nightInvoice.get("nightlyPricing")!=null,"Nightly invoice snapshot lost rates");
+        require(((Number)rooms.getRoomById(2).get("price")).longValue()==999999,"Restart reset edited nightly price");
+        System.out.println("PASS NIGHT-01 weekend configuration, mixed stay, client price ignored, legacy/new snapshots, paid invoice and restart preservation");
     }
 }
