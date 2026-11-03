@@ -4,7 +4,7 @@ This branch packages the current local Homestay source for a browser-upload depl
 
 The archive contains readable source files (not a compiled application). See `deployment-manifest.json` for paths and SHA-256 checksums. No environment files, SQL exports, SQLite databases, or customer records are included. Only the reviewed public RAG knowledge bundle is included.
 
-Archive SHA-256: `93e34ac57143bd1e19d276c0fe57b2033f85bb7adefaca4fab7184a2b103328e`
+Archive SHA-256: `0b40e7d9d0c378df3f5a30c3a62eedd5edd67c1ee6821f88d68610a8b4a730c9`
 
 Build locally: `docker build -f Dockerfile.render .`
 
