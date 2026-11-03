@@ -1,0 +1,21 @@
+services:
+  homestay:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: homestay-mochi:local
+    init: true
+    restart: unless-stopped
+    env_file: .env.docker
+    environment:
+      SERVER_ADDRESS: 0.0.0.0
+      SERVER_PORT: "8080"
+      AI_RAG_DB_PATH: /var/lib/homestay/assistant.sqlite3
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - rag-data:/var/lib/homestay
+    stop_grace_period: 30s
+
+volumes:
+  rag-data:
