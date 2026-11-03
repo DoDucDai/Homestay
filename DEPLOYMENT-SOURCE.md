@@ -4,6 +4,6 @@ Build exclusively with `Dockerfile.render`. It unpacks the existing base `deploy
 
 Base archive SHA-256: `0b40e7d9d0c378df3f5a30c3a62eedd5edd67c1ee6821f88d68610a8b4a730c9` (commit 8819698).
 
-Overlay SHA-256: `5d3242ddc4bf497c25b5ca194dc9a52a90cdc0dca16ca41fbfb0fc3ddd083a82`.
+Overlay SHA-256: `1daf46ba1c39858b0eb962f12485f274029f503a6d063c8cff63bfc1c5155c90`.
 
 The final file checksums are in `deployment-manifest.json`. No environment files, SQL exports, SQLite databases or customer records are included.
