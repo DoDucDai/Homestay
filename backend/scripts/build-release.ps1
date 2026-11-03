@@ -9,7 +9,7 @@ try {
     $releaseDirectory = Join-Path $backendRoot 'target/release'
     New-Item -ItemType Directory -Force -Path $releaseDirectory | Out-Null
     Copy-Item -LiteralPath (Join-Path $backendRoot 'target/homestay-backend-1.0.0.jar') -Destination (Join-Path $releaseDirectory 'homestay.jar')
-    Copy-Item -LiteralPath (Join-Path $backendRoot '../DOCS.md') -Destination $releaseDirectory
+    Copy-Item -LiteralPath (Join-Path $backendRoot '../README.md') -Destination $releaseDirectory
     Copy-Item -LiteralPath (Join-Path $backendRoot '../.env.example') -Destination $releaseDirectory
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'start-release.ps1') -Destination $releaseDirectory
     Copy-Item -LiteralPath (Join-Path $backendRoot '../database') -Destination $releaseDirectory -Recurse
