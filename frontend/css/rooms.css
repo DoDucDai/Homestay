@@ -27,6 +27,7 @@
 .room-code { color: var(--color-text-muted); font-size: 11px; font-weight: 600; letter-spacing: .025em; }
 .room-type { color: var(--color-text-muted); font-size: 11px; }
 .room-tile-name { font-size: 15px; font-weight: 600; line-height: 1.35; margin-bottom: 3px; }
+.room-property-address { color:var(--color-text-muted); font-size:11px; line-height:1.6; }
 .room-tile .badge { padding: 2px 7px; font-size: 11px; line-height: 1.5; font-weight: 600; border-radius: 5px; }
 .room-tile-booked .badge { background: var(--color-warning-soft); color: var(--color-warning); }
 .room-tile-occupied .badge { background: var(--color-primary-soft); color: var(--color-primary-hover); }

@@ -299,3 +299,7 @@
 /* Allow the expanded navigation to wrap on intermediate screens. */
 .stay-header { flex-wrap:wrap; }
 .stay-top-nav { flex-wrap:wrap; gap:16px 22px; }
+@media(max-width:767px) {
+    .landing-page .stay-top-nav { display:flex;order:3;flex-basis:100%;gap:8px 18px;padding-top:12px;border-top:1px solid #ffffff26; }
+    .landing-page .stay-top-nav a { font-size:10px;padding:3px 0; }
+}
