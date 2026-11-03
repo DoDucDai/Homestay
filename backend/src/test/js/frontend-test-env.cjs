@@ -33,6 +33,7 @@ function env(module, options = {}) {
         confirm: message => { confirmations.push(message); return false; }, console
     });
     vm.runInContext(fs.readFileSync(path.join(root, 'api.js'), 'utf8'), context);
+    if(module==='rooms'||module==='explore')vm.runInContext(fs.readFileSync(path.join(root,'room-photos.js'),'utf8'),context);
     if(module === 'rooms') vm.runInContext(fs.readFileSync(path.join(root, 'room-stay.js'), 'utf8'), context);
     vm.runInContext(fs.readFileSync(path.join(root, module + '.js'), 'utf8'), context);
     if (!options.realConfirmation) context.askConfirmation = async message => context.confirm(message);

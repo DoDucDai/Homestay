@@ -22,3 +22,13 @@ assert.equal(e.el('explore-hour-price').textContent,'Chưa có giá theo giờ')
 e.el('explore-search').value='missing';e.context.renderExploreRooms();
 assert.match(e.el('explore-grid').textContent,/Không tìm thấy/);
 console.log('PASS public room search, filters, sorting, complete details, safe rendering, missing photos/prices and booking handoff');
+const poster=vm.runInContext("RoomPhotos.create({roomCode:'Room 401'},{gallery:true})",e.context);
+assert.equal(poster.children[0].href,'../css/images/rooms/room-401.webp');
+assert.equal(poster.children[0].children[0].children[0].getAttribute('href'),'../css/images/rooms/room-401.webp');
+assert.equal(poster.children[1].children.length,6);
+assert.equal(vm.runInContext("RoomPhotos.lookup({roomCode:'Room 408'})",e.context),null);
+for(const code of ['P401','DEMO-P401','Room 401'])assert.equal(vm.runInContext('RoomPhotos.lookup('+JSON.stringify({roomCode:code})+').number',e.context),'401');
+console.log('PASS canonical Room codes retain the matching full poster, gallery and unknown-room placeholder');
+e.context.renderExploreDetail({...rows[0],propertyId:1,propertyName:'Cơ sở 1',propertyAddress:'123 Đường Hoa Mai, TP. Hồ Chí Minh'});
+assert.equal(e.el('explore-room-property').textContent,'Cơ sở 1 · 123 Đường Hoa Mai, TP. Hồ Chí Minh');
+assert.equal(e.el('explore-room-property').hidden,false);

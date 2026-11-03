@@ -42,6 +42,13 @@ function pass(name) { passed++; console.log('PASS ' + name); }
     assert.equal(env.calls.length,1);
     pass('anonymous visitors remain on the public landing page without requesting protected data');
 
+    env=environment(async()=>response(401,{message:'Anonymous'}));
+    env.context.window.location.pathname='/pages/assistant.html';
+    assert.equal(await env.context.checkLogin(),null);
+    assert.equal(env.redirects.length,0);
+    assert.equal(env.calls.length,1);
+    pass('anonymous visitors can view the assistant header without being redirected or requesting chat data');
+
     env=environment(async()=>response(401,{message:'Anonymous'}),true);
     Object.assign(env.context.window.location,{href:'http://localhost:8080/pages/login.html',origin:'http://localhost:8080',search:'?next='+encodeURIComponent('/pages/bookings.html?date=2026-11-02&mode=hours')});
     vm.runInContext(fs.readFileSync(path.join(frontend,'auth.js'),'utf8'),env.context);
