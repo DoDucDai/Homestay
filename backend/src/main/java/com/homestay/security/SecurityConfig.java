@@ -87,10 +87,11 @@ public class SecurityConfig {
                         csrfError?"Phiên xác nhận không hợp lệ. Vui lòng tải lại trang!":"Bạn không có quyền thực hiện thao tác này!");
             }))
             .authorizeHttpRequests(c -> c
+                .requestMatchers(HttpMethod.GET,"/api/health").permitAll()
                 .requestMatchers("/","/pages/landing.html","/pages/explore.html","/pages/login.html","/pages/policies.html","/pages/support.html","/pages/assistant.html","/css/**","/js/**","/ai/**","/favicon.ico","/error").permitAll()
                 .requestMatchers("/api/assistant/documents","/api/assistant/support/reply").hasRole("ADMIN")
                 .requestMatchers("/api/assistant/**").hasAnyRole("ADMIN","STAFF")
-                .requestMatchers(HttpMethod.GET,"/api/public/rooms","/api/public/rooms/*").permitAll()
+                .requestMatchers(HttpMethod.GET,"/api/public/rooms","/api/public/rooms/*","/api/public/properties").permitAll()
                 .requestMatchers(HttpMethod.GET,"/api/auth/csrf").permitAll()
                 .requestMatchers(HttpMethod.POST,"/api/auth/login").permitAll()
                 .requestMatchers("/api/auth/profile","/api/auth/me","/api/auth/logout","/api/auth/change-password").hasAnyRole("ADMIN","STAFF")
