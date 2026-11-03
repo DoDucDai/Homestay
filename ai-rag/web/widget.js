@@ -18,6 +18,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   }catch{host.textContent='Chưa tải được trợ lý. Vui lòng thử lại.';}
  };
  // Support notifications stay separate from the AI mascot.
- async function refresh(){if(document.hidden)return;try{const me=await fetch('/api/auth/me',{credentials:'include',cache:'no-store'});if(!me.ok)return;const account=await me.json();if(account.user?.role!=='admin')return;const response=await fetch('/api/assistant/support',{credentials:'include',cache:'no-store'});if(!response.ok)return;const data=await response.json();for(const link of document.querySelectorAll('a[href="support.html"]'))link.textContent=data.unread?'Support ('+data.unread+')':'Support';}catch{}}
+ async function refresh(){if(document.hidden)return;try{const me=await fetch('/api/auth/me',{credentials:'include',cache:'no-store'});if(!me.ok)return;const account=await me.json();if(account.user?.role!=='admin')return;const response=await fetch('/api/assistant/support',{credentials:'include',cache:'no-store'});if(!response.ok)return;const data=await response.json();for(const link of document.querySelectorAll('.stay-top-nav a[href="support.html"], .policy-header nav a[href="support.html"]'))link.textContent=data.unread?'Support ('+data.unread+')':'Support';}catch{}}
  refresh();const timer=setInterval(refresh,30000);window.addEventListener('pagehide',()=>clearInterval(timer));
 });
