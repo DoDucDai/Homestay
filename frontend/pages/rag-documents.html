@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Tài liệu RAG - Homestay</title><link rel="icon" href="../css/images/homestay-logo.svg"><link rel="stylesheet" href="../css/style.css"><link rel="stylesheet" href="../ai/assistant.css"><link rel="stylesheet" href="../ai/documents-page.css"></head>
+<body class="session-pending rag-documents-page">
+<a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
+<div id="session-status" class="session-status" role="status" aria-live="polite"><span id="session-message">Đang kiểm tra phiên đăng nhập...</span><button id="session-retry" class="btn btn-secondary" hidden>Thử lại</button></div>
+<div class="wrapper"><nav id="app-sidebar" class="sidebar" aria-label="Điều hướng chính"></nav><main id="main-content" class="main-content" tabindex="-1">
+<header class="rag-heading"><div><p class="rag-eyebrow">KHU QUẢN TRỊ · MOCHI</p><h1>Tài liệu RAG</h1><p class="text-muted">Quản lý nguồn thông tin được duyệt để Mochi tham khảo khi trả lời.</p></div><a class="btn btn-secondary" href="assistant.html">Mở Mochi ↗</a></header>
+<section id="documents-denied" class="card" hidden><h2>Chỉ dành cho quản trị viên</h2><p>Bạn không có quyền quản lý tài liệu RAG.</p><a href="assistant.html">Quay lại Mochi</a></section>
+<div id="documents-workspace" hidden><p id="support-status" role="status" aria-live="polite"></p><div class="rag-layout">
+<section class="card rag-editor"><h2>Soạn tài liệu</h2><p class="text-muted">Chỉ công bố nội dung đã được xác nhận. Mỗi lần cập nhật sẽ tạo phiên bản mới.</p><form id="document-form"><input type="hidden" id="document-id"><div class="form-group"><label for="document-title">Tên tài liệu</label><input id="document-title" maxlength="150" required></div><div class="form-group"><label for="document-content">Nội dung</label><textarea id="document-content" maxlength="15000" rows="12" required></textarea></div><div class="rag-actions"><button class="btn btn-primary" type="submit">Lưu & công bố</button><button type="reset" class="btn btn-secondary">Tạo mới</button></div></form></section>
+<section class="card rag-library"><h2>Tài liệu đang sử dụng</h2><p class="text-muted">Tài liệu được gỡ sẽ không còn xuất hiện trong các lượt truy xuất mới.</p><div id="ai-documents"></div></section>
+</div></div></main></div>
+<script src="../js/api.js"></script><script src="../js/shell.js"></script><script src="../js/account.js"></script><script src="../ai/documents.js"></script><script src="../ai/documents-page.js"></script><script src="../ai/widget.js"></script>
+</body></html>

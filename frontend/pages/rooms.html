@@ -6,6 +6,7 @@
     <title>Quản Lý Phòng - Homestay Management</title>
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/rooms.css">
+    <link rel="stylesheet" href="../css/room-photos.css">
     <link rel="icon" type="image/svg+xml" href="../css/images/homestay-logo.svg">
 <link rel="stylesheet" href="../ai/assistant.css">
 </head>
@@ -31,7 +32,7 @@
     <!-- NOI DUNG CHINH -->
     <main id="main-content" class="main-content" tabindex="-1">
         <header class="rooms-heading">
-            <div><p class="rooms-eyebrow">DANH MỤC HOMESTAY</p><h1>Quản lý phòng</h1>
+            <div><p class="rooms-eyebrow">DANH MỤC · <span data-property-label>Cơ sở 1</span></p><h1>Quản lý phòng</h1>
                 <p class="text-muted">Chọn phòng, đặt theo giờ và theo dõi khách trong cùng một cửa sổ.</p></div>
             <button id="room-add-btn" data-admin-only hidden class="btn btn-primary" onclick="openAddModal()">Thêm phòng</button>
         </header>
@@ -69,10 +70,11 @@
         <p id="room-form-error" class="form-error" role="alert" hidden></p>
 
         <input type="hidden" id="room-id">
+        <div class="form-group"><label for="room-property">Cơ sở</label><select id="room-property"></select></div>
 
         <div class="form-grid"><div class="form-group">
             <label for="room-code">Mã phòng *</label>
-        <input type="text" maxlength="20" id="room-code" required aria-describedby="room-code-error" placeholder="VD: P101">
+        <input type="text" maxlength="20" id="room-code" required aria-describedby="room-code-error" placeholder="VD: Room 401">
             <span id="room-code-error" class="form-error" hidden></span>
         </div>
         <div class="form-group">
@@ -92,16 +94,26 @@
             <span id="room-type-error" class="form-error" hidden></span>
         </div>
         <div class="form-group">
-            <label for="room-hourly-price">Giá / giờ (VNĐ)</label>
+            <label for="room-hourly-price">Giá / giờ hoặc giờ lẻ ngoài gói (VNĐ)</label>
             <input type="number" min="1" max="999999999999" step="1" id="room-hourly-price" aria-describedby="room-hourly-price-error" placeholder="Nhập giá giờ thực tế">
             <span id="room-hourly-price-error" class="form-error" hidden></span>
         </div>
         <div class="form-group">
-            <label for="room-price">Giá / đêm (VNĐ) *</label>
+            <label for="room-price">Giá đêm ngày thường (VNĐ) *</label>
             <input type="number" min="1" max="999999999999" step="1" id="room-price" required aria-describedby="room-price-error" placeholder="Giá cho đặt qua đêm">
             <span id="room-price-error" class="form-error" hidden></span>
         </div></div>
-        <p class="rooms-note">Phòng mới mặc định Trống. Trạng thái được tính theo booking; bật/tắt bảo trì ở danh sách phòng.</p>
+        <div class="form-grid">
+          <div class="form-group"><label for="room-weekend-price">Giá đêm cuối tuần (VNĐ)</label><input type="number" id="room-weekend-price" min="1" max="999999999999" step="1" placeholder="450000"></div>
+          <div class="form-group"><label for="room-weekend-days">Các đêm tính giá cuối tuần</label><select id="room-weekend-days"><option value="6,7">Đêm thứ Bảy và Chủ nhật</option><option value="5,6">Đêm thứ Sáu và thứ Bảy</option></select></div>
+        </div>
+        <p class="rooms-note">Giá đêm tính theo ngày bắt đầu từng đêm, không tính ngày trả phòng. Bỏ trống giá cuối tuần để áp dụng cùng một giá cho mọi đêm.</p>
+        <div class="form-grid">
+          <div class="form-group"><label for="room-package-2">Gói 2 giờ (VNĐ)</label><input type="number" id="room-package-2" min="1" max="999999999999" step="1" placeholder="250000"></div>
+          <div class="form-group"><label for="room-package-4">Gói 4 giờ (VNĐ)</label><input type="number" id="room-package-4" min="1" max="999999999999" step="1" placeholder="350000"></div>
+          <div class="form-group"><label for="room-package-8">Gói 8 giờ (VNĐ)</label><input type="number" id="room-package-8" min="1" max="999999999999" step="1" placeholder="550000"></div>
+        </div>
+        <p class="rooms-note">Nhập đủ cả ba giá để dùng gói; bỏ trống cả ba để tính giá mỗi giờ. Giá gói tối thiểu 2 giờ, phần vượt gói cộng giờ lẻ, tự chọn gói có tổng tiền thấp nhất. Thời gian lẻ làm tròn lên mỗi giờ. Phòng mới mặc định Trống.</p>
         <div class="form-group">
             <label for="room-desc">Mô tả</label>
             <textarea maxlength="500" id="room-desc" rows="3" aria-describedby="room-desc-error" placeholder="Mô tả ngắn về phòng..."></textarea>
@@ -121,6 +133,7 @@
   <div class="modal-box room-stay-box">
     <div class="stay-heading"><div><p class="rooms-eyebrow">CHI TIẾT PHÒNG</p><h2 id="stay-title" tabindex="-1">Thông tin phòng</h2></div><button id="stay-close" type="button" data-modal-close class="btn btn-secondary" onclick="closeRoomStay()">Đóng</button></div>
     <p id="stay-summary" class="text-muted"></p>
+    <div id="stay-photo" class="stay-room-photo" hidden></div>
     <p id="stay-message" class="text-muted" role="status" aria-live="polite"></p>
     <section class="stay-section" aria-labelledby="stay-schedule-title"><h3 id="stay-schedule-title">Khách & lịch đặt</h3><div id="stay-bookings"></div></section>
     <section id="stay-invoice" class="stay-section" hidden aria-labelledby="stay-invoice-title">
@@ -147,6 +160,7 @@
 <script src="../js/shell.js"></script>
 <script src="../js/account.js"></script>
 <!-- JS xu ly phong -->
+<script src="../js/room-photos.js"></script>
 <script src="../js/room-stay.js"></script>
 <script src="../js/rooms.js"></script>
 

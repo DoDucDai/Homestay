@@ -5,6 +5,7 @@
     <meta name="description" content="Khám phá các phòng Homestay, xem thông tin phòng và giá lưu trú.">
     <title>Khám phá phòng — Homestay</title>
     <link rel="stylesheet" href="../css/style.css"><link rel="stylesheet" href="../css/landing.css"><link rel="stylesheet" href="../css/explore.css">
+    <link rel="stylesheet" href="../css/room-photos.css">
     <link rel="icon" type="image/svg+xml" href="../css/images/homestay-logo.svg">
 <link rel="stylesheet" href="../ai/assistant.css">
 <link rel="stylesheet" href="../css/site-footer.css"></head>
@@ -21,6 +22,7 @@
         <header class="explore-intro"><p class="explore-eyebrow">KHÔNG GIAN DÀNH CHO BẠN</p><h1 id="explore-title">Tìm một khoảng nghỉ phù hợp.</h1><p>Xem thông tin phòng, chọn không gian bạn thích và tiếp tục đến lịch đặt khi đã sẵn sàng.</p></header>
         <form class="explore-filters" id="explore-filters" role="search">
             <div class="form-group"><label for="explore-search">Tìm phòng</label><input id="explore-search" type="search" maxlength="100" placeholder="Tên hoặc mã phòng"></div>
+            <div class="form-group"><label for="explore-property">Cơ sở</label><select id="explore-property"><option value="">Tất cả cơ sở</option></select></div>
             <div class="form-group"><label for="explore-type">Loại phòng</label><select id="explore-type"><option value="">Tất cả loại phòng</option></select></div>
             <div class="form-group"><label for="explore-sort">Sắp xếp</label><select id="explore-sort"><option value="code">Theo mã phòng</option><option value="price-up">Giá đêm tăng dần</option><option value="price-down">Giá đêm giảm dần</option></select></div>
         </form>
@@ -31,16 +33,29 @@
         <a href="explore.html" class="explore-back">← Tất cả phòng</a>
         <div class="explore-detail-layout"><div id="explore-detail-photo" class="explore-detail-photo"></div><article class="explore-detail-copy">
             <p id="explore-room-type" class="explore-eyebrow"></p><h1 id="explore-room-title"></h1><p id="explore-room-code" class="text-muted"></p>
+            <p id="explore-room-property" class="explore-property-address" hidden></p>
             <h2>Thông tin phòng</h2><p id="explore-room-description" class="explore-description"></p>
-            <dl class="explore-prices"><div><dt>Giá theo đêm</dt><dd id="explore-night-price"></dd></div><div><dt>Giá theo giờ</dt><dd id="explore-hour-price"></dd></div></dl>
-            <p class="explore-booking-note">Chọn thời gian trong lịch đặt để kiểm tra phòng còn trống và giá cho lượt lưu trú của bạn. Đăng nhập khi tiếp tục đặt phòng.</p>
-            <a id="explore-book-link" class="stay-button stay-button-dark" href="bookings.html">Xem lịch & đặt phòng <span aria-hidden="true">↗</span></a>
+            <section class="explore-rate-panel" aria-labelledby="explore-rate-title">
+                <header class="explore-rate-heading"><h2 id="explore-rate-title">Giá lưu trú</h2><span>VND</span></header>
+                <section class="explore-rate-section" aria-labelledby="explore-overnight-title">
+                    <h3 id="explore-overnight-title"><svg aria-hidden="true" viewBox="0 0 24 24"><use href="../css/icons.svg#bed"></use></svg>Nghỉ qua đêm</h3>
+                    <dl id="explore-night-price" class="explore-night-rates"></dl>
+                </section>
+                <section class="explore-rate-section explore-hour-section" aria-labelledby="explore-hourly-title">
+                    <h3 id="explore-hourly-title"><svg aria-hidden="true" viewBox="0 0 24 24"><use href="../css/icons.svg#calendar"></use></svg>Nghỉ theo giờ</h3>
+                    <dl id="explore-hour-price" class="explore-hour-rates"></dl>
+                    <p id="explore-extra-hour" class="explore-extra-hour" hidden></p>
+                    <p id="explore-hour-rule" class="explore-rate-rule" hidden></p>
+                </section>
+                <a id="explore-book-link" class="stay-button stay-button-dark explore-book-button" href="bookings.html">Xem lịch & đặt phòng <span aria-hidden="true">↗</span></a>
+                <p class="explore-booking-note">Tiền phòng chưa gồm dịch vụ phát sinh. Chọn thời gian để kiểm tra giá và phòng trống.</p>
+            </section>
         </article></div>
     </section>
     <section id="explore-error" class="explore-empty" hidden role="status"><h2>Chưa thể hiển thị thông tin phòng</h2><p id="explore-error-message"></p><button id="explore-retry" class="btn btn-primary">Thử lại</button><a href="explore.html">Xem tất cả phòng</a></section>
 </main>
 <footer data-site-footer id="cuoi-trang"></footer>
-<script src="../js/api.js"></script><script src="../js/account.js"></script><script src="../js/explore.js"></script>
+<script src="../js/api.js"></script><script src="../js/account.js"></script><script src="../js/room-photos.js"></script><script src="../js/explore.js"></script>
 <script src="../ai/widget.js"></script>
 <script src="../js/site-footer.js"></script></body>
 </html>
