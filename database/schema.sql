@@ -30,9 +30,19 @@ CREATE TABLE Users (
 -- BANG 2: ROOMS (Phong)
 -- NGUOI LAM: LONG
 -- ============================================
+CREATE TABLE Properties (
+    property_id INT PRIMARY KEY,
+    property_name NVARCHAR(100) NOT NULL,
+    address NVARCHAR(250) NOT NULL
+);
+INSERT INTO Properties(property_id,property_name,address)
+VALUES(1,N'Cơ sở 1',N'123 Đường Hoa Mai, TP. Hồ Chí Minh');
+
 CREATE TABLE Rooms (
     room_id     INT IDENTITY(1,1) PRIMARY KEY,
-    room_code   NVARCHAR(20)  NOT NULL UNIQUE,   -- VD: P101, P102
+    room_code   NVARCHAR(20)  NOT NULL UNIQUE,   -- VD: Room 101, Room 102
+    property_id INT NOT NULL CONSTRAINT DF_Rooms_Property DEFAULT 1
+        CONSTRAINT FK_Rooms_Property REFERENCES Properties(property_id),
     room_name   NVARCHAR(100) NOT NULL,
     room_type   NVARCHAR(50)  NOT NULL,           -- Single, Double, VIP, Family
     price       DECIMAL(12,0) NOT NULL,           -- Gia / dem
