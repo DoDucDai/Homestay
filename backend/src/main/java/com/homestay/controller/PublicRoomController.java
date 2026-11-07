@@ -8,12 +8,19 @@ import java.sql.*;
 import java.util.*;
 
 /** Public presentation fields only; booking and operational data remain protected. */
+// NOTE API: Danh mục phòng công khai cho trang giới thiệu; chỉ trả trường cần trình bày, không trả khách hoặc booking.
+// @...Mapping xác định phương thức HTTP và đường dẫn; @RequestBody đọc JSON,
+// @PathVariable đọc ID trong URL, @RequestParam đọc tham số sau dấu ?. Quyền truy cập nằm trong SecurityConfig.
 @RestController
 @RequestMapping("/api/public/rooms")
 public class PublicRoomController {
+    // NOTE API: GET /api/public/rooms xem danh sách phòng giới thiệu mà không cần đăng nhập.
+    // Ẩn phòng bảo trì; dữ liệu gồm tên, loại, giá, mô tả và cơ sở, không phải cam kết phòng trống theo lịch.
     @GetMapping
     public List<Map<String,Object>> list() { return read(null); }
 
+    // NOTE API: GET /api/public/rooms/{id} xem chi tiết công khai của một phòng.
+    // Trả lỗi 404 nếu phòng không còn thuộc danh mục giới thiệu; không cho sửa dữ liệu qua API này.
     @GetMapping("/{id}")
     public Map<String,Object> detail(@PathVariable int id) {
         Input.id(id);

@@ -6,6 +6,9 @@ import org.springframework.web.bind.annotation.*;
 import java.sql.*;
 import java.util.*;
 
+// NOTE API: Danh mục dịch vụ dùng chung cho admin/customer; các API /api/statistics chỉ dành cho admin.
+// @...Mapping xác định phương thức HTTP và đường dẫn; @RequestBody đọc JSON,
+// @PathVariable đọc ID trong URL, @RequestParam đọc tham số sau dấu ?. Quyền truy cập nằm trong SecurityConfig.
 @RestController
 @RequestMapping("/api")
 public class ServiceStatController {
@@ -22,6 +25,8 @@ public class ServiceStatController {
         result.put("serviceName",rs.getString("service_name"));result.put("unitPrice",rs.getBigDecimal("unit_price"));
         result.put("status",rs.getString("status"));return result;
     }
+    // NOTE API: GET /api/services trả danh mục dịch vụ gồm ID, tên, đơn giá và trạng thái.
+    // Dùng cho trang dịch vụ và lựa chọn dịch vụ khi khách đang lưu trú.
     @GetMapping("/services")
     public List<Map<String,Object>> getAllServices() {
         List<Map<String,Object>> result=new ArrayList<>();
@@ -30,6 +35,8 @@ public class ServiceStatController {
         } catch(SQLException e) { throw ApiErrors.databaseFailure(e); }
         return result;
     }
+    // NOTE API: GET /api/services/{id} trả chi tiết một dịch vụ theo ID.
+    // Trả lỗi 404 khi ID hợp lệ nhưng không có dịch vụ tương ứng.
     @GetMapping("/services/{id}")
     public Map<String,Object> getServiceById(@PathVariable int id) {
         return ApiErrors.guard(() -> {
@@ -42,6 +49,8 @@ public class ServiceStatController {
 
         });
     }
+    // NOTE API: POST /api/services nhận serviceName, unitPrice và status để tạo dịch vụ.
+    // Kiểm tra đơn giá nguyên không âm và trạng thái Hoạt động/Ngừng trước khi lưu.
     @PostMapping("/services")
     public Map<String,Object> createService(@RequestBody Map<String,Object> body) {
         return ApiErrors.guard(() -> {
@@ -54,6 +63,8 @@ public class ServiceStatController {
 
         });
     }
+    // NOTE API: PUT /api/services/{id} đổi tên, đơn giá hoặc trạng thái dịch vụ.
+    // Chỉ đổi danh mục hiện tại; giá và tên đã chụp trong các lần sử dụng trước vẫn được giữ.
     @PutMapping("/services/{id}")
     public Map<String,Object> updateService(@PathVariable int id,@RequestBody Map<String,Object> body) {
         return ApiErrors.guard(() -> {
@@ -67,6 +78,8 @@ public class ServiceStatController {
 
         });
     }
+    // NOTE API: DELETE /api/services/{id} xóa dịch vụ chưa có dữ liệu sử dụng.
+    // Nếu dịch vụ đã được gọi trong booking thì trả lỗi xung đột; có thể đổi sang Ngừng thay vì xóa.
     @DeleteMapping("/services/{id}")
     public Map<String,Object> deleteService(@PathVariable int id) {
         return ApiErrors.guard(() -> {
@@ -93,6 +106,8 @@ public class ServiceStatController {
     // GET /api/statistics/overview
     // Return: { totalRooms, availableRooms, bookedRooms, occupiedRooms, maintenanceRooms, totalCustomers, totalBookingsThisMonth, revenueThisMonth }
     public Map<String,Object> getOverview(){return getOverview(null);}
+    // NOTE API: GET /api/statistics/overview trả tổng quan phòng, khách, booking và doanh thu tháng hiện tại.
+    // Query propertyId dùng để giới hạn cơ sở; doanh thu chỉ cộng hóa đơn đã thanh toán.
     @GetMapping("/statistics/overview")
     public Map<String, Object> getOverview(@RequestParam(required=false) Integer propertyId) {
         if(propertyId!=null)Input.id(propertyId);
@@ -179,6 +194,8 @@ public class ServiceStatController {
     public List<Map<String, Object>> getRevenue(@RequestParam int month, @RequestParam int year) {
         return getRevenue(month,year,null);
     }
+    // NOTE API: GET /api/statistics/revenue nhận month, year và propertyId tùy chọn.
+    // Trả các hóa đơn đã thanh toán trong tháng; ưu tiên tên khách/mã phòng từ bản chụp hóa đơn cũ.
     @GetMapping("/statistics/revenue")
     public List<Map<String,Object>> getRevenue(@RequestParam int month,@RequestParam int year,@RequestParam(required=false) Integer propertyId) {
         if(month<1 || month>12 || year<1 || year>9999) throw ApiErrors.invalid("Tháng cần từ 1–12, năm cần từ 1–9999!");
@@ -230,6 +247,8 @@ public class ServiceStatController {
     }
 
     public List<java.math.BigDecimal> getYearly(int year){return getYearly(year,null);}
+    // NOTE API: GET /api/statistics/yearly nhận year và propertyId tùy chọn để tổng hợp doanh thu năm.
+    // Trả mảng đúng 12 phần tử theo tháng 1 đến 12; tháng không có thanh toán nhận giá trị 0.
     @GetMapping("/statistics/yearly")
     public List<java.math.BigDecimal> getYearly(@RequestParam int year,@RequestParam(required=false) Integer propertyId) {
         if(year<1 || year>9999) throw ApiErrors.invalid("Năm cần từ 1–9999!");

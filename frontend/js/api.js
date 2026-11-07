@@ -1,4 +1,6 @@
 // Cookie sessions and CSRF. Set HOMESTAY_API_BASE before this file only for explicit dev CORS.
+// NOTE API: Tiền tố URL backend; ví dụ apiGet("/rooms") sẽ gọi /api/rooms.
+// Chỉ đặt HOMESTAY_API_BASE trước file này khi cấu hình frontend/backend khác địa chỉ trong môi trường dev.
 const API_BASE = window.HOMESTAY_API_BASE || '/api';
 let activePropertyId=(()=>{
     const requested=new URLSearchParams(window.location.search).get('property');
@@ -11,6 +13,8 @@ function setSelectedProperty(id){
     activePropertyId=id?Number(id):null;
     try{localStorage.setItem('homestay-property',activePropertyId?String(activePropertyId):'all');}catch(_){}
 }
+// NOTE API: Gắn propertyId đang chọn vào API đọc phòng, booking, hóa đơn và thống kê.
+// Không sửa các endpoint khác, tránh gửi tham số cơ sở vào API tài khoản.
 function propertyScopedEndpoint(endpoint){
     if(!activePropertyId || !/^\/(?:rooms(?:\?|$)|bookings(?:\?|$)|payments(?:\?|$)|statistics\/)/.test(endpoint))return endpoint;
     const [path,query='']=endpoint.split('?'),params=new URLSearchParams(query);params.set('propertyId',activePropertyId);
@@ -84,6 +88,8 @@ function validHourlyInvoice(p) {
     try {return quoteHourly(p.pricePerHour,p.hourlyPackages,p.billedHours).total===p.roomTotal;}
     catch {return false;}
 }
+// NOTE API: Lưu trạng thái phiên trong bộ nhớ và dùng chung yêu cầu đang chạy để tránh gọi xác thực nhiều lần.
+// Cookie do server quản lý; authVersion giúp bỏ kết quả cũ nếu người dùng vừa đăng nhập/đăng xuất.
 let authPromise = null;
 let currentUser = null;
 let csrfPromise = null;
@@ -98,12 +104,14 @@ function validAccountPassword(value) {
 }
 try { sessionStorage.removeItem('currentUser'); } catch { /* Storage is optional; the server owns the session. */ }
 
+// NOTE API: Xóa dữ liệu xác thực và mã CSRF đang nhớ sau khi phiên thay đổi; lần gọi sau phải kiểm tra lại server.
 function resetAuth() {
     authVersion++;
     currentUser = null;
     authPromise = null;
     csrfPromise = null;
 }
+// NOTE API: Chuyển về trang đăng nhập khi hết phiên, giữ URL hiện tại trong next để có thể quay lại.
 function goToLogin() {
     if (!window.location.pathname.endsWith('/login.html') && !redirectingToLogin) {
         redirectingToLogin = true;
@@ -111,6 +119,8 @@ function goToLogin() {
         window.location.replace('login.html?next='+encodeURIComponent(next));
     }
 }
+// NOTE API: Đọc JSON phản hồi và chuyển HTTP lỗi hoặc success=false thành Error cho trang gọi xử lý.
+// error.status và error.code giúp phân biệt hết phiên, thiếu quyền, sai CSRF hoặc xung đột dữ liệu.
 async function responseJson(response) {
     let data;
     try { data = await response.json(); }
@@ -131,6 +141,8 @@ async function responseJson(response) {
     }
     return data;
 }
+// NOTE API: Gọi GET /auth/me kèm cookie để biết tài khoản và quyền thực sự từ server.
+// force=true buộc tải lại; nếu hết phiên thì chuyển trang bảo vệ về đăng nhập, còn trang công khai vẫn xem được.
 async function checkLogin(force = false) {
     if (force) { authVersion++; authPromise = null; csrfPromise = null; }
     if (authPromise && !force) return authPromise;
@@ -157,6 +169,8 @@ async function checkLogin(force = false) {
     })();
     return authPromise;
 }
+// NOTE API: Gọi GET /auth/csrf để lấy token/headerName; dùng chung kết quả trong cùng phiên.
+// Token này được gửi lại ở header X-CSRF-TOKEN của yêu cầu ghi dữ liệu nhằm chống giả mạo yêu cầu.
 async function getCsrfToken() {
     if (!csrfPromise) {
         const version = authVersion;
@@ -176,10 +190,14 @@ async function getCsrfToken() {
     }
     return csrfPromise;
 }
+// NOTE API: Hàm gửi yêu cầu chung: kiểm tra phiên, gửi cookie, gắn CSRF cho phương thức khác GET và mã hóa JSON.
+// Các API đăng nhập/đăng ký/khôi phục được phép gọi khi chưa đăng nhập nhưng yêu cầu ghi vẫn gửi CSRF.
+// Kết quả đi qua responseJson; khi đổi tài khoản/mật khẩu thì làm mới trạng thái phiên trong bộ nhớ.
 async function apiRequest(endpoint, method = 'GET', data) {
     const isLogin = ['/auth/login','/auth/register','/auth/forgot-password','/auth/reset-password'].includes(endpoint);
     if (!isLogin && !await checkLogin()) throw new Error('Vui lòng đăng nhập để tiếp tục.');
     const version = authVersion;
+    // NOTE API: credentials=include gửi cookie phiên; no-store tránh dùng dữ liệu tài khoản cũ từ bộ nhớ đệm.
     const options = { method, credentials: 'include', cache: 'no-store', headers: {} };
     if (method !== 'GET') {
         const csrf = await getCsrfToken();
@@ -201,15 +219,20 @@ async function apiRequest(endpoint, method = 'GET', data) {
         return result;
     } catch (error) {
         if (version !== authVersion) throw new Error('Phiên đã thay đổi. Vui lòng tải lại trang.');
+        // NOTE API: CSRF hết hiệu lực thì bỏ token cũ; HTTP 401 ở API được bảo vệ thì xóa trạng thái và yêu cầu đăng nhập lại.
         if (error.code === 'CSRF_INVALID') csrfPromise = null;
         if (error.status === 401 && !isLogin) { resetAuth(); goToLogin(); }
         // Do not retry writes automatically: a response can be lost after commit.
         throw error;
     }
 }
+// NOTE API: GET đọc dữ liệu; tự thêm bộ lọc cơ sở vào các danh sách có hỗ trợ.
 function apiGet(endpoint) { return apiRequest(propertyScopedEndpoint(endpoint)); }
+// NOTE API: POST gửi JSON để tạo dữ liệu hoặc thực hiện hành động như đăng nhập/thanh toán.
 function apiPost(endpoint, data) { return apiRequest(endpoint, 'POST', data); }
+// NOTE API: PUT gửi JSON để cập nhật dữ liệu hoặc chuyển trạng thái như nhận/hủy phòng.
 function apiPut(endpoint, data) { return apiRequest(endpoint, 'PUT', data); }
+// NOTE API: DELETE xóa bản ghi theo endpoint; server vẫn kiểm tra quyền và ràng buộc dữ liệu.
 function apiDelete(endpoint) { return apiRequest(endpoint, 'DELETE'); }
 
 let alertMessageVersion = 0;

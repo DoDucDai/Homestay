@@ -5,6 +5,8 @@ import java.util.*;
 import java.util.function.Supplier;
 import org.slf4j.LoggerFactory;
 
+// NOTE API: Tạo nội dung lỗi JSON chung gồm success=false, code và message.
+// Body giữ thêm status để ApiExceptionHandler đặt đúng mã HTTP, thay vì trả mọi lỗi thành HTTP 200.
 public final class ApiErrors {
     public static final class Body extends LinkedHashMap<String,Object> {
         public final int status;
@@ -13,6 +15,8 @@ public final class ApiErrors {
         }
     }
     private ApiErrors() {}
+    // NOTE API: Các hàm dưới tạo lỗi theo nhóm: 400 dữ liệu sai, 404 không tìm thấy, 409 xung đột.
+    // notFound/invalid tạo ngoại lệ để ném; from đổi ngoại lệ nghiệp vụ thành nội dung phản hồi.
     public static Body error(int status,String code,String message) { return new Body(status,code,message); }
     public static Body bad(String message) { return error(400,"INVALID_INPUT",message); }
     public static Body missing(String message) { return error(404,"NOT_FOUND",message); }
@@ -20,9 +24,12 @@ public final class ApiErrors {
     public static ApiProblem notFound(String message) { return new ApiProblem(404,"NOT_FOUND",message); }
     public static ApiProblem invalid(String message) { return new ApiProblem(400,"INVALID_INPUT",message); }
     public static Body from(ApiProblem error) { return error(error.status,error.code,error.getMessage()); }
+    // NOTE API: Chạy khối xử lý của controller và chuyển ApiProblem thành JSON lỗi; kết quả thành công giữ nguyên.
     public static Map<String,Object> guard(Supplier<Map<String,Object>> work) {
         try { return work.get(); } catch(ApiProblem error) { return from(error); }
     }
+    // NOTE API: Đổi lỗi SQL thành mã phù hợp: trùng/liên kết dữ liệu là 409, quá dài là 400, lỗi truy cập khác là 503.
+    // Chi tiết kỹ thuật được ghi log server; frontend nhận thông báo ngắn, không nhận nguyên câu SQL hoặc stack trace.
     public static Body database(SQLException error) {
         if(error.getErrorCode()==2601 || error.getErrorCode()==2627) return error(409,"DUPLICATE","Dữ liệu bị trùng với bản ghi đã có!");
         if(error.getErrorCode()==547) return error(409,"DATA_CONFLICT","Dữ liệu đang liên kết hoặc không còn hợp lệ. Vui lòng tải lại!");
@@ -30,10 +37,12 @@ public final class ApiErrors {
         LoggerFactory.getLogger(ApiErrors.class).error("Database request failed ({})",error.getClass().getSimpleName(),error);
         return error(503,"DATABASE_UNAVAILABLE","Không thể truy cập dữ liệu lúc này. Vui lòng thử lại!");
     }
+    // NOTE API: Dạng ngoại lệ của lỗi SQL, dùng khi hàm không thể trả trực tiếp ApiErrors.Body.
     public static ApiProblem databaseFailure(SQLException error) {
         Body body=database(error);
         return new ApiProblem(body.status,(String)body.get("code"),(String)body.get("message"));
     }
+    // NOTE API: Ghi lỗi ngoài dự kiến kèm mã tra cứu vào log; trả 500 và mã đó để hỗ trợ tìm nguyên nhân.
     public static Body unexpected(Throwable error) {
         String reference=UUID.randomUUID().toString();
         LoggerFactory.getLogger(ApiErrors.class).error("Unexpected API error [{}]",reference,error);

@@ -9,12 +9,17 @@ import org.springframework.web.bind.annotation.*;
 import java.sql.*;
 import java.util.*;
 
+// NOTE API: Đăng ký khách hàng, xác thực email và khôi phục mật khẩu tại /api/auth.
+// @...Mapping xác định phương thức HTTP và đường dẫn; @RequestBody đọc JSON,
+// @PathVariable đọc ID trong URL, @RequestParam đọc tham số sau dấu ?. Quyền truy cập nằm trong SecurityConfig.
 @RestController
 @RequestMapping("/api/auth")
 public class AccountAuthController {
     private final AuthController auth;
     private final AccountEmailActions email;
     public AccountAuthController(AuthController auth,AccountEmailActions email) { this.auth=auth;this.email=email; }
+    // NOTE API: POST /api/auth/register nhận fullName, phone, email, username, password.
+    // Kiểm tra dữ liệu và email trùng, băm mật khẩu, luôn tạo quyền customer rồi đăng nhập tài khoản mới.
     @PostMapping("/register")
     public ResponseEntity<Map<String,Object>> register(@RequestBody Map<String,Object> body,HttpServletRequest request,HttpServletResponse response) {
         AccountStore.limit("register:"+request.getRemoteAddr(),10,3600);
@@ -40,18 +45,26 @@ public class AccountAuthController {
         });
         return auth.login(Map.of("username",username,"password",raw),request,response);
     }
+    // NOTE API: POST /api/auth/email-verification/request gửi mã đến email đã lưu của tài khoản hiện tại.
+    // Không nhận email thay thế từ client; lớp xử lý email kiểm tra cấu hình, thời gian gửi lại và hạn mức.
     @PostMapping("/email-verification/request")
     public Map<String,Object> requestVerification(Authentication authentication,HttpServletRequest request) {
         return email.requestVerification((AppUser)authentication.getPrincipal(),request.getRemoteAddr());
     }
+    // NOTE API: POST /api/auth/email-verification/confirm nhận JSON code gồm 6 chữ số.
+    // Kiểm tra mã còn hạn, chưa dùng và thuộc tài khoản hiện tại trước khi đánh dấu email đã xác thực.
     @PostMapping("/email-verification/confirm")
     public Map<String,Object> confirmVerification(@RequestBody Map<String,Object> body,Authentication authentication,HttpServletRequest request) {
         return email.confirmVerification((AppUser)authentication.getPrincipal(),Input.text(body,"code",6,true,null),request.getRemoteAddr());
     }
+    // NOTE API: POST /api/auth/forgot-password nhận email để yêu cầu liên kết đặt lại mật khẩu.
+    // Chỉ gửi cho tài khoản đủ điều kiện; phản hồi chung để không tiết lộ email có tồn tại hay không.
     @PostMapping("/forgot-password")
     public Map<String,Object> forgotPassword(@RequestBody Map<String,Object> body,HttpServletRequest request) {
         return email.forgotPassword(Input.text(body,"email",254,true,null),request.getRemoteAddr());
     }
+    // NOTE API: POST /api/auth/reset-password nhận token trong liên kết email và password mới.
+    // Đổi mật khẩu nếu token hợp lệ, thu hồi phiên cũ và trả thông báo để đăng nhập lại.
     @PostMapping("/reset-password")
     public Map<String,Object> resetPassword(@RequestBody Map<String,Object> body,HttpServletRequest request,HttpServletResponse response,Authentication authentication) {
         AccountStore.limit("reset-attempt:"+request.getRemoteAddr(),20,900);

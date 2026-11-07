@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.*;
 import java.sql.*;
 import java.util.*;
 
+// NOTE API: Đăng nhập, thông tin tài khoản và phiên đăng nhập tại /api/auth.
+// @...Mapping xác định phương thức HTTP và đường dẫn; @RequestBody đọc JSON,
+// @PathVariable đọc ID trong URL, @RequestParam đọc tham số sau dấu ?. Quyền truy cập nằm trong SecurityConfig.
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -37,10 +40,14 @@ public class AuthController {
     private ResponseEntity<Map<String,Object>> error(int status,String code,String message) {
         return ResponseEntity.status(status).body(Map.of("success",false,"code",code,"message",message));
     }
+    // NOTE API: GET /api/auth/csrf lấy mã chống giả mạo yêu cầu cho phiên hiện tại.
+    // Trả token và headerName; frontend gửi lại mã này khi thêm, sửa hoặc xóa dữ liệu.
     @GetMapping("/csrf")
     public Map<String,Object> csrf(CsrfToken token) {
         return Map.of("success",true,"token",token.getToken(),"headerName",token.getHeaderName());
     }
+    // NOTE API: POST /api/auth/login nhận JSON username, password để kiểm tra đăng nhập.
+    // Giới hạn số lần thử; nếu đúng, tạo phiên trong cookie và trả thông tin user, không trả mật khẩu.
     @PostMapping("/login")
     public ResponseEntity<Map<String,Object>> login(@RequestBody(required=false) Map<String,Object> body,
                                                    HttpServletRequest request,HttpServletResponse response) {
@@ -66,6 +73,8 @@ public class AuthController {
             return error(401,"INVALID_CREDENTIALS","Sai tên đăng nhập hoặc mật khẩu!");
         }
     }
+    // NOTE API: GET /api/auth/me trả tài khoản đang đăng nhập cùng hồ sơ và trạng thái email.
+    // Danh tính lấy từ phiên trên server; không tin userId hoặc role tự gửi từ trình duyệt.
     @GetMapping("/me")
     public Map<String,Object> me(Authentication auth) throws SQLException {
         AppUser user=(AppUser)auth.getPrincipal();
@@ -86,6 +95,8 @@ public class AuthController {
         }
         return Map.of("success",true,"user",profile);
     }
+    // NOTE API: PUT /api/auth/profile cập nhật fullName, phone, email, birthDate và city.
+    // Chỉ sửa tài khoản trong phiên; kiểm tra dữ liệu rồi trả lại hồ sơ mới. Đổi email sẽ mất xác thực cũ.
     @PutMapping("/profile")
     public ResponseEntity<Map<String,Object>> updateProfile(@RequestBody(required=false) Map<String,Object> body,Authentication auth) throws SQLException {
         String name=text(body,"fullName").trim(),phone=text(body,"phone").trim(),email=text(body,"email").trim(),city=text(body,"city").trim();
@@ -106,11 +117,15 @@ public class AuthController {
         new CookieClearingLogoutHandler("HOMESTAY_SESSION").logout(request,response,auth);
         repository.saveContext(SecurityContextHolder.createEmptyContext(),request,response);
     }
+    // NOTE API: POST /api/auth/logout kết thúc phiên và xóa cookie đăng nhập.
+    // Trả success/message để frontend chuyển người dùng về trang đăng nhập.
     @PostMapping("/logout")
     public Map<String,Object> logout(HttpServletRequest request,HttpServletResponse response,Authentication auth) {
         endSession(request,response,auth);
         return Map.of("success",true,"message","Đã đăng xuất!");
     }
+    // NOTE API: PUT /api/auth/change-password nhận oldPassword, newPassword.
+    // Kiểm tra mật khẩu cũ, lưu mật khẩu mới dưới dạng băm và thu hồi các phiên cũ; cần đăng nhập lại.
     @PutMapping("/change-password")
     public ResponseEntity<Map<String,Object>> changePassword(@RequestBody(required=false) Map<String,Object> body,
                     HttpServletRequest request,HttpServletResponse response,Authentication auth) {

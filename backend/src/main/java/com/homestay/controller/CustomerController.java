@@ -6,6 +6,9 @@ import org.springframework.web.bind.annotation.*;
 import java.sql.*;
 import java.util.*;
 
+// NOTE API: Quản lý hồ sơ khách lưu trú trong Customers; đây là hồ sơ nghiệp vụ, không phải tài khoản Users.
+// @...Mapping xác định phương thức HTTP và đường dẫn; @RequestBody đọc JSON,
+// @PathVariable đọc ID trong URL, @RequestParam đọc tham số sau dấu ?. Quyền truy cập nằm trong SecurityConfig.
 @RestController
 @RequestMapping("/api/customers")
 public class CustomerController {
@@ -30,6 +33,8 @@ public class CustomerController {
     public List<Map<String,Object>> getAllCustomers() {
         return getAllCustomers(null);
     }
+    // NOTE API: GET /api/customers lấy hồ sơ khách; query search tìm theo tên, giấy tờ hoặc điện thoại.
+    // Trả danh sách kèm validationWarnings để nhận biết dữ liệu cũ cần chuẩn hóa.
     @GetMapping
     public List<Map<String,Object>> getAllCustomers(@RequestParam(required=false) String search) {
         String keyword=search==null ? "" : search.trim();
@@ -42,11 +47,15 @@ public class CustomerController {
         } catch(SQLException e) { throw ApiErrors.databaseFailure(e); }
         return result;
     }
+    // NOTE API: GET /api/customers/{id}/bookings trả danh sách lượt đặt của hồ sơ khách có ID tương ứng.
+    // Dùng chung cách đọc lịch sử bên dưới, nhưng chỉ lấy phần bookings để frontend dễ dựng bảng.
     @GetMapping("/{id}/bookings")
     public Object getCustomerBookings(@PathVariable int id) {
         Map<String,Object> history=getHistory(id);
         return Boolean.TRUE.equals(history.get("success")) ? history.get("bookings") : history;
     }
+    // NOTE API: GET /api/customers/{id}/history trả hồ sơ, các lượt đặt và tổng tiền đã thanh toán.
+    // Dữ liệu gắn theo customer_id; chỉ cộng hóa đơn đã thanh toán và tránh cộng lặp khi có nhiều dịch vụ.
     @GetMapping("/{id}/history")
     public Map<String,Object> getHistory(@PathVariable int id) {
         return ApiErrors.guard(() -> {
@@ -103,6 +112,8 @@ public class CustomerController {
             } catch(SQLException e) { return ApiErrors.database(e); }
         });
     }
+    // NOTE API: GET /api/customers/{id} lấy một hồ sơ khách lưu trú theo ID.
+    // Trả thông tin và cảnh báo dữ liệu cũ; trả lỗi 404 nếu hồ sơ không tồn tại.
     @GetMapping("/{id}")
     public Map<String,Object> getCustomerById(@PathVariable int id) {
         return ApiErrors.guard(() -> {
@@ -116,6 +127,8 @@ public class CustomerController {
 
         });
     }
+    // NOTE API: POST /api/customers tạo hồ sơ từ fullName, documentType, cccd, phone, email, address.
+    // Kiểm tra CCCD/hộ chiếu và thông tin liên hệ; thao tác này không tạo tài khoản đăng nhập.
     @PostMapping
     public Map<String,Object> createCustomer(@RequestBody Map<String,Object> body) {
         return ApiErrors.guard(() -> {
@@ -134,6 +147,8 @@ public class CustomerController {
 
         });
     }
+    // NOTE API: PUT /api/customers/{id} sửa hồ sơ khách trong giao dịch có khóa bản ghi.
+    // Giữ được giá trị cũ chưa chuẩn hóa nếu không đổi; trường được sửa phải đạt kiểm tra dữ liệu hiện tại.
     @PutMapping("/{id}")
     public Map<String,Object> updateCustomer(@PathVariable int id,@RequestBody Map<String,Object> body) {
         return ApiErrors.guard(() -> {
@@ -167,6 +182,8 @@ public class CustomerController {
 
         });
     }
+    // NOTE API: DELETE /api/customers/{id} dành cho admin, xóa hồ sơ chưa có lịch sử đặt phòng.
+    // Nếu hồ sơ đã được dùng cho booking thì trả lỗi xung đột, giữ lại lịch sử lưu trú và hóa đơn.
     @DeleteMapping("/{id}")
     public Map<String,Object> deleteCustomer(@PathVariable int id) {
         return ApiErrors.guard(() -> {

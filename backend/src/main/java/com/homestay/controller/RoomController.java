@@ -7,6 +7,9 @@ import java.sql.*;
 import java.time.Clock;
 import java.util.*;
 
+// NOTE API: Danh mục phòng tại /api/rooms: admin/customer được xem; thêm, sửa, xóa và đổi trạng thái dành cho admin.
+// @...Mapping xác định phương thức HTTP và đường dẫn; @RequestBody đọc JSON,
+// @PathVariable đọc ID trong URL, @RequestParam đọc tham số sau dấu ?. Quyền truy cập nằm trong SecurityConfig.
 @RestController
 @RequestMapping("/api/rooms")
 
@@ -30,6 +33,8 @@ public class RoomController {
             @RequestParam(required=false) String status, @RequestParam(required=false) String search) {
         return getAllRooms(type,status,search,null);
     }
+    // NOTE API: GET /api/rooms lấy phòng, có thể lọc type, status, search và propertyId.
+    // Trạng thái hiển thị được tính theo lịch lưu trú hiện tại; trả thêm giá giờ/đêm và thông tin cơ sở.
     @GetMapping
     public List<Map<String,Object>> getAllRooms(@RequestParam(required=false) String type,
             @RequestParam(required=false) String status,@RequestParam(required=false) String search,@RequestParam(required=false) Integer propertyId) {
@@ -59,6 +64,8 @@ public class RoomController {
         return rooms;
     }
 
+    // NOTE API: PUT /api/rooms/{id}/status nhận status là Trống hoặc Bảo trì.
+    // Khóa phòng và kiểm tra lịch lưu trú trước khi đổi; không cho tự đặt trạng thái Đã đặt/Đang sử dụng.
     @PutMapping("/{id}/status")
     public Map<String, Object> updateStatus(@PathVariable int id, @RequestBody Map<String,Object> body) {
         return ApiErrors.guard(() -> {
@@ -75,6 +82,8 @@ public class RoomController {
         });
     }
 
+    // NOTE API: GET /api/rooms/{id} lấy chi tiết một phòng và trạng thái theo thời điểm hiện tại.
+    // Có xử lý ID phòng cũ qua bảng ánh xạ; trả lỗi 404 nếu không tìm thấy.
     @GetMapping("/{id}")
     public Map<String, Object> getRoomById(@PathVariable int id) {
         return ApiErrors.guard(() -> {
@@ -93,6 +102,8 @@ public class RoomController {
         });
     }
 
+    // NOTE API: POST /api/rooms tạo phòng từ mã, tên, loại, giá, mô tả và propertyId.
+    // Kiểm tra giá giờ/gói/cuối tuần và cơ sở; phòng mới chỉ được ở trạng thái Trống hoặc Bảo trì.
     @PostMapping
     public Map<String, Object> createRoom(@RequestBody Map<String, Object> body) {
         return ApiErrors.guard(() -> {
@@ -138,6 +149,8 @@ public class RoomController {
         });
     }
 
+    // NOTE API: PUT /api/rooms/{id} sửa thông tin, bảng giá, trạng thái hoặc cơ sở của phòng.
+    // Kiểm tra mã trùng và lịch lưu trú; cập nhật trong giao dịch, không ghi lại giá của các booking cũ.
     @PutMapping("/{id}")
     public Map<String, Object> updateRoom(@PathVariable int id, @RequestBody Map<String, Object> body) {
         return ApiErrors.guard(() -> {
@@ -206,6 +219,8 @@ public class RoomController {
         });
     }
 
+    // NOTE API: DELETE /api/rooms/{id} xóa phòng chưa từng có booking.
+    // Phòng có lịch sử đặt sẽ bị từ chối xóa để bảo toàn dữ liệu lưu trú và hóa đơn.
     @DeleteMapping("/{id}")
     public Map<String, Object> deleteRoom(@PathVariable int id) {
         return ApiErrors.guard(() -> {

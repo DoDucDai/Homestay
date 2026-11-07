@@ -8,6 +8,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 
+// NOTE API: API đặt phòng, nhận/trả phòng, dịch vụ đã dùng và hóa đơn; admin và customer dùng luồng chung.
+// @...Mapping xác định phương thức HTTP và đường dẫn; @RequestBody đọc JSON,
+// @PathVariable đọc ID trong URL, @RequestParam đọc tham số sau dấu ?. Quyền truy cập nằm trong SecurityConfig.
 @RestController
 @RequestMapping("/api")
 
@@ -92,6 +95,8 @@ public class BookingController {
     public List<Map<String, Object>> getBookings(@RequestParam(required = false) String status) {
         return getBookings(status,null);
     }
+    // NOTE API: GET /api/bookings lấy danh sách đặt phòng, có thể lọc status và propertyId.
+    // Trả thông tin lượt đặt kèm khách, phòng và dữ liệu giá cần cho danh sách/lịch lưu trú.
     @GetMapping("/bookings")
     public List<Map<String,Object>> getBookings(@RequestParam(required=false) String status,@RequestParam(required=false) Integer propertyId) {
         if(status!=null && !status.isBlank() && !status.equalsIgnoreCase("all")) {
@@ -167,6 +172,8 @@ public class BookingController {
         });
     }
 
+    // NOTE API: GET /api/bookings/available-rooms nhận query checkin, checkout theo ngày.
+    // Loại phòng bảo trì hoặc trùng lịch; trả danh sách phòng phù hợp kèm số đêm và tiền phòng dự kiến.
     @GetMapping("/bookings/available-rooms")
     public List<Map<String, Object>> getAvailableRooms(@RequestParam String checkin, @RequestParam String checkout) {
         LocalDate today = RoomSchedule.today(clock);
@@ -191,6 +198,8 @@ public class BookingController {
         return rooms;
     }
 
+    // NOTE API: PUT /api/bookings/{bookingId}/cancel hủy lượt đặt đang Confirmed.
+    // Khóa dữ liệu, đổi sang Cancelled và tính lại trạng thái phòng trong cùng giao dịch.
     @PutMapping("/bookings/{bookingId}/cancel")
     public Map<String, Object> cancelBooking(@PathVariable int bookingId) {
         return ApiErrors.guard(() -> {
@@ -209,6 +218,9 @@ public class BookingController {
 
     // POST /api/bookings
     // Body: { "customerId": 1, "roomId": 2, "checkinDate": "2026-09-15", "checkoutDate": "2026-09-18", "note": "..." }
+    // NOTE API: POST /api/bookings tạo lượt đặt từ customerId, roomId, billingUnit và thời gian lưu trú.
+    // Night dùng checkinDate/checkoutDate; Hour dùng checkinAt/checkoutAt. Giá lấy từ database, không lấy từ client.
+    // Kiểm tra khách/phòng và trùng lịch trong giao dịch; lưu giá tại lúc đặt và trả bookingId mới.
     @PostMapping("/bookings")
     public Map<String, Object> createBooking(@RequestBody Map<String, Object> body) {
         return ApiErrors.guard(() -> {
@@ -334,6 +346,8 @@ public class BookingController {
     }
 
     // PUT /api/checkin/{bookingId}
+    // NOTE API: PUT /api/checkin/{bookingId} nhận phòng cho lượt đặt Confirmed.
+    // Chỉ cho nhận trong thời gian đã đặt, phòng sử dụng được và chưa có hóa đơn; đổi sang CheckedIn.
     @PutMapping("/checkin/{bookingId}")
     public Map<String, Object> checkIn(@PathVariable int bookingId) {
         return ApiErrors.guard(() -> {
@@ -366,6 +380,8 @@ public class BookingController {
     }
 
     // Each order is a separate captured-price line, serialized with checkout.
+    // NOTE API: POST /api/bookings/{bookingId}/services nhận serviceId và quantity.
+    // Chỉ thêm cho lượt đặt CheckedIn; lưu tên và đơn giá tại lúc gọi để giữ đúng tiền khi danh mục đổi giá.
     @PostMapping("/bookings/{bookingId}/services")
     public Map<String, Object> addServiceToBooking(@PathVariable int bookingId, @RequestBody(required = false) Map<String, Object> body) {
         return ApiErrors.guard(() -> {
@@ -415,6 +431,8 @@ public class BookingController {
         });
     }
 
+    // NOTE API: DELETE /api/bookings/services/{bookingServiceId} xóa một dòng dịch vụ gọi nhầm.
+    // ID ở URL là ID dòng sử dụng dịch vụ, không phải serviceId; chỉ xóa khi lượt lưu trú chưa thanh toán.
     @DeleteMapping("/bookings/services/{bookingServiceId}")
     public Map<String, Object> removeServiceFromBooking(@PathVariable int bookingServiceId) {
         return ApiErrors.guard(() -> {
@@ -454,6 +472,8 @@ public class BookingController {
         });
     }
 
+    // NOTE API: GET /api/checkout/preview/{bookingId} lấy hóa đơn tạm tính cho lượt CheckedIn.
+    // Tính tiền phòng và các dịch vụ theo giá đã lưu; thao tác này chưa ghi nhận thanh toán.
     @GetMapping("/checkout/preview/{bookingId}")
     public Map<String, Object> previewCheckout(@PathVariable int bookingId) {
         return ApiErrors.guard(() -> {
@@ -469,6 +489,9 @@ public class BookingController {
         });
     }
 
+    // NOTE API: POST /api/checkout/{bookingId} nhận paymentMethod, mặc định là tiền mặt.
+    // Lưu một hóa đơn cố định, đổi booking sang CheckedOut và cập nhật phòng trong cùng giao dịch.
+    // Trả paymentId và invoice; nếu có lỗi thì hoàn tác toàn bộ để tránh ghi nhận thanh toán dở dang.
     @PostMapping("/checkout/{bookingId}")
     public Map<String, Object> checkOut(@PathVariable int bookingId, @RequestBody(required = false) Map<String, Object> body) {
         return ApiErrors.guard(() -> {
@@ -493,6 +516,8 @@ public class BookingController {
     public List<Map<String,Object>> getPayments(@RequestParam(required=false) Integer bookingId) {
         return getPayments(bookingId,null);
     }
+    // NOTE API: GET /api/payments lấy các hóa đơn đã thanh toán, có thể lọc bookingId và propertyId.
+    // Trả mã hóa đơn, lượt đặt, thời điểm, phương thức và tổng tiền để hiển thị danh sách hóa đơn.
     @GetMapping("/payments")
     public List<Map<String,Object>> getPayments(@RequestParam(required=false) Integer bookingId,@RequestParam(required=false) Integer propertyId) {
         if (bookingId != null) Input.id(bookingId);
@@ -510,6 +535,8 @@ public class BookingController {
         return result;
     }
 
+    // NOTE API: GET /api/payments/{paymentId} lấy chi tiết hóa đơn đã lưu để xem hoặc in lại.
+    // Đọc bản chụp dữ liệu lúc thanh toán, không tính lại theo tên khách hay giá phòng/dịch vụ hiện tại.
     @GetMapping("/payments/{paymentId}")
     public Map<String, Object> getPayment(@PathVariable int paymentId) {
         return ApiErrors.guard(() -> {
