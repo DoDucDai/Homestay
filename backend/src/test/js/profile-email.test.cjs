@@ -1,3 +1,5 @@
+// NOTE KIỂM THỬ: Kiểm tra giao diện hồ sơ/email, gửi và xác nhận OTP, thời gian chờ gửi lại và URL trở về đặt phòng hợp lệ.
+// Code chạy bằng Node trong môi trường giả để kiểm tra frontend; các assert so kết quả thực tế với kết quả mong đợi.
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const {env,root}=require('./frontend-test-env.cjs');
 (async()=>{

@@ -21,16 +21,19 @@ public class BookingController {
     public BookingController() { this(RoomSchedule.CLOCK); }
     BookingController(java.time.Clock clock) { this.clock = clock; }
 
+    // NOTE BACKEND: Dùng bộ quản lý giao dịch chung của RoomSchedule cho thao tác có nhiều câu ghi SQL.
     private Map<String, Object> inTransaction(RoomSchedule.Work work, String errorMessage) {
         return RoomSchedule.transaction(work, errorMessage);
     }
 
     // Always lock Rooms before Bookings; the room lock serializes operations
     // on different bookings for the same physical room as well.
+    // NOTE BACKEND: Khóa phòng trước rồi khóa booking; kiểm tra trạng thái, bảo trì, người đang ở và hóa đơn để các thao tác đồng thời giữ cùng thứ tự khóa.
     private int lockBookingRoom(Connection conn, int bookingId, String expectedStatus) throws SQLException {
         return lockBookingRoom(conn, bookingId, expectedStatus, true);
     }
 
+    // NOTE BACKEND: Khóa phòng trước rồi khóa booking; kiểm tra trạng thái, bảo trì, người đang ở và hóa đơn để các thao tác đồng thời giữ cùng thứ tự khóa.
     private int lockBookingRoom(Connection conn, int bookingId, String expectedStatus, boolean requireUsable) throws SQLException {
         int roomId;
         try (PreparedStatement stmt = conn.prepareStatement("SELECT room_id FROM Bookings WHERE booking_id = ?")) {
@@ -72,6 +75,7 @@ public class BookingController {
         return roomId;
     }
 
+    // NOTE BACKEND: Chỉ đổi trạng thái nếu giá trị cũ vẫn khớp; nếu booking vừa bị thao tác khác sửa thì báo xung đột.
     private void transitionBooking(Connection conn, int bookingId, String from, String to) throws SQLException {
         try (PreparedStatement stmt = conn.prepareStatement(
                 "UPDATE Bookings SET status = ? WHERE booking_id = ? AND status = ?")) {
@@ -82,6 +86,7 @@ public class BookingController {
         }
     }
 
+    // NOTE BACKEND: Đọc số nguyên chính xác, không nhận phần thập phân; trả giá trị dự phòng nếu không đọc được.
     private int parseInt(Object val, int defaultVal) {
         if (val == null) return defaultVal;
         try {
@@ -291,6 +296,7 @@ public class BookingController {
         });
     }
 
+    // NOTE BACKEND: Tạo booking giờ với thời điểm Việt Nam, khóa phòng và kiểm tra chồng lịch; giữ đơn giá/gói tại lúc đặt để tính hóa đơn sau.
     private Map<String,Object> createHourly(Map<String,Object> body) {
         int customerId=Input.integer(body,"customerId",1,Integer.MAX_VALUE);
         int roomId=Input.integer(body,"roomId",1,Integer.MAX_VALUE);

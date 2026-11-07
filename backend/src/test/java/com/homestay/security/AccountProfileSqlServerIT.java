@@ -8,7 +8,10 @@ import java.sql.*;
 import java.util.*;
 
 /** Profile persistence checks use a disposable database, never operational accounts. */
+// NOTE KIỂM THỬ: Kiểm tra lưu hồ sơ admin/customer, từ chối dữ liệu sai và chỉ cho sửa đúng tài khoản trong phiên còn hợp lệ.
+// File này thuộc src/test, không phải endpoint và không nằm trong mã nghiệp vụ chạy phục vụ người dùng.
 public class AccountProfileSqlServerIT {
+    // NOTE KIỂM THỬ: Điểm chạy nhóm kiểm tra; dùng AssertionError/kết thúc khác 0 để báo điều kiện không đạt.
     public static void main(String[] args) throws Exception {
         if (args.length == 1 && args[0].equals("--child")) { checks(); return; }
         String database = "HomestayProfileTest_" + UUID.randomUUID().toString().replace("-", "");
@@ -38,6 +41,7 @@ public class AccountProfileSqlServerIT {
             }
         }
     }
+    // NOTE KIỂM THỬ: Tạo tình huống, gọi code cần kiểm tra rồi đối chiếu kết quả/trạng thái dữ liệu với giá trị mong đợi.
     private static void checks() throws Exception {
         if (!System.getenv("DB_NAME").matches("HomestayProfileTest_[a-f0-9]{32}")) throw new AssertionError("Unsafe test database");
         AuthController controller=new AuthController(null,null,null,null,null,new com.homestay.security.AccountSettings(new org.springframework.core.env.StandardEnvironment()));

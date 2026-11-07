@@ -9,10 +9,13 @@ import java.util.concurrent.*;
 import java.util.function.Supplier;
 
 /** Real SQL Server checks in a disposable database, never the configured database. */
+// NOTE KIỂM THỬ: Kiểm tra API từ chối dữ liệu sai, trả đúng lỗi HTTP, lọc lịch sử khách và đối chiếu doanh thu thống kê.
+// File này thuộc src/test, không phải endpoint và không nằm trong mã nghiệp vụ chạy phục vụ người dùng.
 public class ValidationHttpSqlServerIT {
 
     private static int passed;
 
+    // NOTE KIỂM THỬ: Điểm chạy nhóm kiểm tra; dùng AssertionError/kết thúc khác 0 để báo điều kiện không đạt.
     public static void main(String[] args) throws Exception {
         if (args.length == 1 && "--isolated-child".equals(args[0])) {
             String database = System.getenv("DB_NAME");
@@ -169,6 +172,7 @@ public class ValidationHttpSqlServerIT {
         }
         throw new AssertionError("Cannot locate test session");
     }
+    // NOTE KIỂM THỬ: Tạo tình huống, gọi code cần kiểm tra rồi đối chiếu kết quả/trạng thái dữ liệu với giá trị mong đợi.
     private static void runChecks() throws Exception {
         try(var conn=DBConnection.getConnection();var stmt=conn.prepareStatement(
                 "INSERT INTO Users(username,password,full_name,role) VALUES(?,?,N'Admin test','admin'),(?,?,N'Staff test','customer')")) {

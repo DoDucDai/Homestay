@@ -8,12 +8,14 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 /** Reviewed poster metadata, imported once. Reservations and invoice snapshots retain their prices. */
+// NOTE BACKEND: Đọc room-catalog.json để chuẩn hóa mã/tên/mô tả phòng một lần; giữ ánh xạ ID cũ và bản sao dữ liệu trước khi gộp.
 public final class RoomCatalogMigration {
     private static final String KEY="poster-room-catalog-20261103-v1";
     private static final Pattern CODE=Pattern.compile("^(?:(?:DEMO-)?P|ROOM\\s*)(\\d{3})$",Pattern.CASE_INSENSITIVE);
     private RoomCatalogMigration() {}
     private record Room(int id,String code,String number) {}
 
+    // NOTE BACKEND: Nếu ID phòng cũ đã được gộp, đổi sang ID phòng hiện tại; database chưa có bảng ánh xạ thì giữ ID đầu vào.
     public static int resolveId(Connection conn,int id) throws SQLException {
         // Older databases and standalone controller tests may not have run this migration yet.
         try(var st=conn.createStatement();var rs=st.executeQuery("SELECT OBJECT_ID('dbo.RoomCatalogAliases','U')")) {
@@ -25,6 +27,7 @@ public final class RoomCatalogMigration {
         return id;
     }
 
+    // NOTE BACKEND: Gom các mã chỉ cùng số phòng, kiểm tra lịch đang hiệu lực không chồng nhau rồi chuyển liên kết booking và lưu mã cũ.
     public static void migrate(Connection conn) throws SQLException,IOException {
         List<Map<String,String>> catalog;
         try(var source=RoomCatalogMigration.class.getResourceAsStream("/room-catalog.json")) {
@@ -79,6 +82,7 @@ public final class RoomCatalogMigration {
             conn.commit();
         } catch(SQLException|RuntimeException error) {try{conn.rollback();}catch(SQLException rollback){error.addSuppressed(rollback);}throw error;}
     }
+    // NOTE BACKEND: Cho phép chạy riêng bước chuẩn hóa bằng cấu hình database hiện tại; không phải endpoint cho trình duyệt.
     public static void main(String[] args) throws Exception {
         try(var conn=DBConnection.getConnection()){migrate(conn);}
         System.out.println("Room catalog merged and imported; original catalog archived in database.");

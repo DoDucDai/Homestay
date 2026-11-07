@@ -1,3 +1,5 @@
+// NOTE KIỂM THỬ: Kiểm tra tìm/lọc/sắp xếp phòng công khai, ảnh thay thế, chi tiết phòng và chuyển lựa chọn sang đặt phòng.
+// Code chạy bằng Node trong môi trường giả để kiểm tra frontend; các assert so kết quả thực tế với kết quả mong đợi.
 const assert=require('node:assert/strict'),vm=require('node:vm');
 const {env,payload}=require('./frontend-test-env.cjs');
 const e=env('explore');

@@ -1,3 +1,5 @@
+// NOTE KIỂM THỬ: Kiểm tra hiển thị danh tính và menu đúng quyền; khách hàng không mở được khu quản trị qua tham số URL.
+// Code chạy bằng Node trong môi trường giả để kiểm tra frontend; các assert so kết quả thực tế với kết quả mong đợi.
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const {env,payload,root}=require('./frontend-test-env.cjs');
 const e=env('profile');

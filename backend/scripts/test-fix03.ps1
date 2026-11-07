@@ -1,3 +1,5 @@
+# NOTE BACKEND: Chạy ValidationHttpSqlServerIT để kiểm tra dữ liệu đầu vào, lỗi HTTP, lịch sử khách hàng và thống kê qua HTTP thật.
+# Đường dẫn được tính từ vị trí script; MavenRepository cho phép dùng bộ thư viện đã tải trong workspace.
 param([string]$MavenRepository = '')
 $ErrorActionPreference = 'Stop'
 & "$PSScriptRoot/security-classpath.ps1" -MavenRepository $MavenRepository

@@ -1,3 +1,5 @@
+// NOTE KIỂM THỬ: Kiểm tra lưu/đọc lịch sử chat theo tài khoản, tiếp tục hội thoại và lỗi bộ nhớ trình duyệt.
+// Code chạy bằng Node trong môi trường giả để kiểm tra frontend; các assert so kết quả thực tế với kết quả mong đợi.
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');

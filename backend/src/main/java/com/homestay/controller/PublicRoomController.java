@@ -28,6 +28,7 @@ public class PublicRoomController {
         if(rows.isEmpty()) throw new ApiProblem(404,"NOT_FOUND","Phòng không còn trong danh mục giới thiệu.");
         return rows.get(0);
     }
+    // NOTE BACKEND: Đọc trường công khai của phòng và cơ sở, ẩn phòng bảo trì; có ID thì lọc một phòng và xử lý ánh xạ ID cũ.
     private List<Map<String,Object>> read(Integer id) {
         String sql="SELECT r.*,p.property_name,p.address AS property_address FROM Rooms r JOIN Properties p ON p.property_id=r.property_id WHERE r.status<>N'Bảo trì'"
             +(id==null?" ORDER BY r.room_code":" AND r.room_id=?");

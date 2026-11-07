@@ -1,3 +1,5 @@
+// NOTE KIỂM THỬ: Kiểm tra client chỉ tin phiên từ server, gửi cookie/CSRF đúng, xử lý hết phiên và không lấy quyền từ storage giả.
+// Code chạy bằng Node trong môi trường giả để kiểm tra frontend; các assert so kết quả thực tế với kết quả mong đợi.
 const fs = require('node:fs');
 const vm = require('node:vm');
 const assert = require('node:assert/strict');

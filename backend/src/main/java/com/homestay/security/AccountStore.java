@@ -8,9 +8,11 @@ import java.security.*;
 import java.util.*;
 
 /** Database transactions shared by account ownership, email claims and durable throttles. */
+// NOTE BACKEND: Các giao dịch dùng chung cho hồ sơ tài khoản, quyền giữ email duy nhất và hạn mức được lưu bền trong database.
 public final class AccountStore {
     private AccountStore() {}
     public interface Work<T> { T run(Connection connection) throws SQLException; }
+    // NOTE BACKEND: Mở kết nối và giao dịch, commit kết quả hoặc rollback khi lỗi; lỗi SQL được đổi thành lỗi API thống nhất.
     public static <T> T transaction(Work<T> work) {
         try(var connection=DBConnection.getConnection()) {
             connection.setAutoCommit(false);
@@ -18,11 +20,14 @@ public final class AccountStore {
             catch(Exception e) { try { connection.rollback(); } catch(SQLException failure) { e.addSuppressed(failure); }throw e; }
         } catch(SQLException e) { throw ApiErrors.databaseFailure(e); }
     }
+    // NOTE BACKEND: Bỏ khoảng trắng và viết thường email để kiểm tra trùng nhất quán.
     public static String normalize(String email) { return email.trim().toLowerCase(Locale.ROOT); }
+    // NOTE BACKEND: Tạo SHA-256 cho tên khóa hoặc bộ đếm; hàm này không thay thế PBKDF2 dùng cho mật khẩu.
     public static String hash(String value) {
         try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8))); }
         catch(NoSuchAlgorithmException e) { throw new IllegalStateException(e); }
     }
+    // NOTE BACKEND: Dùng khóa ứng dụng SQL Server theo tài nguyên trong phạm vi giao dịch, ví dụ một email hoặc bộ đếm hạn mức.
     public static void lock(Connection connection,String resource) throws SQLException {
         // SQL Server starts a JDBC implicit transaction on a table access, not on an RPC alone.
         try(var begin=connection.prepareStatement("SELECT user_id FROM Users WHERE user_id=-1");var ignored=begin.executeQuery()) { }
@@ -31,6 +36,7 @@ public final class AccountStore {
             if(statement.getInt(1)<0)throw new ApiProblem(409,"ACCOUNT_BUSY","Tài khoản đang được cập nhật. Vui lòng thử lại.");
         }
     }
+    // NOTE BACKEND: Khóa email, kiểm tra không thuộc tài khoản khác rồi cập nhật bản ghi sở hữu trong AccountEmails.
     public static void claimEmail(Connection connection,int userId,String email) throws SQLException {
         lock(connection,"email:"+email);
         try(var statement=connection.prepareStatement("SELECT COUNT(*) FROM Users WHERE LOWER(LTRIM(RTRIM(email)))=? AND user_id<>?")) {
@@ -41,6 +47,7 @@ public final class AccountStore {
             statement.setInt(1,userId);statement.setString(2,email);statement.setInt(3,userId);statement.executeUpdate();
         }
     }
+    // NOTE BACKEND: Tăng số yêu cầu theo khóa và cửa sổ thời gian trong database; vượt hạn mức trả 429, restart ứng dụng không xóa bộ đếm.
     public static void limit(String key,int maximum,int seconds) {
         boolean allowed=transaction(connection->{
             lock(connection,"rate:"+key);
@@ -53,6 +60,7 @@ public final class AccountStore {
         });
         if(!allowed)throw new ApiProblem(429,"RATE_LIMITED","Bạn đã thử quá nhiều lần. Vui lòng chờ rồi thử lại.");
     }
+    // NOTE BACKEND: Cập nhật hồ sơ của đúng phiên hiện tại; đổi email sẽ tăng email_version, xóa xác thực và vô hiệu mã cũ; đồng bộ hồ sơ khách nếu đã liên kết.
     public static void updateProfile(AppUser user,String name,String phone,String email,java.time.LocalDate birth,String city) {
         String normalized=normalize(email);
         transaction(connection->{

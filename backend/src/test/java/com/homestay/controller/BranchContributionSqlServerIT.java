@@ -6,6 +6,8 @@ import java.sql.*;
 import java.util.*;
 
 /** Selective branch integration checks; writes only to a UUID disposable database. */
+// NOTE KIỂM THỬ: Kiểm tra tích hợp các phần đóng góp vào schema, dữ liệu và truy vấn báo cáo trong database thử riêng.
+// File này thuộc src/test, không phải endpoint và không nằm trong mã nghiệp vụ chạy phục vụ người dùng.
 public class BranchContributionSqlServerIT {
     private static void require(boolean ok,String message) { if(!ok) throw new AssertionError(message); }
     private static List<List<Map<String,String>>> results(Statement s,String sql) throws SQLException {
@@ -33,6 +35,7 @@ public class BranchContributionSqlServerIT {
         boolean rejected=false;try{s.execute(sql);}catch(SQLException expected){rejected=expected.getErrorCode()==51000 || expected.getErrorCode()==51001;}
         require(rejected,"Unsafe repair was not rejected");
     }
+    // NOTE KIỂM THỬ: Điểm chạy nhóm kiểm tra; dùng AssertionError/kết thúc khác 0 để báo điều kiện không đạt.
     public static void main(String[] args) throws Exception {
         String database="HomestayBranchTest_"+UUID.randomUUID().toString().replace("-","");
         try(Connection conn=DBConnection.getConnection();Statement s=conn.createStatement()) {

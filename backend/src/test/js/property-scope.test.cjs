@@ -1,3 +1,5 @@
+// NOTE KIỂM THỬ: Kiểm tra bộ lọc cơ sở gắn đúng API và lựa chọn phòng/cơ sở được chuyển đúng giữa các trang.
+// Code chạy bằng Node trong môi trường giả để kiểm tra frontend; các assert so kết quả thực tế với kết quả mong đợi.
 const assert=require('node:assert/strict'),vm=require('node:vm');
 const {env}=require('./frontend-test-env.cjs');
 const e=env('explore');

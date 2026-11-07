@@ -9,6 +9,8 @@ import java.util.*;
 import java.util.concurrent.*;
 
 /** End-to-end JDBC/controller checks; all business writes use a UUID disposable DB. */
+// NOTE KIỂM THỬ: Kiểm tra toàn bộ lưu trú theo giờ, gói giá, qua nửa đêm, chồng lịch, hóa đơn và giữ giá sau khi khởi động lại.
+// File này thuộc src/test, không phải endpoint và không nằm trong mã nghiệp vụ chạy phục vụ người dùng.
 public class HourlyBookingSqlServerIT {
     static final Clock CLOCK=Clock.fixed(Instant.parse("2031-01-15T03:00:00Z"),RoomSchedule.ZONE);
     static final BookingController app=new BookingController(CLOCK);
@@ -18,6 +20,7 @@ public class HourlyBookingSqlServerIT {
     static Map<String,Object> book(int room,String start,String end){return app.createBooking(Map.of("billingUnit","Hour","customerId",1,"roomId",room,"checkinAt",start,"checkoutAt",end));}
     static int id(Map<String,Object> r){require(ok(r),r.toString());return ((Number)r.get("bookingId")).intValue();}
     static String at(String time){return "2031-01-15T"+time;}
+    // NOTE KIỂM THỬ: Điểm chạy nhóm kiểm tra; dùng AssertionError/kết thúc khác 0 để báo điều kiện không đạt.
     public static void main(String[] args)throws Exception {
         if(args.length>0 && args[0].equals("--child")){checks();return;}
         String db="HomestayHourlyTest_"+UUID.randomUUID().toString().replace("-","");
@@ -38,6 +41,7 @@ public class HourlyBookingSqlServerIT {
             }
         }
     }
+    // NOTE KIỂM THỬ: Tạo tình huống, gọi code cần kiểm tra rồi đối chiếu kết quả/trạng thái dữ liệu với giá trị mong đợi.
     static void checks()throws Exception {
         require(System.getenv("DB_NAME").matches("HomestayHourlyTest_[a-f0-9]{32}"),"Wrong test database");
         sql("""

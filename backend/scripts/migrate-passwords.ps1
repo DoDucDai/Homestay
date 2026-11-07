@@ -1,3 +1,5 @@
+# NOTE BACKEND: Chuẩn bị classpath và gọi PasswordMigration --apply; script chỉ cho chạy khi có -Apply, theo yêu cầu dừng ghi và sao lưu đã ghi trong code.
+# Đường dẫn được tính từ vị trí script; MavenRepository cho phép dùng bộ thư viện đã tải trong workspace.
 param([switch]$Apply,[string]$MavenRepository = '')
 $ErrorActionPreference = 'Stop'
 if (!$Apply) { throw 'Stop application writes and back up first. Run with -Apply to migrate the configured database.' }

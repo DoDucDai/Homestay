@@ -16,10 +16,12 @@ public class ServiceStatController {
     public ServiceStatController() { this(RoomSchedule.CLOCK); }
     ServiceStatController(java.time.Clock clock) { this.clock=clock; }
     private record ServiceValues(String name,long price,String status) {}
+    // NOTE BACKEND: Kiểm tra tên, đơn giá và trạng thái dịch vụ rồi gom thành một đối tượng dùng khi thêm/sửa.
     private ServiceValues values(Map<String,Object> body) {
         return new ServiceValues(Input.text(body,"serviceName",100,true,null),Input.money(body,"unitPrice",false),
             Input.oneOf(Input.text(body,"status",20,false,"Hoạt động"),Set.of("Hoạt động","Ngừng"),"Trạng thái dịch vụ"));
     }
+    // NOTE BACKEND: Đổi tên cột SQL sang các trường serviceId/serviceName/unitPrice/status mà frontend sử dụng.
     private Map<String,Object> row(ResultSet rs) throws SQLException {
         Map<String,Object> result=new LinkedHashMap<>();result.put("serviceId",rs.getInt("service_id"));
         result.put("serviceName",rs.getString("service_name"));result.put("unitPrice",rs.getBigDecimal("unit_price"));

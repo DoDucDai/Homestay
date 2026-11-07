@@ -5,6 +5,8 @@ import java.nio.file.*;
 import java.sql.*;
 
 /** Bring disposable legacy fixtures up to the pricing schema used at application startup. */
+// NOTE KIỂM THỬ: Hàm hỗ trợ nâng schema giá của dữ liệu kiểm thử cũ lên phiên bản mà ứng dụng đang sử dụng.
+// File này thuộc src/test, không phải endpoint và không nằm trong mã nghiệp vụ chạy phục vụ người dùng.
 final class CurrentPricingTestSchema {
     private CurrentPricingTestSchema() {}
     static void execute(Statement statement,String batch) throws SQLException {

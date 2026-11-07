@@ -3,7 +3,10 @@ package com.homestay.controller;
 import java.math.BigDecimal;
 import java.util.Map;
 
+// NOTE KIỂM THỬ: Kiểm tra nhanh tính tiền gói 2/4/8 giờ, giá giờ cũ, lưu/đọc JSON giá và các trường hợp vượt giới hạn.
+// File này thuộc src/test, không phải endpoint và không nằm trong mã nghiệp vụ chạy phục vụ người dùng.
 public class HourlyPricingChecks {
+    // NOTE KIỂM THỬ: Điểm chạy nhóm kiểm tra; dùng AssertionError/kết thúc khác 0 để báo điều kiện không đạt.
     public static void main(String[] args) throws Exception {
         var prices=Map.of("twoHours",250000L,"fourHours",350000L,"eightHours",550000L);
         long[] expected={250000,250000,330000,350000,430000,510000,550000,550000,630000};

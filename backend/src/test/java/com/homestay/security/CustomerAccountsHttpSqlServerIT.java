@@ -16,6 +16,8 @@ import java.util.*;
 import java.util.concurrent.*;
 
 /** Real HTTP + SQL; email is captured in test memory and never sent externally. */
+// NOTE KIỂM THỬ: Kiểm tra đăng ký customer, quyền truy cập chung, xác thực email, khôi phục mật khẩu và các lần dùng mã đồng thời; thư được giữ trong bộ giả kiểm thử.
+// File này thuộc src/test, không phải endpoint và không nằm trong mã nghiệp vụ chạy phục vụ người dùng.
 public class CustomerAccountsHttpSqlServerIT {
     static final ObjectMapper JSON=new ObjectMapper();
     static final CapturedMail MAIL=new CapturedMail();
@@ -63,6 +65,7 @@ public class CustomerAccountsHttpSqlServerIT {
         var context=(ServletWebServerApplicationContext)application.run("--server.port=0","--server.address=127.0.0.1","--spring.profiles.active=dev","--COOKIE_SECURE=false","--logging.level.root=WARN");
         base="http://127.0.0.1:"+context.getWebServer().getPort();return context;
     }
+    // NOTE KIỂM THỬ: Điểm chạy nhóm kiểm tra; dùng AssertionError/kết thúc khác 0 để báo điều kiện không đạt.
     public static void main(String[] args)throws Exception {
         if(args.length>0 && args[0].equals("--child")){checks();return;}
         checkMigrationRollback();
@@ -97,6 +100,7 @@ public class CustomerAccountsHttpSqlServerIT {
     }
     static void cooldown()throws Exception {sql("UPDATE AccountChallenges SET created_at=DATEADD(second,-61,SYSUTCDATETIME())");}
     static Map<String,Object> registration(String username,String email){return Map.of("username",username,"email",email,"fullName","Member test","phone","0901234567","password","Member@123","role","admin","emailVerified",true);}
+    // NOTE KIỂM THỬ: Tạo tình huống, gọi code cần kiểm tra rồi đối chiếu kết quả/trạng thái dữ liệu với giá trị mong đợi.
     static void checks()throws Exception {
         require(System.getenv("DB_NAME").matches("HomestayMemberTest_[a-f0-9]{32}"),"Unsafe member test database");
         require(!new AccountSettings(new org.springframework.core.env.StandardEnvironment()).emailVerificationEnabled(),"Demo must default to no email verification");

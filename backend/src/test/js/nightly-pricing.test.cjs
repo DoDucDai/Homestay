@@ -1,3 +1,5 @@
+// NOTE KIỂM THỬ: Kiểm tra báo giá đêm có ngày cuối tuần, loại ngày trả, tuần đầy đủ và đối chiếu số học hóa đơn.
+// Code chạy bằng Node trong môi trường giả để kiểm tra frontend; các assert so kết quả thực tế với kết quả mong đợi.
 const {env}=require('./frontend-test-env.cjs');
 const assert=require('node:assert/strict');
 const e=env('checkout'),c=e.context,p={weekendPrice:450000,weekendDays:[6,7]};

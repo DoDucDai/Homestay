@@ -9,10 +9,13 @@ import java.util.concurrent.*;
 import java.util.function.Supplier;
 
 /** Real SQL Server checks in a disposable database, never the configured database. */
+// NOTE KIỂM THỬ: Kiểm tra thêm/xóa từng dòng dịch vụ, giá đã lưu, giới hạn tổng tiền và các cuộc đua với thanh toán.
+// File này thuộc src/test, không phải endpoint và không nằm trong mã nghiệp vụ chạy phục vụ người dùng.
 public class BookingServicesSqlServerIT {
     private static final BookingController controller = new BookingController();
     private static int passed;
 
+    // NOTE KIỂM THỬ: Điểm chạy nhóm kiểm tra; dùng AssertionError/kết thúc khác 0 để báo điều kiện không đạt.
     public static void main(String[] args) throws Exception {
         if (args.length == 1 && "--isolated-child".equals(args[0])) {
             String database = System.getenv("DB_NAME");
@@ -167,6 +170,7 @@ public class BookingServicesSqlServerIT {
         require(services(reprint).size()==services(invoice).size(),"Frozen service details lost");
     }
 
+    // NOTE KIỂM THỬ: Tạo tình huống, gọi code cần kiểm tra rồi đối chiếu kết quả/trạng thái dữ liệu với giá trị mong đợi.
     private static void runChecks() throws Exception {
         int booking=reset();
         int water=line(add(booking,1,2));

@@ -1,3 +1,5 @@
+// NOTE KIỂM THỬ: Kiểm tra báo giá gói giờ ở frontend, các mốc đổi gói, dữ liệu giá sai và đối chiếu tổng hóa đơn.
+// Code chạy bằng Node trong môi trường giả để kiểm tra frontend; các assert so kết quả thực tế với kết quả mong đợi.
 const {env}=require('./frontend-test-env.cjs');
 const assert=require('node:assert/strict');
 const e=env('checkout'),c=e.context,p={twoHours:250000,fourHours:350000,eightHours:550000};

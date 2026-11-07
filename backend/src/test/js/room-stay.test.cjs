@@ -1,3 +1,5 @@
+// NOTE KIỂM THỬ: Kiểm tra thẻ phòng, chọn thời gian ở, làm tròn giờ và chặn đặt khi chưa có giá hoặc đang gửi yêu cầu.
+// Code chạy bằng Node trong môi trường giả để kiểm tra frontend; các assert so kết quả thực tế với kết quả mong đợi.
 const assert=require('node:assert/strict');
 const vm=require('node:vm');
 const {env,payload}=require('./frontend-test-env.cjs');

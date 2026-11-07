@@ -1,3 +1,5 @@
+// NOTE KIỂM THỬ: Kiểm tra hóa đơn tạm tính, khóa thao tác khi đang tải, từ chối tổng sai và phân quyền chỉnh sửa danh mục phòng.
+// Code chạy bằng Node trong môi trường giả để kiểm tra frontend; các assert so kết quả thực tế với kết quả mong đợi.
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');

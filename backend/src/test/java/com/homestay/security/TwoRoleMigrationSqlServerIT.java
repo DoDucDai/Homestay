@@ -5,10 +5,13 @@ import java.sql.*;
 import java.util.UUID;
 
 /** Exercise legacy conversion against real SQL in a disposable database. */
+// NOTE KIỂM THỬ: Kiểm tra chuyển staff/member sang customer, giữ ID/mật khẩu, tăng phiên bản phiên đúng một lần và chặn quyền đã bỏ.
+// File này thuộc src/test, không phải endpoint và không nằm trong mã nghiệp vụ chạy phục vụ người dùng.
 public final class TwoRoleMigrationSqlServerIT {
     private static void require(boolean value,String message) {
         if(!value)throw new AssertionError(message);
     }
+    // NOTE KIỂM THỬ: Điểm chạy nhóm kiểm tra; dùng AssertionError/kết thúc khác 0 để báo điều kiện không đạt.
     public static void main(String[] args) throws Exception {
         String database="HomestayRolesTest_"+UUID.randomUUID().toString().replace("-","");
         try(var connection=DBConnection.getConnection();var statement=connection.createStatement()) {

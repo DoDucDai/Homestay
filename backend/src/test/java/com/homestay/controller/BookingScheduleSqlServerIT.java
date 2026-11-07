@@ -9,6 +9,8 @@ import java.util.concurrent.*;
 import java.util.function.Supplier;
 
 /** Real SQL Server checks in a disposable database, never the configured database. */
+// NOTE KIỂM THỬ: Kiểm tra lịch chồng, mốc nhận/trả sát nhau, bảo trì, hủy đặt, múi giờ Việt Nam và khóa giao dịch đồng thời.
+// File này thuộc src/test, không phải endpoint và không nằm trong mã nghiệp vụ chạy phục vụ người dùng.
 public class BookingScheduleSqlServerIT {
     private static final java.time.Clock CLOCK = java.time.Clock.fixed(java.time.Instant.parse("2026-10-26T05:00:00Z"), RoomSchedule.ZONE);
     private static final java.time.LocalDate TODAY = RoomSchedule.today(CLOCK);
@@ -16,6 +18,7 @@ public class BookingScheduleSqlServerIT {
     private static final RoomController rooms = new RoomController(CLOCK);
     private static int passed;
 
+    // NOTE KIỂM THỬ: Điểm chạy nhóm kiểm tra; dùng AssertionError/kết thúc khác 0 để báo điều kiện không đạt.
     public static void main(String[] args) throws Exception {
         if (args.length == 1 && "--isolated-child".equals(args[0])) {
             String database = System.getenv("DB_NAME");
@@ -154,6 +157,7 @@ public class BookingScheduleSqlServerIT {
         return rooms.updateRoom(1,Map.of("roomName","Room","roomType","Single","price",300000,"status",status));
     }
 
+    // NOTE KIỂM THỬ: Tạo tình huống, gọi code cần kiểm tra rồi đối chiếu kết quả/trạng thái dữ liệu với giá trị mong đợi.
     private static void runChecks() throws Exception {
         reset();
         for (String[] dates : List.of(new String[]{day(-1),day(1)},new String[]{day(1),day(1)},

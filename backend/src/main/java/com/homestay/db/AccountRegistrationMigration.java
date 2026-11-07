@@ -3,11 +3,14 @@ package com.homestay.db;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
 
+// NOTE BACKEND: Chạy SQL bổ sung cấu trúc phục vụ đăng ký, email, mã xác thực và hạn mức yêu cầu tài khoản.
 public final class AccountRegistrationMigration {
     private AccountRegistrationMigration() {}
+    // NOTE BACKEND: Đọc script /db/008_account_registration.sql đã đóng gói trong JAR rồi gọi bộ thực thi chung.
     public static void migrate(Connection connection) throws Exception {
         runScript(connection,"/db/008_account_registration.sql");
     }
+    // NOTE BACKEND: Tách script theo GO, thực thi và đọc hết các tập kết quả; nếu lỗi thì rollback giao dịch SQL còn mở và khôi phục chế độ auto-commit ban đầu.
     static void runScript(Connection connection,String resource) throws Exception {
         boolean autoCommit=connection.getAutoCommit();
         if(!autoCommit) { connection.commit();connection.setAutoCommit(true); }

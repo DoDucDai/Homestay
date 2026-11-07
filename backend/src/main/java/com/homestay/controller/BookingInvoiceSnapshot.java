@@ -11,6 +11,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 /** Builds invoices from captured prices; reprints read only the stored JSON. */
+// NOTE BACKEND: Tạo hóa đơn từ giá đã giữ trong booking/dịch vụ và lưu toàn bộ nội dung để các lần in lại giữ nguyên.
 final class BookingInvoiceSnapshot {
     private static final ObjectMapper JSON = new ObjectMapper()
             .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
@@ -18,6 +19,7 @@ final class BookingInvoiceSnapshot {
 
     private BookingInvoiceSnapshot() {}
 
+    // NOTE BACKEND: Kiểm tra tiền VND phải nguyên, không âm và nằm trong giới hạn cột database; không âm thầm làm tròn số lẻ.
     static BigDecimal money(BigDecimal value) throws SQLException {
         if (value == null) throw new ApiProblem(409,"DATA_INCONSISTENT","Dữ liệu giá đã lưu chưa đầy đủ. Vui lòng liên hệ người quản lý!");
         try {
@@ -31,6 +33,7 @@ final class BookingInvoiceSnapshot {
         }
     }
 
+    // NOTE BACKEND: Đọc thời gian ở, giá phòng đã chụp và từng dòng dịch vụ; tính tiền phòng, dịch vụ, tổng và cảnh báo đối soát.
     static Map<String, Object> build(Connection conn, int bookingId) throws SQLException {
         Map<String, Object> invoice = new LinkedHashMap<>();
         BigDecimal price;
@@ -124,11 +127,13 @@ final class BookingInvoiceSnapshot {
         return invoice;
     }
 
+    // NOTE BACKEND: Ghi bản thanh toán và JSON hóa đơn, có thể nhận thời điểm thanh toán khi nhập dữ liệu; dùng giao dịch do bên gọi quản lý.
     static int store(Connection conn, Map<String, Object> invoice, String paymentMethod) throws SQLException {
         return store(conn, invoice, paymentMethod, null);
     }
 
     // Manual imports can preserve paid_at; normal checkout keeps the SQL server timestamp.
+    // NOTE BACKEND: Ghi bản thanh toán và JSON hóa đơn, có thể nhận thời điểm thanh toán khi nhập dữ liệu; dùng giao dịch do bên gọi quản lý.
     static int store(Connection conn, Map<String, Object> invoice, String paymentMethod, java.time.LocalDateTime paidAt) throws SQLException {
         int paymentId;
         String insert = """
@@ -173,6 +178,7 @@ final class BookingInvoiceSnapshot {
         return paymentId;
     }
 
+    // NOTE BACKEND: Đọc đúng JSON hóa đơn đã lưu theo paymentId; không dựng lại từ danh mục phòng, khách và dịch vụ hiện tại.
     static Map<String, Object> read(Connection conn, int paymentId) throws SQLException {
         try (PreparedStatement stmt = conn.prepareStatement("SELECT invoice_snapshot FROM Payments WHERE payment_id=?")) {
             stmt.setInt(1, paymentId);

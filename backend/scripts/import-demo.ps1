@@ -1,3 +1,5 @@
+# NOTE BACKEND: Kiểm tra CSV trước khi kết nối database, biên dịch công cụ nhập rồi chạy preview/apply/test theo lựa chọn; cần chỉ rõ Database đích.
+# Đường dẫn được tính từ vị trí script; MavenRepository cho phép dùng bộ thư viện đã tải trong workspace.
 param(
     [string]$Database = '',
     [ValidateSet('preview','apply','test')][string]$Operation = 'preview',

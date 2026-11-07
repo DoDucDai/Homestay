@@ -1,6 +1,9 @@
 package com.homestay.security;
 
+// NOTE KIỂM THỬ: Kiểm tra các biên hợp lệ/không hợp lệ của điện thoại, email và mật khẩu tài khoản mà không cần mở website.
+// File này thuộc src/test, không phải endpoint và không nằm trong mã nghiệp vụ chạy phục vụ người dùng.
 public class AccountPolicyChecks {
+    // NOTE KIỂM THỬ: Điểm chạy nhóm kiểm tra; dùng AssertionError/kết thúc khác 0 để báo điều kiện không đạt.
     public static void main(String[] args) {
         for(String value:new String[]{"Abc@12","  Abc@12  ","Password1!"})
             if(!AccountPolicy.password(value)) throw new AssertionError("Valid password rejected");

@@ -6,9 +6,11 @@ import java.sql.*;
 import java.util.*;
 
 /** Add reviewed new room numbers once; never change an existing room or historical booking. */
+// NOTE BACKEND: Đọc room-expansion.json để thêm các cơ sở/phòng đã được duyệt; đánh dấu lần nhập để không thêm lặp.
 public final class RoomExpansionMigration {
     private static final String KEY="room-expansion-74-20261103-v1";
     private RoomExpansionMigration() {}
+    // NOTE BACKEND: Bỏ qua mã phòng đã tồn tại, chỉ thêm phòng còn thiếu và ghi mã lần nhập trong cùng giao dịch.
     public static void migrate(Connection conn) throws SQLException,IOException {
         com.fasterxml.jackson.databind.JsonNode data;
         try(var source=RoomExpansionMigration.class.getResourceAsStream("/room-expansion.json")) {
@@ -49,6 +51,7 @@ public final class RoomExpansionMigration {
             conn.commit();
         } catch(SQLException|IOException|RuntimeException error){try{conn.rollback();}catch(SQLException rollback){error.addSuppressed(rollback);}throw error;}
     }
+    // NOTE BACKEND: Chạy riêng công cụ bổ sung danh mục phòng bằng cấu hình kết nối hiện tại.
     public static void main(String[] args) throws Exception {
         try(var conn=DBConnection.getConnection()){migrate(conn);}
         System.out.println("Reviewed new rooms imported once; existing room codes skipped.");

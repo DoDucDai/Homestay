@@ -1,3 +1,5 @@
+// NOTE KIỂM THỬ: Môi trường DOM/API giả dùng chung cho kiểm thử JavaScript: tạo phần tử, sự kiện, ngữ cảnh VM và ghi lại yêu cầu.
+// Code chạy bằng Node trong môi trường giả để kiểm tra frontend; các assert so kết quả thực tế với kết quả mong đợi.
 const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');

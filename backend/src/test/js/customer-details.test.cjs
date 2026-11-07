@@ -1,3 +1,5 @@
+// NOTE KIỂM THỬ: Kiểm tra hộp chi tiết khách hiển thị đầy đủ giá trị gốc, chỉ ra dữ liệu thiếu và không dựng HTML từ dữ liệu khách.
+// Code chạy bằng Node trong môi trường giả để kiểm tra frontend; các assert so kết quả thực tế với kết quả mong đợi.
 const assert=require('node:assert/strict');
 const {env,payload}=require('./frontend-test-env.cjs');
 const e=env('customers');

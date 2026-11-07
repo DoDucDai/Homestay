@@ -1,3 +1,5 @@
+// NOTE KIỂM THỬ: Kiểm tra định dạng tài khoản và luồng đăng ký/quên/đặt lại mật khẩu, chống gửi lặp và không cho client tự chọn quyền.
+// Code chạy bằng Node trong môi trường giả để kiểm tra frontend; các assert so kết quả thực tế với kết quả mong đợi.
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const {env,Element,root}=require('./frontend-test-env.cjs');
 const {context:p}=env('profile');

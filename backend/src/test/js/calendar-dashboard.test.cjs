@@ -1,3 +1,5 @@
+// NOTE KIỂM THỬ: Kiểm tra lịch lưu trú theo giờ Việt Nam, lọc phòng/booking và dữ liệu cũ khi tải lại thất bại.
+// Code chạy bằng Node trong môi trường giả để kiểm tra frontend; các assert so kết quả thực tế với kết quả mong đợi.
 const {env,root,payload}=require('./frontend-test-env.cjs');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
 function setup(){

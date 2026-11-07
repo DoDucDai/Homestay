@@ -1,3 +1,5 @@
+// NOTE KIỂM THỬ: Kiểm tra chọn phòng theo lịch, dữ liệu tải bất đồng bộ, bỏ kết quả cũ và trạng thái nút gửi khi đang xử lý.
+// Code chạy bằng Node trong môi trường giả để kiểm tra frontend; các assert so kết quả thực tế với kết quả mong đợi.
 const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');

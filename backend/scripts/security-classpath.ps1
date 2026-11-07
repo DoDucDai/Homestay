@@ -1,3 +1,5 @@
+# NOTE BACKEND: Biên dịch mã chính và mã kiểm thử rồi xuất danh sách thư viện vào target/security-classpath.txt để các công cụ Java chạy ngoài Maven.
+# Đường dẫn được tính từ vị trí script; MavenRepository cho phép dùng bộ thư viện đã tải trong workspace.
 param([string]$MavenRepository = '')
 $ErrorActionPreference = 'Stop'
 if (!$MavenRepository) {

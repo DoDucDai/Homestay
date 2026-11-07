@@ -4,7 +4,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 
+// NOTE KIỂM THỬ: Kiểm tra giá ngày thường/cuối tuần, loại ngày trả, tuần đầy đủ/phần dư và JSON bảng giá theo đêm.
+// File này thuộc src/test, không phải endpoint và không nằm trong mã nghiệp vụ chạy phục vụ người dùng.
 public class NightlyPricingChecks {
+    // NOTE KIỂM THỬ: Điểm chạy nhóm kiểm tra; dùng AssertionError/kết thúc khác 0 để báo điều kiện không đạt.
     public static void main(String[] args) throws Exception {
         var p=NightlyPricing.validate(450000,List.of(6,7));
         String[] starts={"2026-11-06","2026-11-07","2026-11-08","2026-11-06","2026-11-02","2026-11-01","2026-11-09"};

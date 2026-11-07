@@ -1,3 +1,5 @@
+# NOTE BACKEND: Build bản phát hành, chạy các file kiểm thử JavaScript rồi các chương trình kiểm thử Java/SQL; dừng ngay khi một nhóm thất bại và giữ log trong target.
+# Đường dẫn được tính từ vị trí script; MavenRepository cho phép dùng bộ thư viện đã tải trong workspace.
 param([string]$MavenRepository = '')
 $ErrorActionPreference = 'Stop'
 & "$PSScriptRoot/build-release.ps1" -MavenRepository $MavenRepository

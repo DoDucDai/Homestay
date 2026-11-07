@@ -8,10 +8,13 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /** Exercises legacy migration and new snapshots in a disposable SQL Server DB. */
+// NOTE KIỂM THỬ: Kiểm tra giá phòng/dịch vụ đã chụp, migration dữ liệu cũ và nội dung hóa đơn không đổi sau khi danh mục thay đổi.
+// File này thuộc src/test, không phải endpoint và không nằm trong mã nghiệp vụ chạy phục vụ người dùng.
 public class BookingPriceSnapshotSqlServerIT {
     private static final BookingController controller = new BookingController();
     private static int passed;
 
+    // NOTE KIỂM THỬ: Điểm chạy nhóm kiểm tra; dùng AssertionError/kết thúc khác 0 để báo điều kiện không đạt.
     public static void main(String[] args) throws Exception {
         if (args.length == 1 && "--isolated-child".equals(args[0])) {
             String database = System.getenv("DB_NAME");
@@ -108,6 +111,7 @@ public class BookingPriceSnapshotSqlServerIT {
         }
     }
 
+    // NOTE KIỂM THỬ: Tạo tình huống, gọi code cần kiểm tra rồi đối chiếu kết quả/trạng thái dữ liệu với giá trị mong đợi.
     private static void runChecks() throws Exception {
         sql("INSERT INTO Customers(full_name,cccd,phone,address) VALUES(N'Legacy guest','000000000001','0900000000',N'Old address'); "
                 + "INSERT INTO Rooms(room_code,room_name,room_type,price,status) VALUES('POLD',N'Legacy room','Single',300000,N'Trống'); "

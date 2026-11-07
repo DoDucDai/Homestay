@@ -10,20 +10,25 @@ import java.sql.*;
 import java.util.*;
 
 @Service
+// NOTE BACKEND: Xử lý nghiệp vụ OTP và liên kết đặt lại mật khẩu: tạo mã, giới hạn gửi/thử, lưu dấu kiểm tra và tiêu thụ một lần.
 public class AccountEmailActions {
     private final MailGateway mail;
     private final AccountSettings settings;
     private final SecureRandom random=new SecureRandom();
     private record Challenge(String id,String email,String secret) {}
     public AccountEmailActions(MailGateway mail,AccountSettings settings) { this.mail=mail;this.settings=settings; }
+    // NOTE BACKEND: Kiểm tra secret, URL frontend và cấu hình gửi email trước khi tạo yêu cầu cần gửi thư.
     private void ready() { settings.tokenSecret();settings.publicUrl();if(!mail.configured())throw AccountSettings.unavailable(); }
+    // NOTE BACKEND: Tạo HMAC-SHA256 từ mục đích, ID và mã bí mật; database lưu giá trị kiểm tra, không lưu OTP/token thô.
     private String digest(String purpose,String id,String secret) {
         try {
             var mac=Mac.getInstance("HmacSHA256");mac.init(new SecretKeySpec(settings.tokenSecret().getBytes(StandardCharsets.UTF_8),"HmacSHA256"));
             return HexFormat.of().formatHex(mac.doFinal((purpose+":"+id.toLowerCase(Locale.ROOT)+":"+secret).getBytes(StandardCharsets.UTF_8)));
         } catch(GeneralSecurityException e) { throw new IllegalStateException(e); }
     }
+    // NOTE BACKEND: So sánh hai giá trị kiểm tra bằng MessageDigest.isEqual để tránh so sánh chuỗi dừng sớm.
     private static boolean same(String a,String b) { return MessageDigest.isEqual(a.getBytes(StandardCharsets.US_ASCII),b.getBytes(StandardCharsets.US_ASCII)); }
+    // NOTE BACKEND: Khóa tài khoản, buộc email không mơ hồ, kiểm tra chờ 60 giây, vô hiệu mã cùng mục đích cũ rồi lưu mã mới gắn với phiên bản email/tài khoản.
     private Challenge create(Connection connection,int userId,String purpose,String secret,int minutes,Integer expectedVersion) throws SQLException {
         String id=UUID.randomUUID().toString(),email;
         int emailVersion,authVersion;
@@ -49,6 +54,7 @@ public class AccountEmailActions {
         }
         return new Challenge(id,email,secret);
     }
+    // NOTE BACKEND: Gửi thư sau khi tạo mã rồi ghi SENT/FAILED; mã gửi thất bại không được dùng để xác thực.
     private void deliver(Challenge challenge,String subject,String text) {
         String status="FAILED";
         try { mail.send(challenge.email(),subject,text);status="SENT"; }
@@ -61,6 +67,7 @@ public class AccountEmailActions {
             });
         }
     }
+    // NOTE BACKEND: Tạo OTP ngẫu nhiên 6 số hạn 10 phút sau khi kiểm tra cờ bật và hạn mức theo user/IP; gửi đến email đã lưu.
     public Map<String,Object> requestVerification(AppUser user,String ip) {
         requireVerificationEnabled();
         ready();AccountStore.limit("verify-user:"+user.userId(),5,600);AccountStore.limit("verify-ip:"+ip,30,3600);
@@ -69,6 +76,7 @@ public class AccountEmailActions {
         deliver(challenge,"Homestay — Mã xác thực email", "Mã xác thực email của bạn: "+code+"\nMã hết hạn sau 10 phút và chỉ dùng một lần. Không chia sẻ mã.\nNếu bạn không yêu cầu, hãy bỏ qua thư này.");
         return Map.of("success",true,"message","Đã gửi mã xác thực. Kiểm tra hộp thư và thư rác.","expiresIn",600,"retryAfter",60);
     }
+    // NOTE BACKEND: Kiểm tra mã đã gửi còn hạn, đúng tài khoản/phiên bản và dưới 5 lần thử; cập nhật số lần thử, khóa mã và xác thực email nếu đúng.
     public Map<String,Object> confirmVerification(AppUser user,String code,String ip) {
         requireVerificationEnabled();
         settings.tokenSecret();AccountStore.limit("verify-attempt:"+user.userId()+":"+ip,20,600);
@@ -92,9 +100,11 @@ public class AccountEmailActions {
         if(!valid)throw new ApiProblem(400,"INVALID_VERIFICATION_CODE","Mã không đúng, đã dùng hoặc hết hạn. Vui lòng kiểm tra hoặc gửi mã mới.");
         return Map.of("success",true,"message","Email đã được xác thực.");
     }
+    // NOTE BACKEND: Chặn các thao tác OTP khi xác thực email đang được tắt trong cấu hình.
     private void requireVerificationEnabled() {
         if(!settings.emailVerificationEnabled())throw new ApiProblem(503,"EMAIL_VERIFICATION_DISABLED","Xác thực email đang tạm tắt. Bạn có thể đặt phòng mà không cần mã xác thực.");
     }
+    // NOTE BACKEND: Tạo liên kết 15 phút cho email đã xác thực và chỉ thuộc một tài khoản; phản hồi chung không tiết lộ tài khoản có tồn tại.
     public Map<String,Object> forgotPassword(String email,String ip) {
         if(!AccountPolicy.email(email))throw ApiErrors.invalid("Nhập email đăng ký hợp lệ.");
         ready();email=AccountStore.normalize(email);
@@ -119,6 +129,7 @@ public class AccountEmailActions {
         }
         return Map.of("success",true,"message","Nếu email có tài khoản phù hợp, hướng dẫn đặt lại mật khẩu sẽ được gửi. Vui lòng kiểm tra cả thư rác.");
     }
+    // NOTE BACKEND: Khóa và kiểm tra token dùng một lần, lưu mật khẩu mới đã băm, tăng auth_version và vô hiệu các mã còn chờ.
     public Map<String,Object> resetPassword(String token,String password) {
         settings.tokenSecret();
         if(!AccountPolicy.password(password) || !token.matches("[0-9a-fA-F-]{36}\\.[A-Za-z0-9_-]{43}"))throw invalidReset();
@@ -144,5 +155,6 @@ public class AccountEmailActions {
         if(!valid)throw invalidReset();
         return Map.of("success",true,"message","Đã đặt lại mật khẩu. Vui lòng đăng nhập bằng mật khẩu mới.");
     }
+    // NOTE BACKEND: Dùng cùng lỗi khi token sai, hết hạn, đã dùng hoặc mật khẩu không đạt để tránh trả chi tiết nội bộ.
     private static ApiProblem invalidReset() { return new ApiProblem(400,"INVALID_RESET_TOKEN","Liên kết không hợp lệ, đã dùng hoặc hết hạn; mật khẩu mới cần đúng chính sách. Vui lòng yêu cầu lại nếu cần."); }
 }

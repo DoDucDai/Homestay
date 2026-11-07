@@ -6,10 +6,13 @@ import java.sql.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+// NOTE KIỂM THỬ: Kiểm tra chuẩn hóa/gộp mã phòng, giữ liên kết booking và xử lý ID cũ qua bảng ánh xạ.
+// File này thuộc src/test, không phải endpoint và không nằm trong mã nghiệp vụ chạy phục vụ người dùng.
 public final class RoomCatalogSqlServerIT {
     private static void require(boolean value,String message){if(!value)throw new AssertionError(message);}
     private static void sql(String query)throws Exception{try(var c=DBConnection.getConnection();var s=c.createStatement()){s.execute(query);}}
     private static String value(String query)throws Exception{try(var c=DBConnection.getConnection();var s=c.createStatement();var r=s.executeQuery(query)){r.next();return r.getString(1);}}
+    // NOTE KIỂM THỬ: Điểm chạy nhóm kiểm tra; dùng AssertionError/kết thúc khác 0 để báo điều kiện không đạt.
     public static void main(String[] args)throws Exception {
         if(args.length>0){checks();return;}
         String db="HomestayCatalogTest_"+UUID.randomUUID().toString().replace("-","");
@@ -28,6 +31,7 @@ public final class RoomCatalogSqlServerIT {
             }
         }
     }
+    // NOTE KIỂM THỬ: Tạo tình huống, gọi code cần kiểm tra rồi đối chiếu kết quả/trạng thái dữ liệu với giá trị mong đợi.
     private static void checks()throws Exception {
         require(System.getenv("DB_NAME").matches("HomestayCatalogTest_[a-f0-9]{32}"),"Wrong test database");
         try(var c=DBConnection.getConnection()){require(RoomCatalogMigration.resolveId(c,1)==1,"Pre-migration ID lookup failed");HourlyPricingMigration.migrate(c);}

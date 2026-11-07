@@ -9,15 +9,18 @@ import java.util.*;
 
 /** HTTPS transport only; no SMTP, secret logging, or client-provided provider URLs. */
 @Service
+// NOTE BACKEND: Gửi email qua API HTTPS của Brevo/Resend; khóa API chỉ đọc ở backend và không ghi vào thông báo gửi về frontend.
 public class HttpMailGateway implements MailGateway {
     private final AccountSettings settings;
     private final ObjectMapper json;
     private final HttpClient client=HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(4)).build();
     public HttpMailGateway(AccountSettings settings,ObjectMapper json) { this.settings=settings;this.json=json; }
+    // NOTE BACKEND: Kiểm tra nhà cung cấp được hỗ trợ, khóa API không rỗng và địa chỉ người gửi đúng định dạng.
     @Override public boolean configured() {
         return Set.of("brevo","resend").contains(settings.value("MAIL_PROVIDER","disabled"))
             && !settings.value("MAIL_API_KEY","").isBlank() && AccountPolicy.email(settings.value("MAIL_FROM",""));
     }
+    // NOTE BACKEND: Tạo JSON và header tương ứng nhà cung cấp, gửi HTTP có thời hạn chờ; lỗi mạng hoặc provider từ chối sẽ thành lỗi email tạm chưa sẵn sàng.
     @Override public void send(String email,String subject,String text) {
         if(!configured())throw AccountSettings.unavailable();
         String provider=settings.value("MAIL_PROVIDER","disabled"),from=settings.value("MAIL_FROM","");

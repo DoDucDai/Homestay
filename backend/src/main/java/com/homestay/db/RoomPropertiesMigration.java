@@ -3,8 +3,10 @@ package com.homestay.db;
 import java.sql.*;
 
 /** Initial property assignment; later property/address edits are never overwritten. */
+// NOTE BACKEND: Tạo bảng cơ sở và gán cơ sở ban đầu cho phòng cũ; không ghi đè thông tin cơ sở ở những lần chạy sau.
 public final class RoomPropertiesMigration {
     private RoomPropertiesMigration() {}
+    // NOTE BACKEND: Trong giao dịch, tạo cơ sở mặc định và cột property_id nếu chưa có, kèm liên kết khóa ngoại từ Rooms sang Properties.
     public static void migrate(Connection conn) throws SQLException {
         conn.setAutoCommit(false);
         try(var st=conn.createStatement()) {
@@ -16,6 +18,7 @@ public final class RoomPropertiesMigration {
             conn.commit();
         } catch(SQLException error){try{conn.rollback();}catch(SQLException rollback){error.addSuppressed(rollback);}throw error;}
     }
+    // NOTE BACKEND: Điểm chạy riêng migration cơ sở khi cần thao tác từ công cụ dòng lệnh.
     public static void main(String[] args) throws Exception {
         try(var conn=DBConnection.getConnection()){migrate(conn);}
         System.out.println("Existing rooms assigned to Co so 1; subsequent property changes preserved.");

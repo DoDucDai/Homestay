@@ -3,8 +3,10 @@ package com.homestay.db;
 import java.sql.*;
 
 /** Additive migration; poster prices are imported once, never on subsequent restarts. */
+// NOTE BACKEND: Bổ sung cột giá gói giờ, giá cuối tuần và bản lưu bảng giá của booking; dữ liệu giá mẫu chỉ gán ở lần thêm cột đầu tiên.
 public final class HourlyPricingMigration {
     private HourlyPricingMigration() {}
+    // NOTE BACKEND: Khóa bảng phòng trong giao dịch, thêm cột còn thiếu và áp dụng giá mẫu ban đầu; có lỗi thì rollback, chạy lại không ghi đè giá đã sửa.
     public static void migrate(Connection conn) throws SQLException {
         conn.setAutoCommit(false);
         try(var statement=conn.createStatement()) {

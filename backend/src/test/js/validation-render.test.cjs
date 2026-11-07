@@ -1,3 +1,5 @@
+// NOTE KIỂM THỬ: Kiểm tra bảng/form hiển thị dữ liệu như văn bản, chống chèn HTML và chặn thông tin khách/dịch vụ không hợp lệ.
+// Code chạy bằng Node trong môi trường giả để kiểm tra frontend; các assert so kết quả thực tế với kết quả mong đợi.
 const assert = require('node:assert/strict');
 const {env, payload} = require('./frontend-test-env.cjs');
 let passed = 0;

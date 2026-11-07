@@ -1,3 +1,5 @@
+// NOTE KIỂM THỬ: Kiểm tra tìm kiếm khách, lịch sử lưu trú, liên kết hóa đơn và menu tài khoản/quản trị theo quyền.
+// Code chạy bằng Node trong môi trường giả để kiểm tra frontend; các assert so kết quả thực tế với kết quả mong đợi.
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');

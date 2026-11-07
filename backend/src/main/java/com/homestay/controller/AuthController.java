@@ -34,9 +34,11 @@ public class AuthController {
         this.manager=manager;this.encoder=encoder;this.repository=repository;this.strategy=strategy;this.throttle=throttle;
         this.settings=settings;
     }
+    // NOTE BACKEND: Đọc chuỗi từ JSON an toàn khi body/trường thiếu, dùng chuỗi rỗng để các bước kiểm tra phía sau xử lý.
     private String text(Map<String,Object> body,String key) {
         return body!=null && body.get(key) instanceof String value ? value : "";
     }
+    // NOTE BACKEND: Tạo ResponseEntity lỗi gồm status và JSON success/code/message cho các thao tác tài khoản.
     private ResponseEntity<Map<String,Object>> error(int status,String code,String message) {
         return ResponseEntity.status(status).body(Map.of("success",false,"code",code,"message",message));
     }
@@ -112,6 +114,7 @@ public class AuthController {
         catch(com.homestay.api.ApiProblem problem) { return error(problem.status,problem.code,problem.getMessage()); }
         return ResponseEntity.ok(me(auth));
     }
+    // NOTE BACKEND: Hủy ngữ cảnh đăng nhập, xóa cookie HOMESTAY_SESSION và lưu ngữ cảnh rỗng để phiên không được dùng lại.
     private void endSession(HttpServletRequest request,HttpServletResponse response,Authentication auth) {
         new SecurityContextLogoutHandler().logout(request,response,auth);
         new CookieClearingLogoutHandler("HOMESTAY_SESSION").logout(request,response,auth);

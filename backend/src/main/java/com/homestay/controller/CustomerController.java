@@ -13,10 +13,12 @@ import java.util.*;
 @RequestMapping("/api/customers")
 public class CustomerController {
     private static final String SELECT="SELECT customer_id,full_name,document_type,cccd,phone,email,address,created_at FROM Customers";
+    // NOTE BACKEND: Giữ nguyên dữ liệu cũ nếu client không sửa; nếu đổi thì đọc chuỗi theo giới hạn của trường.
     private String retainedText(Map<String,Object> body,String key,int max,String previous) {
         if(body!=null && previous.equals(body.get(key))) return previous;
         return Input.text(body,key,max,false,previous);
     }
+    // NOTE BACKEND: Chuyển dòng Customers thành JSON và thêm cảnh báo giấy tờ/điện thoại/email cũ chưa đạt quy tắc hiện tại.
     private Map<String,Object> row(ResultSet rs) throws SQLException {
         Map<String,Object> result=new LinkedHashMap<>();
         result.put("customerId",rs.getInt("customer_id"));result.put("fullName",rs.getString("full_name"));

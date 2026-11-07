@@ -1,3 +1,5 @@
+# NOTE BACKEND: Build sạch bằng Maven, gom JAR, tài liệu, cấu hình mẫu, SQL và script khởi động vào target/release; tạo checksum và file ZIP để phát hành.
+# Đường dẫn được tính từ vị trí script; MavenRepository cho phép dùng bộ thư viện đã tải trong workspace.
 param([string]$MavenRepository = '')
 $ErrorActionPreference = 'Stop'
 $backendRoot = Split-Path $PSScriptRoot -Parent

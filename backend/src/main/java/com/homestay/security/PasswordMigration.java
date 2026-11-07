@@ -5,8 +5,10 @@ import java.sql.*;
 import java.util.*;
 
 /** Offline migration only: preserves passwords, never enables plaintext login. */
+// NOTE BACKEND: Công cụ chuyển mật khẩu legacy sang PBKDF2 khi chạy ngoại tuyến; không phải luồng đăng nhập bằng mật khẩu thô.
 public final class PasswordMigration {
     private PasswordMigration() {}
+    // NOTE BACKEND: Khóa bảng Users và chuyển từng mật khẩu legacy trong một giao dịch; giữ nguyên nội dung mật khẩu, tăng phiên bản để thu hồi phiên cũ.
     public static int migrate(Connection conn) throws SQLException {
         if (!conn.getAutoCommit()) throw new SQLException("Migration requires its own connection");
         conn.setAutoCommit(false);
@@ -44,6 +46,7 @@ public final class PasswordMigration {
             if (transactionEnded) conn.setAutoCommit(true);
         }
     }
+    // NOTE BACKEND: Chỉ thực thi khi có --apply; bên vận hành cần dừng ghi và sao lưu trước theo thông báo sẵn có của công cụ.
     public static void main(String[] args) throws Exception {
         if (args.length!=1 || !"--apply".equals(args[0])) {
             throw new IllegalArgumentException("Stop app writes and back up first. Run with --apply to migrate the configured database.");
