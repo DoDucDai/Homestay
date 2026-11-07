@@ -127,5 +127,24 @@ public class HourlyBookingSqlServerIT {
         require(((Number)nightInvoice.get("roomTotal")).longValue()==1300000 && nightInvoice.get("nightlyPricing")!=null,"Nightly invoice snapshot lost rates");
         require(((Number)rooms.getRoomById(2).get("price")).longValue()==999999,"Restart reset edited nightly price");
         System.out.println("PASS NIGHT-01 weekend configuration, mixed stay, client price ignored, legacy/new snapshots, paid invoice and restart preservation");
+
+        int partial=id(book(3,"2031-01-19T10:00","2031-01-19T13:30"));
+        require(ok(app.cancelBooking(partial)),"History fixture cancellation failed");
+        var history=new CustomerController().getHistory(1);
+        require(ok(history),history.toString());
+        var historyRows=(List<?>)history.get("bookings");
+        for(int bookingId:List.of(first,overnight,partial)) {
+            var row=(Map<?,?>)historyRows.stream().filter(item->Objects.equals(((Map<?,?>)item).get("bookingId"),bookingId)).findFirst().orElseThrow();
+            require("Hour".equals(row.get("billingUnit")) && row.get("nights")==null,"Hourly history must not invent nights");
+            require(((Number)row.get("billedHours")).longValue()==(bookingId==partial?4:2),"History rounded hours incorrect");
+            require(bookingId==overnight ? row.get("checkinAt").equals("2031-01-16T23:30") && row.get("checkoutAt").equals("2031-01-17T00:31")
+                    : bookingId==partial ? row.get("checkinAt").equals("2031-01-19T10:00") && row.get("checkoutAt").equals("2031-01-19T13:30")
+                    : row.get("checkinAt").equals(at("10:00")) && row.get("checkoutAt").equals(at("11:01")),"History lost actual hourly timestamps");
+        }
+        var nightlyHistory=(Map<?,?>)historyRows.stream().filter(item->Objects.equals(((Map<?,?>)item).get("bookingId"),mixed)).findFirst().orElseThrow();
+        require("Night".equals(nightlyHistory.get("billingUnit")) && ((Number)nightlyHistory.get("nights")).intValue()==3
+                && nightlyHistory.get("billedHours")==null && nightlyHistory.get("checkinAt")==null,"Nightly history changed");
+        require("1770000".equals(history.get("totalPaid")),"History paid aggregate changed or includes cancellations");
+        System.out.println("PASS HISTORY-01 same-day, overnight and cancelled hourly timestamps/rounded hours, nightly compatibility and paid total");
     }
 }

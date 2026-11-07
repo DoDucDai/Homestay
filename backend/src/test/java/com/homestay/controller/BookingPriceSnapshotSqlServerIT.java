@@ -143,6 +143,8 @@ public class BookingPriceSnapshotSqlServerIT {
         amount(invoice(controller.getPayment(1)).get("pricePerNight"), "300000");
         pass("migration repeatable after catalog changes without rewriting historical snapshots");
 
+        try(Connection connection=DBConnection.getConnection()) { CurrentPricingTestSchema.migrate(connection); }
+
         clear();
         sql("INSERT INTO Customers(full_name,cccd,phone,address) VALUES(N'Original guest','000000000002','0911111111',N'Original address'); "
                 + "INSERT INTO Rooms(room_code,room_name,room_type,price,status) VALUES('PNEW',N'Original room','Single',300000,N'Trống'); "

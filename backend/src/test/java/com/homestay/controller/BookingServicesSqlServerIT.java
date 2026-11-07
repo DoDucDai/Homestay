@@ -36,8 +36,9 @@ public class BookingServicesSqlServerIT {
                 // Keep table definitions, skip CREATE DATABASE / USE of the real database.
                 schema = schema.substring(schema.indexOf("CREATE TABLE Users"));
                 for (String batch : schema.split("(?im)^\\s*GO\\s*$")) {
-                    if (!batch.isBlank()) stmt.execute(batch);
+                    if (!batch.isBlank()) CurrentPricingTestSchema.execute(stmt,batch);
                 }
+                CurrentPricingTestSchema.migrate(bootstrap);
                 ProcessBuilder child = new ProcessBuilder(
                         Path.of(System.getProperty("java.home"), "bin", "java.exe").toString(),
                         "-cp", System.getProperty("java.class.path"),
