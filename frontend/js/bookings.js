@@ -1,3 +1,5 @@
+// NOTE FRONTEND: Quản lý form đặt theo đêm và danh sách booking; lịch trực quan được bổ sung bởi booking-calendar.js.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
 checkLogin();
 let bookingRows = [];
 let bookingListVersion = 0;
@@ -14,9 +16,11 @@ let pendingAvailability = null;
 let bookingCustomers = new Map();
 let bookingRooms = new Map();
 
+// NOTE FRONTEND: Ghép hai ngày thành khóa để nhận biết phòng trống đã tải có còn thuộc khoảng ngày đang chọn.
 function dateRangeKey() {
     return document.getElementById('booking-checkin-date').value + '|' + document.getElementById('booking-checkout-date').value;
 }
+// NOTE FRONTEND: Chỉ bật xác nhận khi có khách/phòng hợp lệ và danh sách phòng trống khớp ngày hiện tại; khóa form khi đang gửi.
 function updateBookingControls() {
     const room = bookingRooms.get(Number(document.getElementById('booking-room').value));
     const customer = bookingCustomers.get(Number(document.getElementById('booking-customer').value));
@@ -38,6 +42,7 @@ function updateBookingControls() {
     document.getElementById('booking-room').disabled = bookingSubmitting || !availableRange || !bookingRooms.size;
     document.getElementById('booking-customer').disabled = bookingSubmitting || !customersReady;
 }
+// NOTE FRONTEND: Dùng luồng tải lịch nếu có; nếu không thì lấy danh sách booking và bỏ phản hồi cũ đến muộn.
 async function loadBookings() {
     if (typeof loadCalendarData === 'function') return loadCalendarData(true);
     const version = ++bookingListVersion;
@@ -56,6 +61,7 @@ async function loadBookings() {
         showRequestError(err, 'Không tải được danh sách booking.');
     }
 }
+// NOTE FRONTEND: Ghi danh sách mới vào bộ nhớ trang, đánh dấu đã tải rồi làm mới bộ lọc và lịch.
 function renderTable(bookings) {
     bookingRows = bookings;
     bookingTableReady = true;
@@ -63,6 +69,7 @@ function renderTable(bookings) {
     if (typeof renderBookingCalendar === 'function') renderBookingCalendar();
 }
 // Adapted from Long's booking search/status UX; keep the existing API and business rules.
+// NOTE FRONTEND: Lọc trạng thái và từ khóa tên khách/mã phòng/mã booking trên dữ liệu đã tải.
 function filterBookings() {
     if (!bookingTableReady) return;
     const query = document.getElementById('booking-search').value.trim().toLocaleLowerCase('vi');
@@ -73,6 +80,7 @@ function filterBookings() {
     renderBookingRows(filtered);
     if (typeof renderBookingCalendar === 'function') renderBookingCalendar();
 }
+// NOTE FRONTEND: Dựng các dòng booking đang lọc, nhãn trạng thái và nút nghiệp vụ phù hợp.
 function renderBookingRows(bookings) {
     const body = document.getElementById('bookings-tbody'); if (!body) return;
     body.replaceChildren();
@@ -94,6 +102,7 @@ function renderBookingRows(bookings) {
                 ({ Confirmed: 'bg-primary', CheckedIn: 'bg-warning', CheckedOut: 'bg-success' }[b.status] || 'bg-secondary')), b.note || ''], actions);
     });
 }
+// NOTE FRONTEND: Xác nhận hủy, khóa theo bookingId và gửi PUT /bookings/{id}/cancel; tải lại dữ liệu sau kết quả.
 async function cancelBooking(bookingId) {
     const row = bookingRows.find(b => b.bookingId === bookingId && b.status === 'Confirmed');
     if (!row || cancellingBookings.has(bookingId)) return;
@@ -111,6 +120,7 @@ async function cancelBooking(bookingId) {
         if (bookingModalOpen && !bookingSubmitting) await refreshAvailableRooms(true);
     }
 }
+// NOTE FRONTEND: Tải danh mục khách vào select và Map theo ID, giữ lựa chọn còn hợp lệ; bỏ kết quả khi modal đã đóng/đổi lần tải.
 async function loadBookingCustomers() {
     const version = ++customerVersion;
     const select = document.getElementById('booking-customer');
@@ -134,6 +144,7 @@ async function loadBookingCustomers() {
         document.getElementById('booking-customer-status').textContent = err.message || 'Không tải được khách hàng.';
     } finally { if (bookingModalOpen && version === customerVersion) updateBookingControls(); }
 }
+// NOTE FRONTEND: Kiểm tra ngày và gọi API phòng trống; dùng khóa khoảng ngày/phiên bản để không áp dụng phản hồi của ngày cũ.
 function refreshAvailableRooms(force = false) {
     if (!bookingModalOpen || bookingSubmitting) return Promise.resolve();
     const key = dateRangeKey();
@@ -182,6 +193,7 @@ function refreshAvailableRooms(force = false) {
     })();
     return pendingAvailability;
 }
+// NOTE FRONTEND: Đặt ngày mặc định, xóa lựa chọn cũ và mở form trước khi tải đồng thời khách/phòng trống.
 async function openAddModal() {
     if (bookingSubmitting) return;
     bookingModalOpen = true; ++customerVersion; ++availabilityVersion;
@@ -198,6 +210,7 @@ async function openAddModal() {
     openModal('booking-modal'); updateBookingControls();
     await reloadBookingData();
 }
+// NOTE FRONTEND: Không cho đóng khi đang ghi; khi đóng thì vô hiệu các yêu cầu còn chờ để không điền lại form cũ.
 function closeBookingModal() {
     if (bookingSubmitting) return;
     bookingModalOpen = false; ++customerVersion; ++availabilityVersion;
@@ -206,10 +219,12 @@ function closeBookingModal() {
     document.getElementById('price-preview').style.display = 'none'; updateBookingControls();
     document.getElementById('booking-modal').classList.remove('show');
 }
+// NOTE FRONTEND: Tải lại khách và phòng trống song song cho form hiện tại, giữ khóa điều khiển tới khi đủ dữ liệu.
 async function reloadBookingData() {
     if (!bookingModalOpen || bookingSubmitting) return;
     await Promise.all([loadBookingCustomers(), refreshAvailableRooms(true)]);
 }
+// NOTE FRONTEND: Tính tiền đêm/ngày cuối tuần từ phòng đã tải cho khoảng ngày hiện tại; đây là báo giá tạm, backend chốt lại.
 function calculateEstimate() {
     const room = bookingRooms.get(Number(document.getElementById('booking-room').value));
     const preview = document.getElementById('price-preview'); preview.style.display = 'none';
@@ -225,6 +240,7 @@ function calculateEstimate() {
         preview.style.display = 'block';
     } catch (err) { document.getElementById('booking-status').textContent = err.message; }
 }
+// NOTE FRONTEND: Kiểm tra lựa chọn còn khớp và gửi customerId, roomId, ngày, ghi chú; không gửi giá để tự quyết định tiền phòng.
 async function saveBooking() {
     if (!bookingModalOpen || bookingSubmitting) return;
     const customerId = Number(document.getElementById('booking-customer').value);

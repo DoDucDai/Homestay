@@ -1,3 +1,5 @@
+// NOTE FRONTEND: Quản lý danh mục dịch vụ; khác với các dòng dịch vụ đã được gọi trong một booking.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
 // ============================================
 // services.js - XU LY TRANG DICH VU
 // ============================================
@@ -6,6 +8,7 @@ checkLogin();
 let currentServices = [];
 let servicesVersion = 0, serviceSaving = false;
 const serviceDeleting = new Set();
+// NOTE FRONTEND: Cho phép admin/customer hiển thị các thao tác danh mục theo mô hình quyền hiện tại.
 function canManageServices() { return ['admin','customer'].includes(currentUser?.role); }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -14,6 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadServices();
 });
 
+// NOTE FRONTEND: Tải danh mục, bỏ phản hồi chậm của lần tải cũ và hiển thị rõ lỗi thay vì giữ bảng như đã cập nhật.
 async function loadServices() {
     const version = ++servicesVersion;
     document.getElementById('services-result').textContent = 'Đang tải dịch vụ…';
@@ -32,6 +36,7 @@ async function loadServices() {
     }
 }
 
+// NOTE FRONTEND: Dựng bảng/phân trang dịch vụ, đơn giá, trạng thái và các nút sửa/xóa.
 function renderTable(services) {
     const tbody = document.getElementById('services-tbody'); if (!tbody) return;
     tbody.replaceChildren();
@@ -51,6 +56,7 @@ function renderTable(services) {
     });
 }
 
+// NOTE FRONTEND: Chuẩn bị form mới và xóa dữ liệu chỉnh sửa dịch vụ trước đó.
 function openAddModal() {
     if (!canManageServices() || serviceSaving) return;
     clearServiceErrors();
@@ -62,6 +68,7 @@ function openAddModal() {
     openModal('service-modal');
 }
 
+// NOTE FRONTEND: Giữ serviceId và điền các trường để gửi cập nhật đúng dịch vụ.
 function openEditModal(service) {
     if (!canManageServices() || serviceSaving || serviceDeleting.has(service.serviceId)) return;
     clearServiceErrors();
@@ -73,6 +80,7 @@ function openEditModal(service) {
     openModal('service-modal');
 }
 
+// NOTE FRONTEND: Dọn lỗi từng trường và trạng thái aria-invalid trước lần kiểm tra tiếp theo.
 function clearServiceErrors() {
     document.getElementById('service-form-error').hidden = true;
     ['name','price','status'].forEach(key => {
@@ -80,9 +88,11 @@ function clearServiceErrors() {
         document.getElementById('service-'+key+'-error').hidden = true;
     });
 }
+// NOTE FRONTEND: Chỉ đóng khi không bận lưu để tránh mất dấu thao tác đang ghi.
 function closeServiceModal() {
     if (!serviceSaving) document.getElementById('service-modal').classList.remove('show');
 }
+// NOTE FRONTEND: Kiểm tra tên/giá/trạng thái, khóa gửi lặp và chọn POST/PUT theo đang thêm hay sửa.
 async function saveService() {
     if (!canManageServices() || serviceSaving) return;
     clearServiceErrors();
@@ -139,6 +149,7 @@ async function saveService() {
     }
 }
 
+// NOTE FRONTEND: Xác nhận và gửi DELETE; dịch vụ đã có dữ liệu sử dụng bị server từ chối xóa.
 async function deleteService(id, name) {
     if (!canManageServices() || serviceDeleting.has(id)) return;
     if (!await askConfirmation(`Bạn có chắc chắn muốn xóa dịch vụ [${name}] không?`)) return;

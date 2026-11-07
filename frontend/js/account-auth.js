@@ -1,3 +1,5 @@
+// NOTE FRONTEND: Chọn màn hình đăng ký khách hàng, quên mật khẩu hoặc đặt lại mật khẩu theo query view.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
 'use strict';
 const customerViews={register:'register-view','forgot-password':'forgot-password-view','reset-password':'reset-password-view'};
 const requestedCustomerView=new URLSearchParams(window.location.search).get('view');
@@ -10,17 +12,22 @@ document.body.classList.toggle('customer-register-page',selectedCustomerView==='
 let resetToken=new URLSearchParams((window.location.hash || '').slice(1)).get('token') || '';
 if(requestedCustomerView==='reset-password' && window.history)window.history.replaceState(null,'',window.location.pathname+window.location.search);
 
+// NOTE FRONTEND: Cập nhật aria-invalid và lỗi ngay dưới trường đăng ký/khôi phục.
 function customerFieldError(id,message='') {
     const field=document.getElementById(id),error=document.getElementById(id+'-error');
     field.setAttribute('aria-invalid',String(!!message));error.textContent=message;error.hidden=!message;
 }
+// NOTE FRONTEND: Dùng chung quy tắc email với hạ tầng tài khoản, không tự đặt một định dạng khác.
 function validCustomerEmail(value) { return validAccountEmail(value); }
+// NOTE FRONTEND: Hiển thị kết quả trả về từ server trong vùng trạng thái của biểu mẫu.
 function customerPreviewResult(id,message) { const target=document.getElementById(id);target.textContent=message;target.hidden=!message; }
 for(const id of ['customer-password','customer-confirm','reset-password','reset-confirm'])bindPasswordVisibility(document.getElementById(id),document.getElementById(id+'-toggle'));
+// NOTE FRONTEND: Khóa input/nút và đánh dấu aria-busy trong lúc yêu cầu đang gửi để tránh thao tác lặp.
 function lockCustomerForm(form,locked) {
     form.setAttribute('aria-busy',String(locked));form.querySelectorAll('input,button').forEach(control=>control.disabled=locked);
 }
 let registering=false,recovering=false,resetting=false;
+// NOTE FRONTEND: Kiểm tra họ tên, liên hệ, username và hai mật khẩu rồi POST /auth/register; quyền customer do backend chọn, không gửi role.
 document.getElementById('register-form').addEventListener('submit',async event=>{
     event.preventDefault();if(registering)return;customerPreviewResult('register-status','');
     const value=id=>document.getElementById(id).value;
@@ -45,6 +52,7 @@ document.getElementById('register-form').addEventListener('submit',async event=>
         window.location.replace(user?loginDestination(user):'login.html?registered=1');
     } catch(error) { customerPreviewResult('register-status',error.message || 'Chưa xác nhận được đăng ký. Hãy thử đăng nhập trước khi gửi lại.');registering=false;lockCustomerForm(document.getElementById('register-form'),false); }
 });
+// NOTE FRONTEND: Gửi email đến /auth/forgot-password và hiện thông báo chung của server, không suy email có tài khoản từ thông báo.
 document.getElementById('forgot-password-form').addEventListener('submit',async event=>{
     event.preventDefault();if(recovering)return;customerPreviewResult('recovery-status','');
     const email=document.getElementById('recovery-email').value.trim(),error=validCustomerEmail(email)?'':'Nhập email đăng ký hợp lệ.';
@@ -54,6 +62,7 @@ document.getElementById('forgot-password-form').addEventListener('submit',async 
     catch(error) { customerPreviewResult('recovery-status',error.message || 'Không thể yêu cầu đặt lại mật khẩu.'); }
     finally { recovering=false;lockCustomerForm(document.getElementById('forgot-password-form'),false); }
 });
+// NOTE FRONTEND: Gửi token lấy từ liên kết cùng mật khẩu mới đã xác nhận; thành công thì xóa token và chuyển về đăng nhập.
 document.getElementById('reset-password-form').addEventListener('submit',async event=>{
     event.preventDefault();if(resetting)return;
     const password=document.getElementById('reset-password').value,confirmation=document.getElementById('reset-confirm').value;

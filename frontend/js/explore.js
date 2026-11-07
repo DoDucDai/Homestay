@@ -1,4 +1,7 @@
+// NOTE FRONTEND: Danh mục phòng cho người xem công khai; giá niêm yết không đồng nghĩa phòng còn trống cho ngày đang muốn đặt.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
 let exploreRooms=[];
+// NOTE FRONTEND: Tạo ảnh/khung ảnh phòng từ thư viện chung, có ảnh thay thế khi mã chưa có nguồn ảnh.
 function explorePhoto(room, gallery=false) {
     const illustration=RoomPhotos.create(room,{gallery});
     if(illustration)return illustration;
@@ -8,8 +11,11 @@ function explorePhoto(room, gallery=false) {
     photo.append(svg,textNode('strong',room.roomCode),textNode('small','Hình ảnh phòng đang được cập nhật'));
     return photo;
 }
+// NOTE FRONTEND: Tạo đường dẫn chi tiết bằng ID phòng để trang tải đúng dữ liệu công khai.
 function exploreLink(room) {return 'explore.html?room='+encodeURIComponent(room.roomId);}
+// NOTE FRONTEND: Định dạng tiền niêm yết để hiển thị, không quyết định giá thanh toán.
 function exploreMoney(amount) { return Number(amount).toLocaleString('vi-VN')+' ₫'; }
+// NOTE FRONTEND: Tạo dòng mô tả một mức giá cho phần trình bày chi tiết.
 function exploreRate(label,amount,unit,description='',tone='') {
     const card=textNode('div','','explore-rate-card'+(tone?' '+tone:''));
     const value=textNode('dd','','explore-rate-value');
@@ -17,10 +23,12 @@ function exploreRate(label,amount,unit,description='',tone='') {
     if(description)value.append(textNode('small',description,'explore-rate-caption'));
     card.append(textNode('dt',label,'explore-rate-label'),value);return card;
 }
+// NOTE FRONTEND: Diễn giải các ngày áp dụng giá cuối tuần theo cấu hình phòng.
 function exploreWeekendLabel(days) {
     const names=['','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy','Chủ nhật'];
     return days.map(day=>names[day]).join(' & ');
 }
+// NOTE FRONTEND: Dựng các dòng giá đêm, cuối tuần, giờ/gói hiện có; không tự suy ra giá còn thiếu.
 function renderExploreRates(room) {
     const night=document.getElementById('explore-night-price');night.replaceChildren();
     if(room.nightlyPricing) {
@@ -37,6 +45,7 @@ function renderExploreRates(room) {
     } else if(Number(room.hourlyPrice)>0)hour.append(exploreRate('Giá theo giờ',room.hourlyPrice,'/ giờ'));
     else hour.textContent='Chưa có giá theo giờ';
 }
+// NOTE FRONTEND: Tạo phần giá rút gọn trên thẻ phòng từ dữ liệu danh mục.
 function exploreCardPricing(room) {
     const prices=textNode('div','','explore-card-pricing');
     for(const [label,amount] of room.nightlyPricing?[['Đêm ngày thường',room.price],['Đêm cuối tuần',room.nightlyPricing.weekendPrice]]:[['Qua đêm',room.price]]) {
@@ -45,11 +54,13 @@ function exploreCardPricing(room) {
     const hour=room.hourlyPackages?exploreMoney(room.hourlyPackages.twoHours)+' / 2 giờ':Number(room.hourlyPrice)>0?exploreMoney(room.hourlyPrice)+' / giờ':'Chưa có giá giờ';
     prices.append(textNode('p','Theo giờ · '+hour,'explore-card-hour'));return prices;
 }
+// NOTE FRONTEND: Kết hợp tìm kiếm, cơ sở, loại và thứ tự giá/mã phòng trên danh sách đã tải.
 function filterExploreRooms(rows,search,type,sort,property='') {
     const query=search.trim().toLocaleLowerCase('vi');
     return rows.filter(room=>(!property || room.propertyId===Number(property)) && (!type || room.roomType===type) && (!query || [room.roomCode,room.roomName,room.propertyName,room.propertyAddress].filter(Boolean).some(value=>value.toLocaleLowerCase('vi').includes(query))))
         .sort((a,b)=>sort==='price-up'?Number(a.price)-Number(b.price):sort==='price-down'?Number(b.price)-Number(a.price):a.roomCode.localeCompare(b.roomCode,'vi',{numeric:true}));
 }
+// NOTE FRONTEND: Dựng thẻ danh sách theo bộ lọc hiện tại, hiển thị trạng thái không có kết quả rõ ràng.
 function renderExploreRooms() {
     const rows=filterExploreRooms(exploreRooms,document.getElementById('explore-search').value,document.getElementById('explore-type').value,document.getElementById('explore-sort').value,document.getElementById('explore-property').value);
     const grid=document.getElementById('explore-grid');grid.replaceChildren();
@@ -67,6 +78,7 @@ function renderExploreRooms() {
         card.append(explorePhoto(room),copy);grid.append(card);
     }
 }
+// NOTE FRONTEND: Điền tên, mô tả, ảnh, giá và cơ sở; nút đặt giữ mã phòng/loại/cơ sở trong URL chuyển tiếp.
 function renderExploreDetail(room) {
     document.title=room.roomName+' — Homestay';
     document.getElementById('explore-room-title').textContent=room.roomName;
@@ -81,6 +93,7 @@ function renderExploreDetail(room) {
     if(room.propertyId)bookingParams.set('property',room.propertyId);
     document.getElementById('explore-book-link').href='bookings.html?'+bookingParams;
 }
+// NOTE FRONTEND: Tải danh sách hoặc một phòng theo query room, kiểm tra ID và phân biệt trạng thái lỗi/chi tiết/danh sách.
 async function loadExplore() {
     const id=new URLSearchParams(window.location.search).get('room');
     document.getElementById('explore-error').hidden=true;

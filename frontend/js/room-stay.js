@@ -1,6 +1,9 @@
+// NOTE FRONTEND: Thao tác lưu trú trực tiếp trên thẻ phòng: đặt giờ, nhận/hủy, xem preview và thanh toán.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
 let stayRoom = null, stayVersion = 0, stayBusy = false, stayReady = false, stayPreview = null;
 let roomBookings = [], stayCustomers = [];
 const stayEl = id => document.getElementById('stay-'+id);
+// NOTE FRONTEND: Chọn các booking liên quan đến phòng đang mở để hiển thị lịch và thao tác.
 function roomStayBookings(roomId) {
     const now = vietnamNow();
     return roomBookings.filter(b => b.roomId === roomId && (b.status === 'CheckedIn'
@@ -8,6 +11,7 @@ function roomStayBookings(roomId) {
         .sort((a,b) => (a.status === 'CheckedIn' ? -1 : b.status === 'CheckedIn' ? 1
             : (a.checkinAt || a.checkinDate).localeCompare(b.checkinAt || b.checkinDate)));
 }
+// NOTE FRONTEND: Tính nhãn/kiểu hiển thị thẻ theo bảo trì và các lượt đặt/liên quan, không dùng màu để quyết định nghiệp vụ.
 function roomCardStatus(room) {
     if (room.status === 'Bảo trì') return ['Bảo trì','badge-maintenance'];
     const bookings = roomStayBookings(room.roomId);
@@ -15,15 +19,18 @@ function roomCardStatus(room) {
     if (bookings.length || room.status === 'Đã đặt') return ['Đã đặt · Chưa nhận phòng','badge-booked'];
     return ['Còn trống','badge-available'];
 }
+// NOTE FRONTEND: Đóng vùng thao tác khi không bận và vô hiệu dữ liệu/yêu cầu còn chờ của lần mở cũ.
 function closeRoomStay() {
     if (stayBusy) return;
     stayVersion++; stayReady = false; stayRoom = null; stayPreview = null;
     document.getElementById('room-stay-modal').classList.remove('show');
 }
+// NOTE FRONTEND: Hiện thông báo thành công/lỗi ngay tại vùng thao tác lưu trú.
 function stayMessage(message, error = false) {
     stayEl('message').textContent = message;
     stayEl('message').className = error ? 'form-error' : 'text-muted';
 }
+// NOTE FRONTEND: Khóa các điều khiển khi thao tác đang ghi để không tạo nhiều yêu cầu chồng nhau.
 function lockStay(locked) {
     stayBusy = locked;
     if (locked) stayEl('title').focus();
@@ -34,6 +41,7 @@ function lockStay(locked) {
     if (!locked && stayReady && stayRoom) renderStayBookings();
     if (!locked) stayEl('close').focus();
 }
+// NOTE FRONTEND: Mở đúng phòng, tải lịch/khách và dựng lại các lựa chọn dựa trên trạng thái mới nhất.
 async function openRoomStay(room) {
     if (stayBusy) return;
     const version = ++stayVersion; stayRoom = room; stayReady = false; stayPreview = null;
@@ -70,6 +78,7 @@ async function openRoomStay(room) {
     } catch (err) { if (version === stayVersion) {stayReady = false;stayMessage(err.message || 'Không tải được lịch phòng. Hãy đóng và mở lại.',true);} }
     finally { if (version === stayVersion) lockStay(false); }
 }
+// NOTE FRONTEND: Liệt kê booking đang hiệu lực và các nút nhận/hủy/trả theo trạng thái, thời gian.
 function renderStayBookings() {
     const target=stayEl('bookings');target.replaceChildren();
     const list=roomStayBookings(stayRoom.roomId);
@@ -90,6 +99,7 @@ function renderStayBookings() {
         item.appendChild(actions);target.appendChild(item);
     });
 }
+// NOTE FRONTEND: Tính và hiển thị tiền gói giờ tạm tính từ các ô nhận/trả; chưa gồm dịch vụ.
 function updateStayEstimate() {
     stayEl('estimate').textContent='';
     try {
@@ -97,6 +107,7 @@ function updateStayEstimate() {
         stayEl('estimate').textContent=hourlyChargeLabel(quote,hours)+' = '+formatMoney(total)+' tiền phòng. Dịch vụ tính riêng khi trả phòng.';
     } catch (_) { /* Inline validation is shown on submission. */ }
 }
+// NOTE FRONTEND: Kiểm tra thời gian Việt Nam, giá giờ đã tải và thời lượng; làm tròn giờ và chọn báo giá gói.
 function stayInput() {
     if (!stayReady || !stayRoom?.hourlyPrice) throw new Error('Phòng chưa có giá giờ hoặc chưa tải xong.');
     const start=stayEl('checkin').value,end=stayEl('checkout').value;
@@ -111,6 +122,7 @@ function stayInput() {
     const hours=Math.ceil((b-a)/3600000),quote=quoteHourly(stayRoom.hourlyPrice,stayRoom.hourlyPackages,hours),total=quote.total;
     return {start,end,hours,total,quote};
 }
+// NOTE FRONTEND: Gửi booking giờ với phòng/khách đã chọn; nếu kết quả mạng không chắc chắn thì bắt tải lại trạng thái trước khi đặt tiếp.
 async function saveRoomStay() {
     if (stayBusy || !stayReady || stayRoom?.status === 'Bảo trì') return;
     let data;
@@ -131,6 +143,7 @@ async function saveRoomStay() {
         lockStay(false);await loadRooms();
     }
 }
+// NOTE FRONTEND: Thực hiện chuyển trạng thái như nhận hoặc hủy booking sau xác nhận và làm mới dữ liệu.
 async function stayTransition(booking, action) {
     if(stayBusy || !stayReady) return;
     if(!await askConfirmation((action==='checkin'?'Nhận phòng cho ':'Hủy đặt phòng của ')+booking.customerName+' (BK'+booking.bookingId+')?')) return;
@@ -142,6 +155,7 @@ async function stayTransition(booking, action) {
         showAlert(res.message,'success');stayBusy=false;await openRoomStay(stayRoom);await loadRooms();
     } catch(err) {stayReady=false;stayMessage(err.message+' Hãy đóng và mở lại để kiểm tra trạng thái.',true);lockStay(false);await loadRooms();}
 }
+// NOTE FRONTEND: Tải hóa đơn tạm tính cho booking từ thẻ phòng trước khi yêu cầu thanh toán.
 async function previewStayCheckout(booking) {
     if(stayBusy || !stayReady) return;
     lockStay(true);stayPreview=null;stayEl('invoice').hidden=true;
@@ -158,6 +172,7 @@ async function previewStayCheckout(booking) {
     } catch(err) {stayMessage(err.message,true);}
     finally {lockStay(false);}
 }
+// NOTE FRONTEND: Kiểm tra cấu trúc, giá và các tổng của preview để không cho thu tiền bằng dữ liệu thiếu/sai.
 function validStayInvoice(p,id) {
     if(!p || p.bookingId!==id || !Array.isArray(p.services)) return false;
     const money=n=>Number.isSafeInteger(n) && n>=0 && n<=999999999999;
@@ -173,6 +188,7 @@ function validStayInvoice(p,id) {
         && p.grandTotal===p.roomTotal+p.serviceTotal && p.services.every(s=>money(s.totalPrice))
         && p.services.reduce((sum,s)=>sum+s.totalPrice,0)===p.serviceTotal;
 }
+// NOTE FRONTEND: Gửi thanh toán/trả phòng cho booking, sau thành công đọc trạng thái phòng và hóa đơn từ server.
 async function payRoomStay() {
     if(stayBusy || !stayReady || !stayPreview) return;
     const p=stayPreview,method=stayEl('payment').value;
@@ -189,6 +205,7 @@ async function payRoomStay() {
         stayMessage(err.message+' Kiểm tra hóa đơn đã thu tại mục Trả phòng trước khi thử lại.',true);lockStay(false);await loadRooms();
     }
 }
+// NOTE FRONTEND: Chuyển sang form chỉnh sửa danh mục phòng bằng thông tin phòng đang mở.
 function editStayRoom() { if(stayRoom && !stayBusy) {const room=stayRoom;closeRoomStay();openEditModal(room);} }
 document.addEventListener('DOMContentLoaded',()=>{
     ['checkin','checkout'].forEach(id=>stayEl(id).addEventListener('input',updateStayEstimate));

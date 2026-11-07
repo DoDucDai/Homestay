@@ -1,9 +1,17 @@
+// NOTE FRONTEND: Tổng hợp chỉ số 7/14/30 ngày và so với kỳ trước từ phòng, booking và hóa đơn đã thu.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
 let dashboardDays=7,dashboardVersion=0,dashboardReady=false,dashboardData=null;
+// NOTE FRONTEND: Cộng ngày cho biên kỳ báo cáo bằng chuỗi YYYY-MM-DD để vượt tháng/năm đúng.
 function dashboardAdd(date,days){return new Date(Date.parse(date+'T00:00Z')+days*86400000).toISOString().slice(0,10);}
+// NOTE FRONTEND: Rút gọn ngày thành nhãn ngày/tháng cho biểu đồ và tiêu đề.
 function dashboardDate(date){return date.slice(8,10)+'/'+date.slice(5,7);}
+// NOTE FRONTEND: Rút gọn số tiền lớn theo định dạng tiếng Việt, chỉ đổi trình bày.
 function dashboardCompact(money){return new Intl.NumberFormat('vi-VN',{notation:'compact',maximumFractionDigits:1}).format(money);}
+// NOTE FRONTEND: Kiểm tra ngày nằm trong kỳ có đầu được tính và cuối không được tính.
 function dashboardInPeriod(date,start,end){return date && date.slice(0,10)>=start && date.slice(0,10)<end;}
+// NOTE FRONTEND: Lọc lượt đặt theo ngày nhận trong kỳ đang xét.
 function dashboardRangeBookings(rows,start,end){return rows.filter(b=>dashboardInPeriod(b.checkinDate,start,end));}
+// NOTE FRONTEND: Tổng hợp doanh thu đã thu, số lượt, hủy và công suất; đêm phòng được khử trùng theo cặp roomId/ngày.
 function dashboardPeriodMetrics(data,start,end){
     const invoices=data.invoices.filter(p=>dashboardInPeriod(p.paidAt,start,end));
     const arrivals=dashboardRangeBookings(data.bookings,start,end);
@@ -24,7 +32,9 @@ function dashboardPeriodMetrics(data,start,end){
         hourly:arrivals.filter(b=>b.billingUnit==='Hour' && b.status!=='Cancelled').length,
         paid:invoices.length};
 }
+// NOTE FRONTEND: Đổi độ dài kỳ báo cáo rồi yêu cầu tải số liệu cho cả kỳ hiện tại và kỳ trước.
 function setDashboardDays(days){dashboardDays=days;loadDashboard();}
+// NOTE FRONTEND: Tải phòng, booking và các tháng hóa đơn cần dùng song song; kiểm tra số tiền và chỉ dùng lần tải mới nhất.
 async function loadDashboard(){
     const version=++dashboardVersion;dashboardReady=false;
     const status=document.getElementById('dashboard-status');status.textContent='Đang cập nhật số liệu…';
@@ -43,11 +53,13 @@ async function loadDashboard(){
         document.getElementById('dashboard-export').disabled=false;status.textContent='';
     }catch(err){if(version!==dashboardVersion)return;status.textContent='Chưa tải được báo cáo mới. '+err.message+' Bấm lại khoảng ngày để thử lại.';}
 }
+// NOTE FRONTEND: Diễn giải chênh lệch phần trăm hoặc điểm so kỳ trước, xử lý riêng trường hợp kỳ trước bằng 0.
 function dashboardDelta(current,prior,points=false){
     if(!points && !prior)return current?'Chưa có số liệu kỳ trước':'Không đổi so với kỳ trước';
     const change=points?current-prior:(current-prior)/prior*100;
     return (change>0?'↑ +':change<0?'↓ ':'↔ ')+change.toLocaleString('vi-VN',{maximumFractionDigits:1})+(points?' điểm':'%')+' so với kỳ trước';
 }
+// NOTE FRONTEND: Gắn chỉ số và phần so sánh lên trang rồi dựng các biểu đồ/bảng phân bố từ cùng tập dữ liệu.
 function renderDashboard(data){
     const {current:c,prior:p}=data;
     document.getElementById('dashboard-period').textContent=dashboardDate(data.start)+' – '+dashboardDate(data.today)+'/'+data.today.slice(0,4)+' · so sánh với '+dashboardDays+' ngày liền trước.';
@@ -64,6 +76,7 @@ function renderDashboard(data){
     }
     renderDashboardChart(data);renderDashboardToday(data);renderDashboardDistributions(data);renderDashboardRooms(data);
 }
+// NOTE FRONTEND: Dựng biểu đồ theo ngày cho kỳ đang chọn từ dữ liệu đã kiểm tra.
 function renderDashboardChart(data){
     const target=document.getElementById('daily-revenue-chart');target.replaceChildren();
     const list=[];for(let date=data.start;date<data.end;date=dashboardAdd(date,1)){
@@ -79,6 +92,7 @@ function renderDashboardChart(data){
     }
     target.append(chart,textNode('p','Cao nhất '+formatMoney(max===1?0:max)+' · Tổng kỳ '+formatMoney(data.current.revenue),'chart-caption'));
 }
+// NOTE FRONTEND: Hiển thị công việc/số liệu liên quan hôm nay để người vận hành theo dõi.
 function renderDashboardToday(data){
     const counts=document.getElementById('dashboard-today-counts');counts.replaceChildren();
     const arriving=data.bookings.filter(b=>b.status==='Confirmed' && (b.checkinAt || b.checkinDate).slice(0,10)===data.today);
@@ -97,11 +111,13 @@ function renderDashboardToday(data){
     if(arriving.length){const link=textNode('a','','attention-item');link.href='bookings.html';link.append(textNode('span','KHÁCH ĐẾN','attention-eyebrow'),textNode('strong',arriving.length+' lượt chờ nhận phòng hôm nay'));attention.append(link);}
     if(!attention.children.length)attention.append(textNode('p','Chưa có việc cần chú ý hôm nay.','text-muted'));
 }
+// NOTE FRONTEND: Dựng một thanh tỷ lệ hiển thị trong các nhóm phân bố số liệu.
 function dashboardProgress(target,label,count,total,color){
     const item=textNode('div','','distribution-item'),head=textNode('div','','distribution-label');
     head.append(textNode('span',label),textNode('strong',count+' · '+(total?count/total*100:0).toLocaleString('vi-VN',{maximumFractionDigits:1})+'%'));
     const track=textNode('div','','distribution-track'),bar=textNode('div','','distribution-fill');bar.style.width=(total?count/total*100:0)+'%';bar.style.background=color;track.append(bar);item.append(head,track);target.append(item);
 }
+// NOTE FRONTEND: Tổng hợp và dựng tỷ trọng các nhóm booking/thanh toán theo tập dữ liệu đang xem.
 function renderDashboardDistributions(data){
     const target=document.getElementById('dashboard-distribution');target.replaceChildren();
     for(const [status,label,color] of [['Trống','Còn trống','var(--color-success)'],['Đang sử dụng','Đang có khách','var(--color-primary)'],['Đã đặt','Đã đặt hiện tại','var(--color-accent)'],['Bảo trì','Bảo trì','var(--color-neutral)']])dashboardProgress(target,label,data.rooms.filter(r=>r.status===status).length,data.rooms.length,color);
@@ -111,6 +127,7 @@ function renderDashboardDistributions(data){
     dashboardProgress(billing,'Theo đêm',rows.filter(b=>b.billingUnit!=='Hour').length,rows.length,'var(--color-accent)');
     billing.append(textNode('p','Các lượt đã xác nhận, đang ở và đã trả; không gồm lượt đã hủy.','dashboard-data-note'));
 }
+// NOTE FRONTEND: Dựng phần thống kê phòng và trạng thái/cơ cấu tương ứng.
 function renderDashboardRooms(data){
     const grouped=new Map();
     for(const inv of data.current.invoices){
@@ -125,6 +142,7 @@ function renderDashboardRooms(data){
     rows.forEach((row,i)=>{const room=textNode('div','','top-room-name');room.append(textNode('strong',row.name || row.code),textNode('span',row.code));appendTableRow(target,[i+1,room,row.count,formatMoney(row.room),formatMoney(row.total)]);});
     document.getElementById('dashboard-room-count').textContent=grouped.size+' phòng có doanh thu';
 }
+// NOTE FRONTEND: Xuất dữ liệu dashboard chỉ khi kỳ báo cáo đã tải thành công và sẵn sàng.
 function exportDashboard(){
     if(!dashboardReady || !dashboardData)return;
     downloadCsv('bao-cao-'+dashboardData.start+'-'+dashboardData.today+'.csv',[

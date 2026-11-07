@@ -1,3 +1,4 @@
+# NOTE MOCHI: Tạo tài liệu RAG từ hướng dẫn/danh mục đã duyệt và nhập SQLite có bảo toàn thay đổi của admin.
 """Publish reviewed local knowledge, preserving documents edited/removed by admins."""
 import argparse
 import datetime as dt
@@ -9,9 +10,11 @@ from contextlib import closing
 
 ROOT=Path(__file__).resolve().parent
 
+# NOTE MOCHI: Băm tên/nội dung để biết bản nhập trước có bị admin thay đổi hay không.
 def fingerprint(title,content):
     return hashlib.sha256((title+'\n'+content).encode('utf-8')).hexdigest()
 
+# NOTE MOCHI: Ghép hướng dẫn và bản chụp danh mục thành tài liệu theo slug; ghi rõ thời điểm chụp và không dùng snapshot để khẳng định còn phòng.
 def build_documents(catalog=None, captured=None):
     docs=[]
     for entry in json.loads((ROOT/'knowledge/base.json').read_text(encoding='utf-8')):
@@ -55,6 +58,7 @@ def build_documents(catalog=None, captured=None):
         slugs.add(doc['slug'])
     return docs
 
+# NOTE MOCHI: Thêm/cập nhật theo slug và hash; nếu admin đã sửa hoặc gỡ tài liệu thì giữ thay đổi đó thay vì ghi đè.
 def publish(db_path,docs):
     summary={'inserted':0,'updated':0,'unchanged':0,'preserved_admin_changes':[]}
     with closing(sqlite3.connect(db_path,timeout=10)) as db, db:
@@ -78,6 +82,7 @@ def publish(db_path,docs):
                 summary['inserted']+=1
     return summary
 
+# NOTE MOCHI: Đọc lựa chọn catalog/export/apply; tạo bản tài liệu xem trước, chỉ nhập kho thật khi có --apply và sao lưu trước.
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--catalog',type=Path)

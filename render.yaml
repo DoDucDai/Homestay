@@ -1,5 +1,6 @@
 # FREE DEMO: SQLite changes are ephemeral; the reviewed bundle is restored on restart.
 # This file does not create a SQL Server database. Supply an online SQL Server/Azure SQL.
+# NOTE TRIỂN KHAI: Blueprint cho dịch vụ Docker trên Render; cấu hình nguồn không tự xác nhận dịch vụ đã được deploy.
 services:
   - type: web
     name: homestay-mochi-demo
@@ -8,6 +9,7 @@ services:
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /api/health
+    # NOTE TRIỂN KHAI: Biến sync:false cần được điền ở môi trường hosting; không ghi khóa/mật khẩu thật vào file.
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: prod

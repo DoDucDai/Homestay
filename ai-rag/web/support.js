@@ -1,8 +1,14 @@
+// NOTE MOCHI: Gửi yêu cầu hỗ trợ, đọc lịch sử và cho admin phản hồi; phạm vi dữ liệu được server quyết định.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
 'use strict';
 const byId=id=>document.getElementById(id);
+// NOTE MOCHI: Tạo phần tử văn bản an toàn để tên/nội dung tài liệu hoặc ticket không trở thành HTML.
 function node(tag,value,cls){const e=document.createElement(tag);e.textContent=value||'';if(cls)e.className=cls;return e;}
+// NOTE MOCHI: Ghi thông báo tác vụ vào vùng trạng thái của trang.
 function report(value){byId('support-status').textContent=value;}
+// NOTE MOCHI: Khóa nút khi callback bất đồng bộ đang chạy, báo lỗi nếu thất bại và khôi phục nút ở finally.
 async function submitForm(form,action){const controls=[...form.querySelectorAll('button')];controls.forEach(b=>b.disabled=true);try{await action();}catch(e){report(e.message);}finally{controls.forEach(b=>b.disabled=false);}}
+// NOTE MOCHI: Tải ticket; khách xem phần của mình, admin có thông báo mới và form gửi phản hồi cho từng yêu cầu.
 async function loadTickets(){
  const data=await apiGet('/assistant/support');const host=byId('support-tickets');host.replaceChildren();
  byId('tickets-heading').textContent=data.admin?'Hỗ trợ khách hàng · '+data.unread+' thông báo mới':'Yêu cầu của bạn';

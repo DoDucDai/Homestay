@@ -1,8 +1,11 @@
+// NOTE FRONTEND: Dịch vụ trong lưu trú, hóa đơn tạm tính, thanh toán và in lại hóa đơn chính thức; không dùng DOM để chốt số tiền.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
 checkLogin();
 let currentCheckoutBookingId = null, checkoutPreviewReady = false, checkoutSubmitting = false;
 let checkoutPreviewVersion = 0, checkoutListVersion = 0, paymentListVersion = 0, serviceCatalogVersion = 0;
 let officialInvoice = null, availableServices = [], servicesReady = false, serviceBusy = false;
 const invoiceFields = ['id','customer','room','checkin','checkout','nights','price-per-night','room-total','service-total','grand-total','paid-at','method','warning'];
+// NOTE FRONTEND: Đồng bộ nút thêm dịch vụ, thu tiền, in và đóng theo preview đã sẵn sàng, đang ghi hay đã có hóa đơn.
 function updateCheckoutControls() {
     const locked = checkoutSubmitting || serviceBusy;
     document.getElementById('invoice-state').textContent = officialInvoice ? 'Đã thanh toán · Hóa đơn đã lưu'
@@ -27,11 +30,13 @@ function updateCheckoutControls() {
     document.getElementById('service-quantity').disabled = locked;
     document.querySelectorAll('#invoice-services button').forEach(button => { button.disabled = locked || !checkoutPreviewReady; });
 }
+// NOTE FRONTEND: Xóa số liệu và hóa đơn cũ, đặt các nút về trạng thái chưa có preview hợp lệ.
 function resetCheckoutPreview() {
     checkoutPreviewReady = false; officialInvoice = null;
     invoiceFields.forEach(key => { document.getElementById('inv-' + key).textContent = '--'; });
     tableState('invoice-services', 5, 'Chưa tải bảng kê dịch vụ.'); updateCheckoutControls();
 }
+// NOTE FRONTEND: Chỉ đóng khi không đang thanh toán/sửa dịch vụ, vô hiệu phản hồi preview còn chờ và dọn hộp dịch vụ.
 function closeCheckoutModal() {
     if (checkoutSubmitting || serviceBusy) return;
     closePrintPreview();
@@ -39,6 +44,7 @@ function closeCheckoutModal() {
     resetCheckoutPreview(); document.getElementById('checkout-status').textContent = '';
     document.getElementById('checkout-modal').classList.remove('show'); closeServiceModal();
 }
+// NOTE FRONTEND: Đối chiếu bookingId, thời gian, giá giờ/đêm, các dòng dịch vụ và phép cộng tổng tiền trước khi cho thu tiền.
 function isValidCheckoutPreview(p, bookingId) {
     if (!p || p.bookingId !== bookingId) return false;
     if (!['pricePerNight','roomTotal','serviceTotal','grandTotal'].every(key => Number.isSafeInteger(p[key]) && p[key] >= 0 && p[key] <= 999999999999)) return false;
@@ -57,6 +63,7 @@ function isValidCheckoutPreview(p, bookingId) {
             && Number.isFinite(s.unitPrice) && s.unitPrice >= 0 && Number.isSafeInteger(s.totalPrice) && s.totalPrice >= 0)
         && p.services.reduce((sum,s) => sum+s.totalPrice,0) === p.serviceTotal;
 }
+// NOTE FRONTEND: Dựng nội dung hóa đơn tạm hoặc chính thức từ dữ liệu server, kèm bảng kê dịch vụ và cảnh báo.
 function renderInvoice(p, official = false) {
     document.getElementById('invoice-title').textContent = official ? 'Hóa đơn HD' + p.paymentId : 'Tạm tính BK' + p.bookingId;
     const values = {id: official ? 'HD'+p.paymentId : 'BK'+p.bookingId, customer:p.customerName || '', room:(p.roomCode || '')+' — '+(p.roomName || ''),
@@ -80,6 +87,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (id && /^[1-9]\d*$/.test(id) && Number.isSafeInteger(Number(id))) openPayment(Number(id));
     else if (id !== null) showAlert('Mã hóa đơn trong liên kết không hợp lệ. Hãy chọn hóa đơn từ danh sách.','error');
 });
+// NOTE FRONTEND: Lấy các lượt đang lưu trú để chọn trả phòng; phản hồi cũ không được ghi đè danh sách mới.
 async function loadCheckedInBookings() {
     const version = ++checkoutListVersion; tableState('checkout-tbody',6,'Đang tải khách đang ở...');
     document.getElementById('stays-result').textContent = 'Đang tải khách đang ở…';
@@ -92,6 +100,7 @@ async function loadCheckedInBookings() {
         tableState('checkout-tbody',6,err.message || 'Không tải được danh sách lưu trú.'); showRequestError(err,'Lỗi tải khách đang ở.');
     }
 }
+// NOTE FRONTEND: Dựng danh sách lượt đang ở và nút mở hóa đơn tạm tính theo bookingId.
 function renderTable(bookings) {
     const body = document.getElementById('checkout-tbody'); body.replaceChildren();
     document.getElementById('stays-result').textContent = bookings.length+' booking đang ở';
@@ -99,6 +108,7 @@ function renderTable(bookings) {
     pageRows('stays', bookings, renderTable).forEach(b => appendTableRow(body,[textNode('strong','BK'+b.bookingId),b.customerName || '',b.roomCode || '',bookingTime(b,'checkin'),bookingTime(b,'checkout')],
         [actionButton('Dịch vụ & Check-out','btn btn-primary',() => openCheckoutModal(b.bookingId))]));
 }
+// NOTE FRONTEND: Đọc danh sách hóa đơn đã thanh toán cho khu vực tra cứu/in lại.
 async function loadPayments() {
     const version = ++paymentListVersion; tableState('payments-tbody',6,'Đang tải hóa đơn đã thu...');
     document.getElementById('payments-result').textContent = 'Đang tải hóa đơn…';
@@ -111,6 +121,7 @@ async function loadPayments() {
         tableState('payments-tbody',6,err.message || 'Không tải được hóa đơn đã thu.');
     } }
 }
+// NOTE FRONTEND: Dựng các hóa đơn đã lưu và nút mở chi tiết theo paymentId, không gửi lại lệnh checkout.
 function renderPayments(list) {
         const body = document.getElementById('payments-tbody'); body.replaceChildren();
         document.getElementById('payments-result').textContent = list.length+' hóa đơn đã thu';
@@ -119,6 +130,7 @@ function renderPayments(list) {
             [actionButton('Xem / In lại','btn btn-primary',() => openPayment(p.paymentId))]));
 }
 
+// NOTE FRONTEND: Mở theo bookingId, tải preview và chỉ bật thu tiền khi nội dung trả về đã qua kiểm tra.
 async function openCheckoutModal(bookingId) {
     if (checkoutSubmitting || serviceBusy) return;
     const version = ++checkoutPreviewVersion; currentCheckoutBookingId = bookingId; resetCheckoutPreview();
@@ -135,6 +147,7 @@ async function openCheckoutModal(bookingId) {
         resetCheckoutPreview(); document.getElementById('checkout-status').textContent = err.message;
     } finally { if (version === checkoutPreviewVersion) updateCheckoutControls(); }
 }
+// NOTE FRONTEND: Lấy hóa đơn cố định bằng /payments/{id}; chuyển giao diện sang xem/in và ẩn các thao tác sửa/thu tiền.
 async function openPayment(paymentId) {
     if (checkoutSubmitting || serviceBusy) return;
     const version = ++checkoutPreviewVersion; currentCheckoutBookingId = null; resetCheckoutPreview();
@@ -148,17 +161,21 @@ async function openPayment(paymentId) {
     } catch (err) { if (version === checkoutPreviewVersion) document.getElementById('checkout-status').textContent = err.message; }
     finally { if (version === checkoutPreviewVersion) updateCheckoutControls(); }
 }
+// NOTE FRONTEND: Chỉ mở lệnh in khi đã có hóa đơn chính thức và không còn thao tác ghi đang chạy.
 function printInvoice() { if (officialInvoice && !checkoutSubmitting && !serviceBusy) window.print(); }
+// NOTE FRONTEND: Chuyển sang bố cục xem trước bản in của hóa đơn chính thức, không tạo thêm thanh toán.
 function previewInvoicePrint() {
     if (!officialInvoice || checkoutSubmitting || serviceBusy) return;
     document.getElementById('invoice-print-css').media = 'all';
     document.getElementById('print-preview-controls').hidden = false;
     window.scrollTo(0,0);
 }
+// NOTE FRONTEND: Thoát bố cục xem trước in và trả giao diện hóa đơn về trạng thái trước đó.
 function closePrintPreview() {
     document.getElementById('invoice-print-css').media = 'print';
     document.getElementById('print-preview-controls').hidden = true;
 }
+// NOTE FRONTEND: Tải danh mục dịch vụ còn dùng được và chuẩn bị form số lượng cho booking đang ở.
 async function openServiceModal() {
     if (!checkoutPreviewReady || checkoutSubmitting || serviceBusy || officialInvoice) return;
     const version = ++serviceCatalogVersion; servicesReady = false; availableServices = [];
@@ -175,16 +192,19 @@ async function openServiceModal() {
     } catch (err) { if (version === serviceCatalogVersion) document.getElementById('service-status').textContent = err.message; }
     finally { if (version === serviceCatalogVersion) updateCheckoutControls(); }
 }
+// NOTE FRONTEND: Đóng form dịch vụ khi không có yêu cầu ghi còn chờ.
 function closeServiceModal() {
     if (serviceBusy) return;
     serviceCatalogVersion++; servicesReady = false; document.getElementById('service-modal').classList.remove('show');
 }
+// NOTE FRONTEND: Tạm tính dòng dịch vụ từ dịch vụ đang chọn và số lượng để người dùng kiểm tra trước khi gửi.
 function updateServicePrice() {
     const service = availableServices.find(s => s.serviceId === Number(document.getElementById('service-select').value));
     const quantity = Number(document.getElementById('service-quantity').value);
     document.getElementById('service-price').textContent = service && Number.isInteger(quantity) && quantity > 0 && quantity <= 10000
         ? formatMoney(service.unitPrice)+' × '+quantity+' = '+formatMoney(service.unitPrice*quantity) : '--';
 }
+// NOTE FRONTEND: Kiểm tra ID dịch vụ/số lượng rồi gửi POST thêm một dòng sử dụng; server lấy đơn giá thật từ danh mục.
 async function addBookingService() {
     if (!servicesReady || !checkoutPreviewReady || serviceBusy || checkoutSubmitting || officialInvoice) return;
     const serviceId = Number(document.getElementById('service-select').value), quantity = Number(document.getElementById('service-quantity').value);
@@ -193,11 +213,13 @@ async function addBookingService() {
     }
     await mutateService(() => apiPost('/bookings/'+currentCheckoutBookingId+'/services',{serviceId,quantity}));
 }
+// NOTE FRONTEND: Xác nhận và gửi DELETE theo ID dòng dịch vụ gọi nhầm, không phải xóa dịch vụ trong danh mục.
 async function removeBookingService(id) {
     if (!checkoutPreviewReady || serviceBusy || checkoutSubmitting || officialInvoice || !await askConfirmation('Hủy dòng dịch vụ này?')) return;
     if (!checkoutPreviewReady || serviceBusy || checkoutSubmitting || officialInvoice) return;
     await mutateService(() => apiDelete('/bookings/services/'+id));
 }
+// NOTE FRONTEND: Bộ bao thao tác thêm/xóa: khóa điều khiển, ghi thay đổi rồi tải lại preview để tổng tiền đồng bộ.
 async function mutateService(write) {
     const bookingId = currentCheckoutBookingId; serviceBusy = true; checkoutPreviewReady = false; updateCheckoutControls();
     let message = '';
@@ -207,6 +229,7 @@ async function mutateService(write) {
     await openCheckoutModal(bookingId);
     if (message) document.getElementById('checkout-status').textContent = message;
 }
+// NOTE FRONTEND: Gửi phương thức thanh toán cho booking; chỉ chuyển sang hóa đơn chính thức khi server trả kết quả thành công.
 async function confirmCheckout() {
     if (!currentCheckoutBookingId || !checkoutPreviewReady || checkoutSubmitting || serviceBusy || officialInvoice) return;
     const method = document.getElementById('payment-method').value;

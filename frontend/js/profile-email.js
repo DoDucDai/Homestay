@@ -1,5 +1,8 @@
+// NOTE FRONTEND: Trạng thái xác thực gắn với email đã lưu trên server; không coi nội dung ô email đang gõ là email đã xác thực.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
 'use strict';
 let verificationUser=null,verificationBusy=false,verificationNextSend=0,verificationTimer=null;
+// NOTE FRONTEND: Chỉ cho URL quay về trang bookings cùng origin; URL ngoài hoặc không đúng trang sẽ dùng đường dẫn mặc định.
 function emailReturnTarget() {
     try {
         const requested=new URLSearchParams(window.location.search).get('next');
@@ -8,6 +11,7 @@ function emailReturnTarget() {
     } catch(_) {}
     return 'bookings.html';
 }
+// NOTE FRONTEND: Hiện email/trạng thái thực và ẩn thao tác OTP nếu cấu hình đang tắt hoặc email đã xác thực.
 function renderEmailVerification(user) {
     verificationUser=user;
     const enabled=user.emailVerificationEnabled!==false;
@@ -19,6 +23,7 @@ function renderEmailVerification(user) {
     const back=document.getElementById('verification-return');back.hidden=user.role!=='customer';back.href=emailReturnTarget();
     updateVerificationControls();
 }
+// NOTE FRONTEND: Cập nhật nút gửi/xác nhận theo trạng thái bận, cấu hình và thời gian phải chờ trước khi gửi lại.
 function updateVerificationControls() {
     const wait=Math.max(0,Math.ceil((verificationNextSend-Date.now())/1000));
     const enabled=verificationUser && verificationUser.emailVerificationEnabled!==false;

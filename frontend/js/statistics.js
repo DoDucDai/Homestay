@@ -1,3 +1,5 @@
+// NOTE FRONTEND: Báo cáo admin lấy doanh thu theo hóa đơn đã thu, tổng quan phòng và chuỗi doanh thu 12 tháng.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
 checkLogin();
 let overviewVersion = 0, revenueVersion = 0, yearlyVersion = 0;
 let revenueRows = [], revenueReady = false, revenuePeriod = null;
@@ -14,22 +16,26 @@ document.addEventListener('DOMContentLoaded',async () => {
     loadOverview();loadRevenue();loadYearly();
     if(typeof loadDashboard === 'function')loadDashboard();
 });
+// NOTE FRONTEND: Vô hiệu số liệu/xuất CSV của kỳ tháng cũ ngay khi bộ lọc thay đổi.
 function invalidateRevenueFilter() {
     revenueVersion++;revenueReady = false;revenueRows = [];revenuePeriod = null;
     document.getElementById('revenue-export').disabled = true;document.getElementById('revenue-total').textContent = '--';
     document.getElementById('revenue-status').textContent = 'Bộ lọc đã thay đổi. Bấm Xem tháng để tải kỳ mới.';
     tableState('revenue-tbody',8,'Bấm Xem tháng để tải dữ liệu theo bộ lọc mới.');
 }
+// NOTE FRONTEND: Đánh dấu dữ liệu năm cần tải lại để không coi biểu đồ cũ là kết quả của năm mới.
 function invalidateYearlyFilter() {
     yearlyVersion++;document.getElementById('yearly-chart').replaceChildren();document.getElementById('yearly-total').textContent = '--';
     document.getElementById('yearly-status').textContent = 'Năm đã thay đổi. Bấm Xem năm để tải dữ liệu mới.';
     tableState('yearly-tbody',2,'Chưa tải năm mới.');
 }
+// NOTE FRONTEND: Tạo phần tử SVG với thuộc tính được truyền vào cho các biểu đồ tự dựng.
 function svgNode(tag,attrs = {},content = '') {
     const node = document.createElementNS('http://www.w3.org/2000/svg',tag);
     Object.entries(attrs).forEach(([key,value]) => node.setAttribute(key,String(value)));
     node.textContent = String(content);return node;
 }
+// NOTE FRONTEND: Dựng biểu đồ doanh thu theo chuỗi tháng, giữ tháng không có doanh thu bằng 0.
 function drawRevenueChart(amounts,year) {
     const svg = document.getElementById('yearly-chart');svg.replaceChildren();
     svg.append(svgNode('title',{},'Doanh thu đã thu năm '+year));
@@ -43,6 +49,7 @@ function drawRevenueChart(amounts,year) {
     });
     svg.append(svgNode('text',{x:40,y:22,'font-size':14},'Cao nhất: '+formatMoney(max === 1 && amounts.every(v=>v===0) ? 0 : max)));
 }
+// NOTE FRONTEND: Dựng biểu đồ tình trạng phòng từ các số liệu tổng quan đã nhận.
 function drawRoomChart(values) {
     const svg = document.getElementById('room-chart');svg.replaceChildren();
     svg.append(svgNode('title',{},'Trạng thái phòng hôm nay theo giờ Việt Nam'));
@@ -57,6 +64,7 @@ function drawRoomChart(values) {
     });
     svg.append(svgNode('text',{x:110,y:116,'text-anchor':'middle','font-size':24},total));
 }
+// NOTE FRONTEND: Tải thống kê tổng quan và cập nhật số phòng/khách/booking cùng doanh thu tháng hiện tại.
 async function loadOverview() {
     const version = ++overviewVersion,ids = ['stat-total-rooms','stat-total-customers','stat-total-bookings','stat-revenue'];
     ids.forEach(id => {document.getElementById(id).textContent = '--';});
@@ -81,9 +89,11 @@ async function loadOverview() {
         tableState('room-status-tbody',2,err.message || 'Không tải được thống kê.');showRequestError(err,'Không tải được thống kê.');
     }
 }
+// NOTE FRONTEND: Kiểm tra năm báo cáo là số nguyên trong giới hạn mà backend hỗ trợ.
 function validReportYear(value) {
     const year = Number(value);if (!Number.isInteger(year) || year < 1 || year > 9999) throw new Error('Năm cần từ 1–9999.');return year;
 }
+// NOTE FRONTEND: Kiểm tra tháng/năm, tải hóa đơn kỳ đã chọn và bỏ phản hồi không còn khớp bộ lọc.
 async function loadRevenue() {
     const version = ++revenueVersion;revenueReady = false;revenueRows = [];
     document.getElementById('revenue-export').disabled = true;document.getElementById('revenue-total').textContent = '--';
@@ -107,6 +117,7 @@ async function loadRevenue() {
         tableState('revenue-tbody',8,err.message || 'Không tải được doanh thu.');showRequestError(err,'Không tải được doanh thu.');
     }
 }
+// NOTE FRONTEND: Dựng bảng doanh thu, tính tổng từ danh sách hóa đơn đã thanh toán và cập nhật trạng thái xuất dữ liệu.
 function renderRevenue(list) {
     const body = document.getElementById('revenue-tbody');body.replaceChildren();
     if (!list.length) {tableState('revenue-tbody',8,'Không có doanh thu trong tháng này');return;}
@@ -115,6 +126,7 @@ function renderRevenue(list) {
         appendTableRow(body,[invoice,formatDate(inv.paidAt),inv.customerName || '',inv.roomCode || '',formatMoney(inv.roomTotal),formatMoney(inv.serviceTotal),inv.paymentMethod || '',formatMoney(inv.grandTotal)]);
     });
 }
+// NOTE FRONTEND: Tải doanh thu năm, kiểm tra mảng 12 tháng rồi dựng biểu đồ của đúng yêu cầu mới nhất.
 async function loadYearly() {
     const version = ++yearlyVersion;
     document.getElementById('yearly-chart').replaceChildren();document.getElementById('yearly-total').textContent = '--';
@@ -132,6 +144,7 @@ async function loadYearly() {
         document.getElementById('yearly-status').textContent = err.message;tableState('yearly-tbody',2,err.message);
     }
 }
+// NOTE FRONTEND: Xuất CSV các hóa đơn thuộc kỳ đã tải hợp lệ, không xuất khi bộ lọc đã đổi hoặc đang lỗi.
 function exportRevenue() {
     const samePeriod = revenuePeriod && revenuePeriod.month === Number(document.getElementById('stat-month').value) && revenuePeriod.year === Number(document.getElementById('stat-year').value);
     return downloadCsv('doanh-thu-'+(revenuePeriod?.year || '')+'-'+(revenuePeriod?.month || '')+'.csv',[

@@ -1,3 +1,5 @@
+// NOTE FRONTEND: Ghép đúng mã phòng với ảnh poster/thư viện; bảng ảnh là metadata trình bày, không phải thông tin đặt phòng.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
 /* Preserve the supplied AI poster design; room scenes are optional extra views. */
 const RoomPhotos = (() => {
     const landscape = [[8,590,220,155],[241,590,219,155],[466,590,209,155],[685,590,211,155],[910,590,230,155]];
@@ -20,11 +22,13 @@ const RoomPhotos = (() => {
     };
     // New posters share the same reviewed 896 x 1200 layout.
     for(const number of [104, 105, 106, 107, 108, 109, 110, 203, 204, 205, 206, 207, 208, 209, 210, 303, 304, 305, 306, 307, 308, 309, 310, 414, 415, 416, 417, 418, 419, 420, 421, 422, 423, 424, 425, 426, 427, 501, 502, 503, 504, 505, 506, 507, 508, 509, 510, 601, 602, 603, 604, 605, 606, 607, 608, 609, 610, 701, 702, 703, 704, 705, 706, 707, 708, 709, 710, 801, 802, 803, 804, 805, 806, 807])posters[String(number)]=[896,1200,[10,173,704,562],blue];
+    // NOTE FRONTEND: Tra ảnh bằng mã phòng đầy đủ theo các quy tắc ánh xạ đã khai báo, không tự ghép hai mã chỉ vì giống hậu tố.
     function lookup(room) {
         const match = /^(?:(?:DEMO-)?P|ROOM\s*)(\d{3})$/.exec(String(room?.roomCode || '').trim().toUpperCase());
         const number = match?.[1], poster = posters[number];
         return poster ? {number, width:poster[0], height:poster[1], scenes:[[0,0,poster[0],poster[1]],poster[2],...poster[3]]} : null;
     }
+    // NOTE FRONTEND: Tạo một hình với mô tả/nhãn và xử lý trình bày phù hợp cho ảnh poster hoặc góc phòng.
     function view(photo, scene, label) {
         const ns = 'http://www.w3.org/2000/svg';
         const svg = document.createElementNS(ns,'svg');
@@ -37,6 +41,7 @@ const RoomPhotos = (() => {
         image.setAttribute('width',String(photo.width));image.setAttribute('height',String(photo.height));
         svg.append(image);return svg;
     }
+    // NOTE FRONTEND: Dựng ảnh đơn hoặc thư viện chuyển ảnh; nếu mã không có ảnh thì hiển thị vùng thay thế.
     function create(room, {gallery=false}={}) {
         const photo = lookup(room);if(!photo)return null;
         const figure = document.createElement(gallery?'figure':'span');figure.className='room-photo';

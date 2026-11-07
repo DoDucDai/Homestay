@@ -1,3 +1,4 @@
+# NOTE MOCHI: Công cụ đánh giá truy xuất trong SQLite tạm, không chạm kho tài liệu đang chạy và không gọi model.
 """Evaluate retrieval on a temporary database; never changes the live knowledge store."""
 import argparse
 import importlib.util
@@ -6,10 +7,12 @@ from pathlib import Path
 import uuid
 
 ROOT=Path(__file__).resolve().parent
+# NOTE MOCHI: Nạp file Python theo đường dẫn để tái dùng đúng bộ nhập và bộ truy xuất hiện có.
 def module(name,file):
     spec=importlib.util.spec_from_file_location(name,file)
     obj=importlib.util.module_from_spec(spec);spec.loader.exec_module(obj);return obj
 
+# NOTE MOCHI: Tạo kho tạm, chạy bộ câu hỏi/slug mong đợi, tính số lần tài liệu đúng có trong top 4 rồi dọn dữ liệu tạm.
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--catalog',type=Path,required=True)

@@ -1,4 +1,6 @@
-﻿document.addEventListener('DOMContentLoaded',async()=>{
+﻿// NOTE MOCHI: Ghép bộ chat với lịch sử của tài khoản đã xác thực; xử lý trường hợp bộ nhớ bị chặn/đầy để vẫn cho chat.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
+document.addEventListener('DOMContentLoaded',async()=>{
  const side=document.querySelector('.ai-side');
  document.getElementById('ai-admin')?.remove();
  const history=document.createElement('details');history.id='ai-history';history.className='ai-history';history.open=window.matchMedia('(min-width:651px)').matches;
@@ -17,6 +19,7 @@
   onChange(saved){if(!store)return;try{activeId=store.save(activeId,saved);render();}catch{historyStatus.textContent='Chưa lưu được lịch sử. Bộ nhớ trình duyệt có thể đã đầy hoặc bị chặn.';}},
   onBusy(value){locked=value;fresh.disabled=value;list.querySelectorAll('button').forEach(b=>b.disabled=value);}
  });
+ // NOTE MOCHI: Dựng danh sách cuộc trò chuyện, đánh dấu cuộc đang chọn và khóa đổi cuộc khi câu trả lời còn chờ.
  function render(){
   list.replaceChildren();const rows=store?store.read():[];
   if(!rows.length){const empty=document.createElement('p');empty.className='ai-history-note';empty.textContent=user?'Chưa có cuộc trò chuyện.':'Đăng nhập để lưu lịch sử chat.';list.append(empty);return;}

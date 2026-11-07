@@ -1,5 +1,8 @@
+// NOTE FRONTEND: Điều khiển form đăng nhập; api.js thực hiện yêu cầu và backend quyết định danh tính/quyền.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
 const loginForm = document.getElementById('login-form');
 let loginSubmitting = false, loginChecking = true, loginRedirecting = false, loginCheckVersion = 0;
+// NOTE FRONTEND: Chỉ nhận URL next cùng origin và thuộc danh sách trang cho phép để quay lại sau đăng nhập.
 function loginDestination(user) {
     const next=new URLSearchParams(window.location.search).get('next');
     if(!next) return 'landing.html';
@@ -11,6 +14,7 @@ function loginDestination(user) {
     } catch (_) {}
     return 'landing.html';
 }
+// NOTE FRONTEND: Hiện thông báo đăng nhập bằng textContent, chọn vai trò alert/status cho trình đọc màn hình.
 function loginMessage(message = '', type = 'error') {
     const alert = document.getElementById('alert-message');
     if (!alert) return;
@@ -19,11 +23,13 @@ function loginMessage(message = '', type = 'error') {
     alert.style.display = message ? 'block' : 'none';
     alert.setAttribute('role', type === 'error' ? 'alert' : 'status');
 }
+// NOTE FRONTEND: Đánh dấu trường không hợp lệ và gắn thông báo ngay cạnh ô nhập.
 function loginFieldError(id, message = '') {
     document.getElementById(id).setAttribute('aria-invalid', String(!!message));
     const error = document.getElementById(id + '-error');
     error.textContent = message; error.hidden = !message;
 }
+// NOTE FRONTEND: Khóa ô/nút khi đang kiểm tra phiên, gửi mật khẩu hoặc chuyển trang; hiển thị đúng trạng thái hiện tại.
 function updateLoginControls() {
     if (!loginForm) return;
     const locked = loginSubmitting || loginChecking || loginRedirecting;
@@ -33,6 +39,7 @@ function updateLoginControls() {
     document.getElementById('login-submit-label').textContent = loginChecking ? 'Đang kiểm tra...' : loginSubmitting ? 'Đang đăng nhập...' : loginRedirecting ? 'Đang chuyển trang...' : 'Đăng nhập';
     document.getElementById('login-status').textContent = loginChecking ? 'Đang kiểm tra phiên đăng nhập...' : loginSubmitting ? 'Đang xác nhận tài khoản...' : loginRedirecting ? 'Đăng nhập thành công. Đang mở trang chủ...' : '';
 }
+// NOTE FRONTEND: Kiểm tra phiên sẵn có, bỏ kết quả cũ nếu đã có lần kiểm tra mới; đăng nhập rồi thì chuyển đến trang đích.
 async function initializeLoginSession(force = false) {
     if (!loginForm) return;
     const version = ++loginCheckVersion;
@@ -48,6 +55,8 @@ if (loginForm) {
     for (const id of ['username', 'password']) {
         document.getElementById(id).addEventListener('input', () => { loginFieldError(id); loginMessage(); });
     }
+    // NOTE FRONTEND: Chặn gửi form mặc định và gửi lặp, kiểm tra độ dài rồi POST thông tin đăng nhập.
+    // Sau thành công, xóa mật khẩu trên form và đọc lại /auth/me trước khi chuyển trang; lỗi thì mở lại form.
     loginForm.addEventListener('submit', async event => {
         event.preventDefault(); if (loginSubmitting || loginChecking || loginRedirecting) return;
         const username = document.getElementById('username').value.trim();

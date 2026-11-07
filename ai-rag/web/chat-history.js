@@ -1,6 +1,9 @@
+// NOTE MOCHI: Lịch sử chat cục bộ được tách khóa theo userId, tối đa 30 cuộc và 100 tin/cuộc; không phải cơ sở dữ liệu đặt phòng.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
 /* Local conversation archive, separated by the authenticated account. */
 window.HomestayHistory={create(userId,storage=window.localStorage){
  const key='homestay-mochi-history-v1:'+userId;
+ // NOTE MOCHI: Đọc JSON từ localStorage, kiểm tra cấu trúc cuộc/tin nhắn và chỉ giữ số lượng đã giới hạn.
  function read(){
   const raw=storage.getItem(key);if(!raw)return [];
   const rows=JSON.parse(raw);if(!Array.isArray(rows))throw new Error('Lịch sử chat không hợp lệ.');

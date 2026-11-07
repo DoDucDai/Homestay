@@ -1,3 +1,5 @@
+// NOTE FRONTEND: Khung điều hướng, bộ chọn cơ sở và trợ năng cho menu/modal; hiển thị admin khác với áp quyền ở server.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
 // Shared authenticated shell. Page modules continue to own all business actions.
 const shellNavigation = [
     ['landing.html', 'Trang chủ'],
@@ -6,9 +8,11 @@ const shellNavigation = [
     ['checkout.html', 'Hóa đơn & trả phòng']
 ];
 const adminNavigation=[['account.html','Thông tin tài khoản'],['statistics.html','Thống kê'],['rooms.html','Quản lý phòng'],['customers.html?workspace=admin','Quản lý khách hàng'],['rag-documents.html','Tài liệu RAG'],['bookings.html','Quay lại vận hành']];
+// NOTE FRONTEND: Xác định đang ở khu quản trị từ role, trang và query workspace; query đơn lẻ không thể nâng quyền.
 function isAdminWorkspace(user,page,search=''){
     return user.role==='admin' && (['account.html','statistics.html','rooms.html','rag-documents.html'].includes(page) || page==='customers.html' && new URLSearchParams(search).get('workspace')==='admin');
 }
+// NOTE FRONTEND: Tạo biểu tượng SVG từ bộ icon có sẵn, không chèn dữ liệu người dùng vào HTML.
 function sidebarIcon(symbol){
     const icon=document.createElementNS('http://www.w3.org/2000/svg','svg');
     icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('aria-hidden','true');
@@ -17,6 +21,7 @@ function sidebarIcon(symbol){
 let shellInitialized = false, shellMenuOpen = false, shellMedia = null;
 let modalStack = [];
 const modalOrigins = new Map();
+// NOTE FRONTEND: Lấy cơ sở công khai, khôi phục lựa chọn hợp lệ và cập nhật nhãn/địa chỉ trong khung.
 async function loadShellProperties(select,current,caption){
     try{
         const rows=expectList(await apiGet('/public/properties'));
@@ -31,11 +36,13 @@ async function loadShellProperties(select,current,caption){
     }catch(_){caption.textContent='Chưa tải được danh sách cơ sở.';}
 }
 
+// NOTE FRONTEND: Lấy những phần tử người dùng thật sự có thể Tab tới trong vùng đang hiển thị.
 function focusableElements(root) {
     return Array.from(root.querySelectorAll('a[href],button,input:not([type="hidden"]),select,textarea,[tabindex]'))
         .filter(el => !el.disabled && !el.hidden && el.tabIndex >= 0 &&
             el.getAttribute('aria-disabled') !== 'true' && !el.closest('[inert]') && el.getClientRects().length);
 }
+// NOTE FRONTEND: Giữ phím Tab/Shift+Tab trong menu hoặc modal đang mở, không để focus đi ra vùng nền.
 function trapShellFocus(root, event) {
     if (event.key !== 'Tab' || event.ctrlKey || event.altKey || event.metaKey) return;
     const items = focusableElements(root), first = items[0], last = items.at(-1);
@@ -44,6 +51,7 @@ function trapShellFocus(root, event) {
         event.preventDefault(); (event.shiftKey ? last : first).focus();
     } else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
 }
+// NOTE FRONTEND: Mở/đóng menu theo kích thước màn hình, cập nhật aria và khóa vùng nền; trả focus khi đóng.
 function setShellMenu(open, restoreFocus = true) {
     const sidebar = document.getElementById('app-sidebar'), toggle = document.getElementById('navigation-toggle');
     if (!sidebar || !toggle) return;
@@ -62,7 +70,9 @@ function setShellMenu(open, restoreFocus = true) {
     if (shellMenuOpen) document.getElementById('navigation-close').focus();
     else if (restoreFocus && shellMedia?.matches) toggle.focus();
 }
+// NOTE FRONTEND: Đóng menu nếu đang mở, dùng khi chuyển trang hoặc mở modal.
 function closeShellMenu() { if (shellMenuOpen) setShellMenu(false, false); }
+// NOTE FRONTEND: Dựng khung một lần theo tài khoản, nối điều hướng/cơ sở và sự kiện bàn phím/modal dùng chung.
 function initializeShell(user) {
     if (!user || !['admin', 'customer'].includes(user.role)) return;
     const sidebar = document.getElementById('app-sidebar'), main = document.getElementById('main-content');
@@ -158,22 +168,26 @@ function initializeShell(user) {
     sidebar.querySelectorAll('[data-admin-only]').forEach(link => { link.hidden = user.role !== 'admin'; });
 }
 
+// NOTE FRONTEND: Ghi phần tử mở modal để sau này trả focus và đóng menu trước khi mở modal.
 function prepareModalAccessibility(overlay, opener = document.activeElement) {
     if (!shellInitialized) return;
     closeShellMenu();
     if (!modalOrigins.has(overlay)) modalOrigins.set(overlay, {opener});
 }
+// NOTE FRONTEND: Đưa focus vào trường ưu tiên hoặc nút đầu tiên của modal.
 function focusDialog(overlay) {
     const box = overlay.querySelector('.modal-box') || overlay;
     const target = overlay.querySelector('[autofocus]') || focusableElements(overlay)[0] || box;
     target.focus({preventScroll: true});
 }
+// NOTE FRONTEND: Gọi nút đóng của chính trang nếu nút đang được phép dùng; Escape không được vượt khóa đang lưu.
 function requestModalDismissal(overlay) {
     const close = overlay.querySelector('[data-modal-close]');
     if (!close || close.disabled || close.getAttribute('aria-disabled') === 'true') return false;
     close.click(); // The page's own close function retains its submission/business guards.
     return true;
 }
+// NOTE FRONTEND: Theo dõi chồng modal, đánh dấu inert/aria-hidden cho nền và khôi phục focus khi đóng.
 function syncModalAccessibility() {
     if (!shellInitialized) return;
     const pending = document.body.classList.contains('session-pending');

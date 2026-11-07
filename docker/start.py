@@ -1,3 +1,4 @@
+# NOTE MOCHI: Điều phối Java và Python trong cùng container, nhập bộ kiến thức rồi dừng cả hai khi một dịch vụ bắt buộc thoát.
 """Run the Java web app and loopback-only Python RAG under one Render service."""
 import importlib.util
 import json
@@ -11,10 +12,12 @@ import time
 
 ROOT=Path(__file__).resolve().parents[1]
 
+# NOTE MOCHI: Nạp module Python từ file để dùng bộ khởi tạo SQLite và bộ nhập kiến thức.
 def load_module(name,path):
     spec=importlib.util.spec_from_file_location(name,path)
     obj=importlib.util.module_from_spec(spec);spec.loader.exec_module(obj);return obj
 
+# NOTE MOCHI: Chuẩn hóa cổng public, địa chỉ Java, URL loopback cho RAG và vị trí SQLite; không cho cổng public trùng 8091.
 def environment(source):
     result=dict(source)
     port=result.get('PORT') or result.get('SERVER_PORT') or '8080'
@@ -26,6 +29,7 @@ def environment(source):
     result.setdefault('AI_RAG_DB_PATH','/var/lib/homestay/assistant.sqlite3')
     return result
 
+# NOTE MOCHI: Kiểm tra bundle tài liệu đã đóng gói, khởi tạo kho và nhập bằng checksum để giữ các chỉnh sửa/xóa của admin.
 def seed_knowledge():
     # Import checksums preserve admin edits/removals, including on later deploys.
     target=Path(os.environ['AI_RAG_DB_PATH'])
@@ -44,6 +48,7 @@ def seed_knowledge():
     result=importer.publish(target,docs)
     print('Knowledge bundle: added',result['inserted'],'updated',result['updated'],'preserved admin changes',len(result['preserved_admin_changes']),flush=True)
 
+# NOTE MOCHI: Kiểm tra môi trường, khởi động hai tiến trình, theo dõi mã thoát và xử lý tín hiệu dừng để thu dọn tiến trình con.
 def main():
     os.environ.update(environment(os.environ))
     missing=[name for name in ('DB_HOST','DB_NAME','DB_USER','DB_PASSWORD') if not os.getenv(name)]
@@ -51,6 +56,7 @@ def main():
     seed_knowledge()
     children=[]
     stopping=False
+    # NOTE MOCHI: Đánh dấu yêu cầu dừng từ SIGTERM/SIGINT; vòng điều phối chính thực hiện terminate/wait/kill có kiểm soát.
     def stop(signum,frame):
         nonlocal stopping
         stopping=True

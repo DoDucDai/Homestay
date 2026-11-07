@@ -1,8 +1,13 @@
+// NOTE FRONTEND: Trang giới thiệu và phần tài khoản/số liệu theo phiên; thống kê tải từ dữ liệu phòng hiện tại.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
 let landingLoading=false,landingReady=false,landingRefreshTimer=null;
+// NOTE FRONTEND: Đặt tài khoản đã xác thực hoặc nút đăng nhập lên header, dùng bộ dựng menu chung.
 function renderLandingAccount(user) {
     renderPublicAccount(document.getElementById('landing-account'),user);
 }
+// NOTE FRONTEND: Làm mới số liệu định kỳ và tránh gửi khi trang đang ẩn.
 function startLandingRefresh(){clearInterval(landingRefreshTimer);landingRefreshTimer=setInterval(()=>{if(!document.hidden)loadLandingRooms();},30000);}
+// NOTE FRONTEND: Tải phòng, đếm tổng/phòng trống/loại; nếu làm mới thất bại thì giữ lần tải trước với cảnh báo số liệu cũ.
 async function loadLandingRooms(){
     if(landingLoading)return;landingLoading=true;
     try{

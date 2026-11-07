@@ -1,3 +1,4 @@
+# NOTE MOCHI: Dịch vụ Python nội bộ: xác thực với Java, truy xuất tài liệu SQLite, gọi model và lưu Support; không tạo booking.
 """Standalone RAG service. Only bind to loopback; Spring owns sessions and CSRF."""
 import collections
 import base64
@@ -19,6 +20,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 ROOT = Path(__file__).resolve().parents[1]
 
+# NOTE MOCHI: Nạp biến cấu hình cục bộ nếu chưa có trong môi trường; secret chỉ được dùng ở server.
 def load_env():
     for path in (ROOT.parent / '.env', ROOT / '.env'):
         if path.exists():
@@ -34,11 +36,13 @@ DB = Path(os.getenv('AI_RAG_DB_PATH', str(ROOT / 'data' / 'assistant.sqlite3')))
 LOCK = threading.Lock()
 LIMITS = {}
 
+# NOTE MOCHI: Lỗi nghiệp vụ gồm mã HTTP và thông báo cho client, dùng để không trả stack trace nội bộ.
 class Problem(Exception):
     def __init__(self, status, message):
         self.status, self.message = status, message
 
 @contextmanager
+# NOTE MOCHI: Mở SQLite chứa tài liệu/ticket với thời gian chờ khóa; dữ liệu phòng/booking vẫn do Java và SQL Server quản lý.
 def connect():
     db=sqlite3.connect(DB, timeout=10)
     try:
@@ -47,6 +51,7 @@ def connect():
     finally:
         db.close()
 
+# NOTE MOCHI: Tạo thư mục, bảng documents/tickets nếu thiếu và thêm tài liệu hướng dẫn ban đầu khi kho trống.
 def initialize():
     DB.parent.mkdir(parents=True, exist_ok=True)
     with connect() as db:
@@ -64,10 +69,12 @@ def initialize():
                 'Không cam kết hoàn tiền hoặc yêu cầu đặt cọc. Cần hỗ trợ thì gửi yêu cầu tại trang Support để admin nhận thông báo. '
                 'Chỉ admin được cập nhật tài liệu. Phòng trống và giá phải được kiểm tra từ hệ thống tại thời điểm chọn phòng.'))
 
+# NOTE MOCHI: Chuẩn hóa tiếng Việt về tập từ không dấu/chữ thường để truy xuất theo từ khóa.
 def tokens(value):
     value = unicodedata.normalize('NFD', value.lower()).replace('đ', 'd')
     return set(re.findall(r'[a-z0-9]+', ''.join(c for c in value if not unicodedata.combining(c))))
 
+# NOTE MOCHI: Chia nội dung thành đoạn, chấm trọng số từ khóa/tiêu đề và ưu tiên mã phòng khớp đủ; trả tối đa bốn đoạn, không dùng vector embedding.
 def retrieve(query):
     with connect() as db:
         rows=list(db.execute('SELECT id,title,content,version FROM documents'))
@@ -97,12 +104,14 @@ def retrieve(query):
             chunks.append((score,{'id':doc_id,'title':title,'version':version,'text':chunk}))
     return [row for _, row in sorted(chunks, key=lambda item: -item[0])[:4]]
 
+# NOTE MOCHI: Gửi/đọc HTTP JSON với timeout và header được truyền vào, dùng cho Java và OpenRouter.
 def request_json(url, body=None, headers=None, timeout=15):
     payload = None if body is None else json.dumps(body).encode()
     req = urllib.request.Request(url, data=payload, headers={'Content-Type': 'application/json', **(headers or {})})
     with urllib.request.urlopen(req, timeout=timeout) as response:
         return json.load(response)
 
+# NOTE MOCHI: Ghép chỉ dẫn, câu hỏi, tài liệu đã truy xuất và phòng tra được để gọi model miễn phí; không cho nội dung chat tự xác nhận đặt phòng.
 def answer(message, sources, rooms):
     key = os.getenv('OPENROUTER_API_KEY', '')
     if not key:
@@ -137,12 +146,14 @@ def answer(message, sources, rooms):
     except (OSError, KeyError, ValueError, IndexError):
         raise Problem(503, 'Chưa kết nối được trợ lý. Vui lòng thử lại hoặc dùng lịch đặt phòng.')
 
+# NOTE MOCHI: Đọc chuỗi bắt buộc từ JSON, kiểm tra độ dài và bỏ khoảng trắng hai đầu.
 def text(body, key, limit):
     value = body.get(key)
     if not isinstance(value, str) or not value.strip() or len(value) > limit:
         raise Problem(400, 'Thông tin thiếu hoặc vượt độ dài cho phép: ' + key)
     return value.strip()
 
+# NOTE MOCHI: Giải lớp XOR che token của Spring nếu có để đối chiếu token gốc giữa hai lần nhận độc lập.
 def csrf_value(value):
     # Spring Security 6 masks CSRF with a fresh XOR pad on every response.
     # Compare underlying token bytes rather than two independently masked strings.
@@ -155,13 +166,17 @@ def csrf_value(value):
         pass
     return value.encode()
 
+# NOTE MOCHI: Bộ xử lý HTTP nội bộ cho health/chat/support/documents; kiểm tra user và CSRF trước các hành động bảo vệ.
 class Handler(BaseHTTPRequestHandler):
+    # NOTE MOCHI: Tắt access log mặc định để không ghi nhầm cookie, câu hỏi hoặc thông tin xác thực.
     def log_message(self, *args):
         pass  # Never log session cookies, prompts or credentials.
 
+    # NOTE MOCHI: Gọi Java /api bằng cookie phiên của yêu cầu hiện tại để lấy danh tính, CSRF hoặc phòng trống.
     def backend(self, path):
         return request_json(BACKEND + '/api' + path, headers={'Cookie': self.headers.get('Cookie', '')})
 
+    # NOTE MOCHI: Phân nhánh theo đường dẫn/phương thức, giới hạn gọi chat, kiểm tra quyền admin và lưu/đọc đúng phạm vi dữ liệu.
     def handle_api(self):
         if self.path == '/health' and self.command == 'GET':
             return {'success': True, 'model': MODEL, 'configured': bool(os.getenv('OPENROUTER_API_KEY'))}
@@ -191,6 +206,7 @@ class Handler(BaseHTTPRequestHandler):
                 raise Problem(400, 'Dữ liệu JSON không hợp lệ.')
         else:
             body = {}
+        # NOTE MOCHI: Chat giới hạn 5 câu/phút theo user; nếu có ngày thì tra API phòng trống trước khi truy xuất tài liệu và gọi model.
         if self.path == '/chat' and self.command == 'POST':
             message = text(body, 'message', 1800)
             with LOCK:
@@ -219,6 +235,7 @@ class Handler(BaseHTTPRequestHandler):
             return {'success': True, 'answer': answer(message, sources, rooms), 'rooms': rooms,
                     'sources': [{k:s[k] for k in ('id','title','version')} for s in sources],
                     'checkedAt': dt.datetime.now(dt.timezone.utc).isoformat(), 'model': MODEL}
+        # NOTE MOCHI: POST tạo ticket có giới hạn tần suất; GET chỉ trả ticket của chủ tài khoản, trừ admin được xem chung.
         if self.path == '/support':
             with connect() as db:
                 if self.command == 'POST':
@@ -233,6 +250,7 @@ class Handler(BaseHTTPRequestHandler):
                 rows = [dict(row) for row in db.execute(query, () if admin else (uid,))]
                 unread = db.execute('SELECT COUNT(*) FROM tickets WHERE unread=1').fetchone()[0] if admin else 0
                 return {'success':True,'tickets':rows,'unread':unread,'admin':admin}
+        # NOTE MOCHI: Chỉ admin được ghi phản hồi; cập nhật trạng thái ticket và xóa cờ chưa đọc.
         if self.path == '/support/reply' and self.command == 'POST':
             if not admin: raise Problem(403, 'Chỉ admin được phản hồi.')
             reply = text(body,'reply',3000)
@@ -240,6 +258,7 @@ class Handler(BaseHTTPRequestHandler):
                 if not db.execute("UPDATE tickets SET reply=?,status='Đã phản hồi',unread=0 WHERE id=?", (reply,body.get('id'))).rowcount:
                     raise Problem(404,'Không tìm thấy yêu cầu.')
             return {'success':True}
+        # NOTE MOCHI: Chỉ admin đọc/ghi tài liệu; sửa nội dung tăng version để nguồn tham khảo cho biết bản tài liệu nào được dùng.
         if self.path == '/documents':
             if not admin: raise Problem(403,'Chỉ admin được quản lý tài liệu.')
             with connect() as db:
@@ -258,6 +277,7 @@ class Handler(BaseHTTPRequestHandler):
                 return {'success':True,'documents':[dict(row) for row in db.execute('SELECT * FROM documents ORDER BY id DESC')]}
         raise Problem(404,'Không tìm thấy chức năng.')
 
+    # NOTE MOCHI: Bắt kết quả/lỗi và ghi JSON UTF-8 với HTTP status tương ứng cùng no-store; GET và POST đều đi qua hàm này.
     def dispatch(self):
         try:
             result, status = self.handle_api(), 200

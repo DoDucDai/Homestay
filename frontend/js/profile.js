@@ -1,3 +1,6 @@
+// NOTE FRONTEND: Hiển thị và sửa hồ sơ của tài khoản hiện tại; không có trường cho người dùng tự đổi role.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
+// NOTE FRONTEND: Đổ họ tên, ảnh chữ viết tắt, ID và quyền vào trang; đồng bộ trạng thái email qua profile-email.js nếu đã được nạp.
 function renderAccountProfile(user){
     const role=user.role==='admin'?'Quản trị viên':'Khách hàng';
     const name=user.fullName || user.username;
@@ -28,6 +31,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
     try {const result=await apiGet('/auth/me');fill(result.user);}
     catch(error){status.textContent=error.message;return;}
     button.disabled=false;
+    // NOTE FRONTEND: Đọc các trường hồ sơ cho phép, kiểm tra điện thoại/email rồi PUT /auth/profile; dùng hồ sơ server trả lại để hiển thị.
     form.addEventListener('submit',async event=>{
         event.preventDefault();if(button.disabled || !form.reportValidity())return;
         const body=Object.fromEntries(keys.map(key=>[key,document.getElementById('edit-'+key).value.trim()]));

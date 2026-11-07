@@ -1,3 +1,4 @@
+# NOTE TRIỂN KHAI: Loại metadata Git, secret, build, dữ liệu vận hành và kiểm thử khỏi ngữ cảnh Docker; chỉ mở lại migration cần đóng gói.
 .git
 .env
 .env.*
@@ -23,7 +24,7 @@ database
 **/*.db
 **/*.sql
 
-# Account migrations are build resources; keep other database files private.
+# NOTE TRIỂN KHAI: Chỉ đưa hai migration tài khoản/quyền đang được pom.xml đóng gói vào ngữ cảnh build.
 !database/
 database/*
 !database/migrations/

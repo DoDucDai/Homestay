@@ -1,3 +1,5 @@
+// NOTE MOCHI: Bộ chat dùng chung cho trang Mochi và widget, tự kiểm tra phiên/CSRF trước khi gửi câu hỏi.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
 /* Shared by the dedicated assistant page and the floating quick chat. */
 window.HomestayChat={mount(host,{compact=false,onChange=()=>{},onBusy=()=>{}}={}){
  const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text)n.textContent=text;if(cls)n.className=cls;return n;};
@@ -8,6 +10,7 @@ window.HomestayChat={mount(host,{compact=false,onChange=()=>{},onBusy=()=>{}}={}
  for(const [key,title]of[['checkin','Ngày nhận'],['checkout','Ngày trả']]){const label=el('label',title);const input=document.createElement('input');input.type='date';input.min=new Date(Date.now()+7*3600000).toISOString().slice(0,10);label.append(input);dates.append(label);fields[key]=input;}
  const form=el('form','','ai-composer');const input=el('textarea');input.required=true;input.maxLength=1800;input.placeholder='Hỏi về phòng và kỳ nghỉ của bạn…';input.setAttribute('aria-label','Tin nhắn cho trợ lý');input.rows=compact?2:1;
  const send=el('button','Gửi ↗','ai-send');send.type='submit';form.append(input,send);
+ // NOTE MOCHI: Điều chỉnh chiều cao ô chat theo nội dung/độ rộng để không che phần đang nhập.
  function resizeInput(){
   if(!input.clientWidth)return;
   input.style.height='auto';input.style.height=input.scrollHeight+'px';
@@ -22,7 +25,9 @@ window.HomestayChat={mount(host,{compact=false,onChange=()=>{},onBusy=()=>{}}={}
  const status=el('p','','ai-chat-status');status.setAttribute('role','status');
  const suggestions=el('div','','ai-prompts');
  for(const question of ['Tìm phòng trống cho tôi','Đặt phòng như thế nào?','Có quy định đặt cọc chưa?']){const button=el('button',question);button.type='button';button.onclick=()=>{input.value=question;resizeInput();input.focus();};suggestions.append(button);}
+ // NOTE MOCHI: Thêm tin nhắn người dùng/trợ lý bằng textContent, cập nhật cuộn và giữ nội dung là văn bản.
  function append(role,text){const row=el('article','', 'ai-message ai-message-'+role);row.append(el('small',role==='user'?'Bạn':'Homestay AI'),el('p',text));log.append(row);log.scrollTop=log.scrollHeight;return row;}
+ // NOTE MOCHI: Đính kèm danh sách tên/phiên bản tài liệu mà server dùng để trả lời.
  function addSources(row,sources){if(Array.isArray(sources)&&sources.length){const details=el('details');details.append(el('summary','Nguồn tham khảo · '+sources.length),el('p',sources.map(s=>s.title+' · v'+s.version).join('\n')));row.append(details);}}
  const welcome=append('assistant','Tôi là Mochi, trợ lý Homestay. Chọn ngày để tìm phòng trống, hoặc hỏi tôi về cách đặt phòng nhé.');
  if(!compact){welcome.classList.add('ai-welcome');const portrait=el('img');portrait.src='/ai/mascot.svg';portrait.alt='Mochi chào bạn';portrait.width=90;portrait.height=106;welcome.prepend(portrait,el('h2','Một khoảng nghỉ, bắt đầu từ đây.'));}
@@ -31,6 +36,7 @@ window.HomestayChat={mount(host,{compact=false,onChange=()=>{},onBusy=()=>{}}={}
  dates.addEventListener('change',()=>{dateSummary.textContent=fields.checkin.value&&fields.checkout.value?'Ngày lưu trú · '+fields.checkin.value+' → '+fields.checkout.value:'Ngày lưu trú · chọn khi tìm phòng';});
  host.append(dateControl,log,suggestions,form,status);
  resizeInput();
+ // NOTE MOCHI: Khóa gửi lặp, kiểm tra phiên, lấy CSRF, gửi câu hỏi/ngày đến API và hiển thị trả lời/nguồn/phòng do backend trả.
  async function ask(){
   const message=input.value.trim();if(!message||busy)return;
   busy=true;onBusy(true);send.disabled=true;suggestions.querySelectorAll('button').forEach(b=>b.disabled=true);status.textContent='Đang tìm thông tin…';

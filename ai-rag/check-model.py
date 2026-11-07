@@ -1,3 +1,4 @@
+# NOTE MOCHI: Lệnh kiểm tra model đang cấu hình bằng một yêu cầu OpenRouter thật; không in khóa truy cập.
 """Run a minimal live OpenRouter check without printing credentials."""
 import argparse
 import importlib.util
