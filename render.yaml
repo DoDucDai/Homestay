@@ -1,0 +1,49 @@
+# FREE DEMO: SQLite changes are ephemeral; the reviewed bundle is restored on restart.
+# This file does not create a SQL Server database. Supply an online SQL Server/Azure SQL.
+# NOTE TRIỂN KHAI: Blueprint cho dịch vụ Docker trên Render; cấu hình nguồn không tự xác nhận dịch vụ đã được deploy.
+services:
+  - type: web
+    name: homestay-mochi-demo
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    # NOTE TRIỂN KHAI: Biến sync:false cần được điền ở môi trường hosting; không ghi khóa/mật khẩu thật vào file.
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: DB_ENCRYPT
+        value: "true"
+      - key: DB_TRUST_SERVER_CERTIFICATE
+        value: "false"
+      - key: DB_PORT
+        value: "1433"
+      - key: DB_HOST
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_MODEL
+        value: openrouter/free
+      - key: AI_RAG_DB_PATH
+        value: /tmp/homestay/assistant.sqlite3
+      - key: MAIL_PROVIDER
+        value: brevo
+      - key: EMAIL_VERIFICATION_ENABLED
+        value: "false"
+      - key: MAIL_API_KEY
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: AUTH_TOKEN_SECRET
+        sync: false
+      - key: APP_PUBLIC_URL
+        value: https://homestay-mochi-demo.vercel.app

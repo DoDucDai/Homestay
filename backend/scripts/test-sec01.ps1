@@ -1,3 +1,5 @@
+# NOTE BACKEND: Chuẩn bị classpath và chạy SecurityHttpSqlServerIT để kiểm tra đăng nhập, cookie, CSRF, CORS, phân quyền và thu hồi phiên.
+# Đường dẫn được tính từ vị trí script; MavenRepository cho phép dùng bộ thư viện đã tải trong workspace.
 param([string]$MavenRepository = '')
 $ErrorActionPreference = 'Stop'
 & "$PSScriptRoot/security-classpath.ps1" -MavenRepository $MavenRepository

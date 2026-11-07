@@ -1,0 +1,906 @@
+{
+  "schema": 1,
+  "catalogCapturedAt": "2026-11-03T16:10:00+07:00",
+  "documents": [
+    {
+      "slug": "guide:start",
+      "title": "Hướng dẫn đặt phòng lần đầu",
+      "content": "Hỏi: Tôi muốn đặt phòng lần đầu cần làm gì?\nHỏi: Các bước đặt phòng homestay là gì?\nTrả lời: Đăng nhập tài khoản được cấp, mở Đặt phòng, chọn ngày hoặc giờ nhận/trả, kiểm tra phòng trống và giá, chọn khách và phòng rồi xem lại trước khi xác nhận. Chỉ coi thành công khi hệ thống trả thông báo xác nhận. Không có bước bắt buộc đặt cọc được công bố.\nNguồn xác minh: frontend/js/bookings.js"
+    },
+    {
+      "slug": "guide:success",
+      "title": "Xác nhận đặt phòng thành công và mã booking",
+      "content": "Hỏi: Làm sao biết đã đặt phòng thành công?\nHỏi: AI nói đã đặt xong có phải xác nhận không?\nTrả lời: Chỉ coi lượt đặt thành công khi hệ thống đặt phòng trả thông báo xác nhận và lượt đặt xuất hiện trong danh sách/lịch. Tin nhắn của Mochi không tự tạo booking, không phải bằng chứng đã giữ phòng hay thanh toán. Kiểm tra lại trạng thái thực tế trước khi gửi lại một thao tác bị lỗi mạng.\nNguồn xác minh: frontend/js/bookings.js"
+    },
+    {
+      "slug": "guide:dates",
+      "title": "Chọn ngày nhận và trả phòng theo đêm",
+      "content": "Hỏi: Ngày nhận và ngày trả phải như thế nào?\nHỏi: Có đặt ngày quá khứ hoặc nhận trả cùng ngày được không?\nTrả lời: Đặt theo đêm yêu cầu ngày nhận không trong quá khứ theo giờ Việt Nam và ngày trả phải sau ngày nhận. Ngày phải hợp lệ. Nhận và trả cùng ngày không hợp lệ cho chế độ theo đêm; nếu nghỉ trong ngày, dùng chế độ theo giờ trên trang Đặt phòng. Không coi chữ tối nay/cuối tuần trong câu hỏi là đã chọn ngày trên giao diện.\nNguồn xác minh: backend/src/main/java/com/homestay/controller/RoomSchedule.java"
+    },
+    {
+      "slug": "guide:availability",
+      "title": "Kiểm tra phòng trống theo khoảng lưu trú",
+      "content": "Hỏi: Phòng nào còn trống tối nay hoặc cuối tuần?\nHỏi: Tại sao phải chọn ngày mới tra được phòng trống?\nTrả lời: Phòng còn trống phải được kiểm tra từ backend theo khoảng nhận/trả đã chọn. Danh mục giới thiệu, giá niêm yết hoặc tài liệu RAG không chứng minh còn phòng. Trước khi có kết quả tra phòng theo ngày, không khẳng định mã phòng nào chắc chắn còn trống. Kết quả có thể thay đổi trước khi xác nhận vì người khác đặt hoặc tình trạng vận hành đổi.\nNguồn xác minh: backend/src/main/java/com/homestay/controller/BookingController.java"
+    },
+    {
+      "slug": "guide:hourly",
+      "title": "Đặt phòng theo giờ và cách làm tròn thời gian",
+      "content": "Hỏi: Nghỉ vài tiếng hoặc thuê trong ngày được không?\nHỏi: Ở 1 giờ 20 phút tính mấy giờ?\nTrả lời: Trang Đặt phòng có chế độ theo giờ với thời điểm nhận và trả theo giờ Việt Nam. Giờ trả phải sau giờ nhận; giờ nhận không được trong quá khứ. Số giờ tính tiền được làm tròn lên: 1 giờ 20 phút tính 2 giờ, đúng 2 giờ tính 2 giờ. Không suy ra một quy định check-in 14:00 hay check-out 12:00 vì hệ thống chưa công bố khung giờ cố định đó.\nNguồn xác minh: backend/src/main/java/com/homestay/controller/HourlyStay.java"
+    },
+    {
+      "slug": "guide:hourly-price",
+      "title": "Giá theo giờ chưa khai báo không thể tự suy từ giá đêm",
+      "content": "Hỏi: Giá giờ bằng giá đêm chia 24 phải không?\nHỏi: Tại sao không chọn được phòng trong chế độ theo giờ?\nTrả lời: Giá theo giờ là trường cấu hình riêng của phòng. Nếu chưa có giá giờ hợp lệ, quản trị viên cần khai báo trước khi nhận đặt theo giờ. Không chia giá đêm cho 24, không tự tạo giá theo giờ và không coi giá giờ chưa khai báo là 0 đồng. Kiểm tra giá hiện tại trong trang Đặt phòng hoặc Quản lý phòng.\nNguồn xác minh: backend/src/main/java/com/homestay/controller/BookingController.java"
+    },
+    {
+      "slug": "guide:night-price",
+      "title": "Tính tiền phòng theo đêm và số đêm",
+      "content": "Hỏi: Ở từ ngày 4 đến ngày 6 tính mấy đêm?\nHỏi: Tiền phòng theo đêm được tính ra sao?\nTrả lời: Số đêm bằng số ngày từ ngày nhận đến ngày trả, không tính thêm ngày trả như một đêm riêng. Ví dụ nhận ngày 4, trả ngày 6 là 2 đêm. Tiền phòng theo đêm bằng số đêm nhân đơn giá được hệ thống chốt cho booking. Ví dụ minh họa 300.000 đồng/đêm trong 2 đêm là 600.000 đồng tiền phòng; đây là phép tính ví dụ, không phải xác nhận giá cho một phòng cụ thể.\nNguồn xác minh: frontend/js/bookings.js"
+    },
+    {
+      "slug": "guide:price-services",
+      "title": "Giá phòng chưa bao gồm dịch vụ phát sinh",
+      "content": "Hỏi: Giá thuê đã gồm ăn sáng, giặt ủi và đưa đón chưa?\nHỏi: Tiền phòng có bao gồm tất cả dịch vụ không?\nTrả lời: Tiền phòng tạm tính chưa bao gồm các dịch vụ phát sinh. Chỉ cộng dịch vụ đã được ghi nhận cho lượt lưu trú theo đơn giá, số lượng và tên dịch vụ tại thời điểm sử dụng. Không mặc định ăn sáng, xe đưa đón, spa hoặc giặt ủi miễn phí hay đã nằm trong giá phòng.\nNguồn xác minh: frontend/js/support-page.js"
+    },
+    {
+      "slug": "guide:room-status",
+      "title": "Phân biệt Trống, Đã đặt, Đang sử dụng và Bảo trì",
+      "content": "Hỏi: Các trạng thái phòng có nghĩa gì?\nHỏi: Phòng Trống trên danh mục có chắc trống vào ngày tôi đến không?\nTrả lời: Trống, Đã đặt, Đang sử dụng và Bảo trì là các trạng thái vận hành. Trạng thái hiện tại không thay cho việc kiểm tra lịch của khoảng tương lai. Phòng đang có booking lưu trú, lịch bị trùng hoặc bảo trì không được tự khẳng định có thể nhận khách mới. Chọn đúng ngày/giờ và kiểm tra lại trong hệ thống trước khi xác nhận.\nNguồn xác minh: backend/src/main/java/com/homestay/controller/RoomSchedule.java"
+    },
+    {
+      "slug": "guide:maintenance",
+      "title": "Phòng bảo trì hoặc mô tả đang sửa chữa",
+      "content": "Hỏi: Phòng đang bảo trì có đặt được không?\nHỏi: Mô tả phòng ghi sửa chữa thì có thể ở không?\nTrả lời: Phòng có trạng thái Bảo trì bị loại khỏi danh mục công khai và kết quả phòng trống. Nếu mô tả còn ghi đang sửa chữa hoặc có mâu thuẫn với trạng thái đang hiển thị, cần nhờ quản lý kiểm tra trước khi đặt; không tự kết luận đã sửa xong. Tài liệu mô tả không phải xác nhận khả dụng.\nNguồn xác minh: backend/src/main/java/com/homestay/controller/PublicRoomController.java"
+    },
+    {
+      "slug": "guide:room-types",
+      "title": "Loại phòng Single, Double, VIP và Family",
+      "content": "Hỏi: Hệ thống có những loại phòng nào?\nHỏi: Family, Double, Single và VIP khác nhau ra sao?\nTrả lời: Danh mục hiện có các nhãn loại phòng Single, Double, VIP và Family. Đây là nhãn phân loại, không phải thông số sức chứa hay số giường. Mô tả của từng phòng mới là nguồn để nêu tiện nghi được ghi rõ. Không mặc định Single chỉ được 1 khách, Double 2 khách, Family 4 khách hay VIP có dịch vụ cụ thể khi chưa có xác nhận.\nNguồn xác minh: backend/src/main/java/com/homestay/controller/PublicRoomController.java"
+    },
+    {
+      "slug": "guide:capacity",
+      "title": "Thông tin nhóm 4 người trên ảnh Room 103 và Room 201",
+      "content": "Hỏi: Phòng nào phù hợp nhóm 4 người?\nHỏi: Phòng chứa mấy người và có bao nhiêu giường?\nTrả lời: Ảnh Room 103 và Room 201 ghi studio lớn phù hợp nhóm 4 người. Các phòng khác chưa có số khách tối đa được xác nhận; không suy từ loại phòng, giá hoặc số giường nhìn thấy. Thêm người, trẻ em và giường phụ cần quản lý xác nhận.\nNguồn xác minh: backend/src/main/resources/room-catalog.json"
+    },
+    {
+      "slug": "guide:amenities",
+      "title": "Tiện nghi wifi, hồ bơi, bãi xe và mô tả phòng",
+      "content": "Hỏi: Phòng có wifi, hồ bơi, máy lạnh hoặc bãi đỗ xe không?\nHỏi: Mô tả đầy đủ tiện nghi có chắc bao gồm bếp không?\nTrả lời: Chỉ khẳng định tiện nghi được ghi rõ trong mô tả hoặc tài liệu đã duyệt của đúng phòng. Cụm đầy đủ tiện nghi không đủ để suy ra wifi, hồ bơi, điều hòa, bếp, máy giặt, bãi xe hay miễn phí sử dụng. Nếu thiếu thông tin cụ thể, nói chưa xác nhận và hướng tới Support.\nNguồn xác minh: backend/src/main/java/com/homestay/controller/PublicRoomController.java"
+    },
+    {
+      "slug": "guide:deposit",
+      "title": "Chưa công bố chính sách đặt cọc, tiền cọc và trả trước",
+      "content": "Hỏi: Có bắt buộc đặt cọc không?\nHỏi: Phải cọc 50 phần trăm hoặc chuyển tiền trước bao nhiêu?\nHỏi: deposit prepayment advance payment\nTrả lời: Hiện Homestay chưa công bố quy định đặt cọc. Không có căn cứ để yêu cầu cọc 50%, cọc 500.000 đồng, chuyển tiền giữ phòng hoặc thêm bước xác nhận đặt cọc vào hướng dẫn đặt phòng. Cần làm rõ khoản thu cho lượt đặt cụ thể thì gửi Support để admin xác nhận trước khi thanh toán.\nNguồn xác minh: frontend/js/support-page.js"
+    },
+    {
+      "slug": "guide:cancel",
+      "title": "Hủy đặt phòng và điều kiện booking Confirmed",
+      "content": "Hỏi: Làm sao hủy phòng?\nHỏi: Hủy booking Confirmed có tự được hoàn tiền không?\nHỏi: cancel cancellation\nTrả lời: Hệ thống vận hành có thao tác hủy booking ở trạng thái Confirmed. Việc hủy trạng thái trong phần mềm không chứng minh được miễn phí hủy hoặc tự động hoàn tiền. Hiện chưa công bố chính sách hủy. Gửi mã đặt phòng và yêu cầu thay đổi qua Support để admin kiểm tra điều kiện thực tế; không hủy hay nói đã hủy chỉ qua lời của AI.\nNguồn xác minh: backend/src/main/java/com/homestay/controller/BookingController.java"
+    },
+    {
+      "slug": "guide:refund",
+      "title": "Chưa công bố hoàn tiền, phí hủy và hoàn cọc",
+      "content": "Hỏi: Hủy có hoàn 100% không?\nHỏi: Có mất cọc hoặc phí hủy không?\nHỏi: refund policy reimbursement money back\nTrả lời: Hiện chưa có chính sách hoàn tiền, phí hủy hoặc hoàn cọc được công bố. Không cam kết hoàn 100%, hoàn trong bao nhiêu ngày, giữ tiền cọc hay áp một khoản phí. Gửi mã đặt phòng và tình huống thực tế cho Support để admin đối chiếu; không yêu cầu gửi thông tin thẻ hay giấy tờ trong chat.\nNguồn xác minh: frontend/js/support-page.js"
+    },
+    {
+      "slug": "guide:change-booking",
+      "title": "Đổi ngày, đổi phòng và thay đổi lượt thuê",
+      "content": "Hỏi: Tôi muốn đổi ngày nhận hoặc đổi sang phòng khác?\nHỏi: Mochi đổi booking giúp tôi được không?\nHỏi: Đổi sang phòng khác và đổi ngày như thế nào?\nTrả lời: Gửi mã lượt đặt, thời gian/phòng mong muốn và nội dung thay đổi qua Support. Admin cần kiểm tra lịch trống, giá và trạng thái booking. AI không trực tiếp sửa booking và không hứa miễn phí thay đổi. Không tạo thêm một booking trùng để thay cho việc xác minh yêu cầu sửa.\nNguồn xác minh: frontend/js/support-page.js"
+    },
+    {
+      "slug": "guide:early-late",
+      "title": "Nhận phòng sớm, trả phòng muộn và giờ cố định",
+      "content": "Hỏi: Có nhận sớm, trả muộn hoặc check-in lúc 14 giờ không?\nHỏi: Phí late checkout là bao nhiêu?\nTrả lời: Nhận sớm hoặc trả muộn phụ thuộc lịch thực tế và xác nhận của homestay. Hiện không có quy định chung 14:00/12:00 hoặc bảng phụ thu nhận sớm/trả muộn được xác nhận trong bộ dữ liệu. Gửi mã đặt và giờ mong muốn qua Support. Không tự hứa miễn phí hay tự tính phụ thu.\nNguồn xác minh: frontend/js/support-page.js"
+    },
+    {
+      "slug": "guide:pets",
+      "title": "Thú cưng, sự kiện và yêu cầu lưu trú đặc biệt",
+      "content": "Hỏi: Được mang chó mèo không?\nHỏi: Có thể tổ chức tiệc, sinh nhật hoặc sự kiện trong phòng không?\nTrả lời: Chưa có nội quy chi tiết hoặc bảng phí cho thú cưng và sự kiện trong dữ liệu xác nhận. Cần trao đổi với quản lý qua Support trước khi đặt hoặc sử dụng. Không tự nói được mang thú cưng, được tổ chức tiệc, miễn phí vệ sinh hay được phép gây tiếng ồn.\nNguồn xác minh: frontend/js/support-page.js"
+    },
+    {
+      "slug": "guide:children",
+      "title": "Trẻ em, thêm khách và phụ thu người ở",
+      "content": "Hỏi: Trẻ em được miễn phí không?\nHỏi: Thêm người ở có phụ thu bao nhiêu?\nTrả lời: Chưa có bảng độ tuổi trẻ em, phụ thu người ở, giường phụ hoặc sức chứa tối đa được xác nhận trong hệ thống. Không tự đặt mốc tuổi hay mức phí. Nêu số người, số trẻ và yêu cầu với quản lý qua Support để xác nhận trước khi chốt lượt thuê.\nNguồn xác minh: backend/src/main/java/com/homestay/controller/PublicRoomController.java"
+    },
+    {
+      "slug": "guide:services",
+      "title": "Danh mục dịch vụ và đơn giá hiện hành",
+      "content": "Hỏi: Homestay có những dịch vụ gì?\nHỏi: Giá ăn sáng, thuê xe hoặc giặt ủi xem ở đâu?\nTrả lời: Mở trang Dịch vụ để xem tên, đơn giá và trạng thái hiện tại. Tài liệu từng dịch vụ trong RAG là bản chụp có ngày cập nhật, không cam kết giá vẫn giữ nguyên sau ngày đó. Không tự suy đơn vị giá theo kg, suất, người, ngày hoặc chuyến nếu danh mục chưa ghi rõ đơn vị.\nNguồn xác minh: backend/src/main/java/com/homestay/controller/ServiceStatController.java"
+    },
+    {
+      "slug": "guide:service-add",
+      "title": "Thêm dịch vụ cho khách đang lưu trú",
+      "content": "Hỏi: Làm sao gọi thêm ăn sáng hoặc giặt ủi?\nHỏi: Booking chưa nhận phòng có ghi dịch vụ sử dụng được không?\nTrả lời: Nhân viên/admin ghi nhận dịch vụ trên booking đã nhận phòng, trạng thái CheckedIn. Cần chọn đúng dịch vụ đang Hoạt động và số lượng hợp lệ; tổng tiền dựa trên đơn giá tại thời điểm ghi nhận. AI chỉ hướng dẫn, không tự thêm dịch vụ hoặc nói đã gọi dịch vụ thành công.\nNguồn xác minh: backend/src/main/java/com/homestay/controller/BookingController.java"
+    },
+    {
+      "slug": "guide:service-stopped",
+      "title": "Dịch vụ Ngừng khác dịch vụ Hoạt động",
+      "content": "Hỏi: Karaoke hoặc dịch vụ ngừng có đặt mới được không?\nHỏi: Dịch vụ đã dùng có thể xóa khỏi danh mục không?\nTrả lời: Dịch vụ có trạng thái Ngừng không được coi là đang nhận yêu cầu mới. Dịch vụ đã có dữ liệu sử dụng không được xóa khỏi danh mục để bảo toàn lịch sử, có thể được chuyển sang Ngừng. Kiểm tra trạng thái đang hiển thị và hỏi quản lý nếu cần xác nhận phục vụ.\nNguồn xác minh: backend/src/main/java/com/homestay/controller/ServiceStatController.java"
+    },
+    {
+      "slug": "guide:service-duplicate",
+      "title": "Dịch vụ trùng tên và bản ghi cũ có giá khác nhau",
+      "content": "Hỏi: Tại sao giặt ủi có giá 30.000 và 50.000?\nHỏi: Dịch vụ có chữ cũ DV hoặc DEMO-LH khác gì bản thường?\nTrả lời: Hệ thống có thể lưu nhiều bản ghi dịch vụ tương tự tên nhưng mã và đơn giá khác nhau, gồm dữ liệu cũ và dữ liệu demo. Phải đối chiếu đúng mã dịch vụ được chọn. Không gộp các bản ghi, không tự chọn một giá làm giá duy nhất và không suy rằng bản cũ đã ngừng nếu trạng thái vẫn Hoạt động.\nNguồn xác minh: backend/src/main/java/com/homestay/controller/ServiceStatController.java"
+    },
+    {
+      "slug": "guide:service-total",
+      "title": "Số lượng dịch vụ và cách tính thành tiền",
+      "content": "Hỏi: Dịch vụ tính tổng tiền thế nào?\nHỏi: 2 đơn vị ăn sáng giá 80.000 tính bao nhiêu?\nTrả lời: Thành tiền dịch vụ bằng số lượng nhân đơn giá được chốt lúc thêm. Ví dụ minh họa 2 đơn vị với giá 80.000 đồng/đơn vị là 160.000 đồng. Số lượng phải là số nguyên dương trong giới hạn hệ thống; không tự dùng số thập phân hay số âm. Chưa có đơn vị mô tả rõ thì không suy 1 đơn vị là 1 người hay 1 suất.\nNguồn xác minh: backend/src/main/java/com/homestay/controller/BookingController.java"
+    },
+    {
+      "slug": "guide:checkout",
+      "title": "Trả phòng và xem trước thanh toán",
+      "content": "Hỏi: Trả phòng và thanh toán như thế nào?\nHỏi: Có xem trước tiền phòng và dịch vụ trước khi trả không?\nTrả lời: Mở Hóa đơn & trả phòng để xem lượt đang ở, xem trước tiền phòng, dịch vụ và tổng thanh toán; đối chiếu rồi mới xác nhận. Thao tác trả phòng yêu cầu booking đang CheckedIn và chưa có hóa đơn. AI không tự thu tiền, ghi thanh toán hoặc trả phòng thay người vận hành.\nNguồn xác minh: backend/src/main/java/com/homestay/controller/BookingController.java"
+    },
+    {
+      "slug": "guide:invoice",
+      "title": "Hóa đơn đã thanh toán và bảo toàn giá lịch sử",
+      "content": "Hỏi: Đổi giá phòng có làm hóa đơn cũ thay đổi không?\nHỏi: Vì sao hóa đơn dùng giá khác danh mục hôm nay?\nTrả lời: Booking lưu giá đã chốt; các dòng dịch vụ lưu tên và đơn giá tại thời điểm sử dụng; hóa đơn lưu bản chi tiết giao dịch. Đổi giá hoặc tên trong danh mục không tính lại hóa đơn đã thanh toán. Khi cần đối soát, xem hóa đơn và booking liên quan thay vì áp giá danh mục mới cho giao dịch cũ.\nNguồn xác minh: backend/src/main/java/com/homestay/controller/BookingInvoiceSnapshot.java"
+    },
+    {
+      "slug": "guide:double-payment",
+      "title": "Chống thanh toán trùng và xử lý mất phản hồi",
+      "content": "Hỏi: Tôi bấm thanh toán rồi mất mạng có bấm lại không?\nHỏi: Một booking có thể có hai hóa đơn không?\nTrả lời: Hệ thống kiểm soát một hóa đơn cho mỗi booking và kiểm tra trạng thái khi trả phòng. Nếu mất phản hồi, hãy tải lại và xem hóa đơn/trạng thái trước khi gửi tiếp; không coi việc chưa thấy thông báo là chắc chắn chưa ghi giao dịch. Nếu chưa rõ, nhờ admin đối soát.\nNguồn xác minh: backend/src/main/java/com/homestay/controller/BookingController.java"
+    },
+    {
+      "slug": "guide:discounts",
+      "title": "Khuyến mãi, mã giảm giá và phụ phí chưa công bố",
+      "content": "Hỏi: Có mã giảm giá, giảm giá nhóm hoặc ưu đãi sinh viên không?\nHỏi: Phí vệ sinh, VAT hay phí cuối tuần bao nhiêu?\nTrả lời: Chưa có bảng khuyến mãi, mã giảm giá, phí vệ sinh hoặc quy tắc thuế riêng được xác nhận trong bộ tài liệu này. Không tự tạo mã giảm giá, tỷ lệ thuế hoặc lời hứa miễn phí. Đối chiếu số tiền hiển thị cho lượt thuê và hỏi quản lý về khoản chưa rõ.\nNguồn xác minh: frontend/js/support-page.js"
+    },
+    {
+      "slug": "guide:account-access",
+      "title": "Tài khoản admin và staff, quyền khách chưa có",
+      "content": "Hỏi: Khách có thể tự đăng ký rồi đặt phòng được chưa?\nHỏi: Website hiện có những vai trò tài khoản nào?\nTrả lời: Hệ thống hiện có vai trò admin và staff. Chat và đặt phòng cần phiên đăng nhập hợp lệ bằng tài khoản được cấp; chưa có vai trò khách thực tế hoàn chỉnh. Không nói khách đã có thể tự đăng ký và sử dụng đầy đủ chức năng khi phần đăng ký còn là giao diện xem trước.\nNguồn xác minh: ai-rag/README.md"
+    },
+    {
+      "slug": "guide:profile",
+      "title": "Cập nhật hồ sơ, số điện thoại và địa chỉ Gmail",
+      "content": "Hỏi: Sửa thông tin cá nhân ở đâu?\nHỏi: Số điện thoại và email hồ sơ cần định dạng gì?\nHỏi: Số điện thoại hồ sơ có bao nhiêu số, bao nhiêu chữ số?\nTrả lời: Mở Thông tin tài khoản để cập nhật họ tên, điện thoại, email, ngày sinh và thành phố theo biểu mẫu. Điện thoại yêu cầu 10 chữ số, bắt đầu bằng 0. Email hồ sơ hiện chỉ chấp nhận Gmail theo định dạng biểu mẫu. Nhập dữ liệu cá nhân trực tiếp trong trang tài khoản; không gửi toàn bộ hồ sơ qua chat AI.\nNguồn xác minh: frontend/js/api.js"
+    },
+    {
+      "slug": "guide:password",
+      "title": "Đổi mật khẩu và quy tắc mật khẩu mới",
+      "content": "Hỏi: Đổi mật khẩu ở đâu?\nHỏi: Mật khẩu mới cần bao nhiêu ký tự và đổi xong có đăng nhập lại không?\nTrả lời: Mở menu tài khoản hoặc trang tài khoản để đổi mật khẩu. Mật khẩu mới cần 6–128 ký tự, có chữ hoa, chữ thường, chữ số và ký tự đặc biệt, khác mật khẩu hiện tại. Sau khi đổi cần đăng nhập lại. Không nhập mật khẩu vào chat hay yêu cầu Support.\nNguồn xác minh: frontend/js/api.js"
+    },
+    {
+      "slug": "guide:login-failure",
+      "title": "Không đăng nhập được và phiên hết hạn",
+      "content": "Hỏi: Tôi bị đăng xuất hoặc không đăng nhập được phải làm gì?\nHỏi: Tại sao chat yêu cầu đăng nhập lại?\nTrả lời: Kiểm tra tên tài khoản, tải lại trang và đăng nhập lại khi phiên hết hạn. Nếu vẫn lỗi, liên hệ đơn vị vận hành qua kênh đã dùng hoặc Support khi còn truy cập được. Không nhờ AI lấy lại mật khẩu, cung cấp cookie hay giả quyền admin. Chức năng quên mật khẩu/đăng ký có phần xem trước, không tự hứa đã gửi email đặt lại.\nNguồn xác minh: frontend/js/account.js"
+    },
+    {
+      "slug": "guide:support-create",
+      "title": "Gửi yêu cầu hỗ trợ qua Support",
+      "content": "Hỏi: Liên hệ hỗ trợ bằng cách nào?\nHỏi: Gửi yêu cầu Support cần ghi gì?\nTrả lời: Mở Support, đăng nhập, nhập tiêu đề và nội dung trong phần Gửi yêu cầu hỗ trợ rồi gửi cho admin. Có thể ghi mã đặt phòng, thời gian mong muốn và mô tả lỗi. Không gửi mật khẩu, OTP, thông tin thẻ hoặc toàn bộ giấy tờ cá nhân. Chưa có thời hạn phản hồi cố định được công bố.\nNguồn xác minh: ai-rag/web/support.js"
+    },
+    {
+      "slug": "guide:support-owner",
+      "title": "Theo dõi phản hồi Support và quyền xem yêu cầu",
+      "content": "Hỏi: Tôi xem câu trả lời của admin ở đâu?\nHỏi: Nhân viên khác có xem được yêu cầu hỗ trợ của tôi không?\nTrả lời: Tài khoản gửi yêu cầu xem lại yêu cầu của mình trong phần Theo dõi/Yêu cầu của bạn trên Support. Admin được xem và phản hồi các yêu cầu để xử lý. Tài khoản thường không được xem tất cả yêu cầu của tài khoản khác. Kiểm tra đúng tài khoản nếu không thấy lịch sử hỗ trợ.\nNguồn xác minh: ai-rag/app/server.py"
+    },
+    {
+      "slug": "guide:support-limits",
+      "title": "Giới hạn số yêu cầu Support và số câu hỏi Mochi",
+      "content": "Hỏi: Tại sao bị báo gửi quá nhiều câu hỏi hoặc yêu cầu?\nHỏi: Một phút hỏi AI được mấy câu?\nTrả lời: Mochi giới hạn tối đa 5 câu hỏi/phút/tài khoản. Yêu cầu Support giới hạn 5 yêu cầu trong khoảng 10 phút cho mỗi người gửi. Khi bị giới hạn, chờ trước khi thử tiếp; không đổi tài khoản để né giới hạn. AI không tự cấp thêm quota hay tăng quyền.\nNguồn xác minh: ai-rag/app/server.py"
+    },
+    {
+      "slug": "guide:ai-role",
+      "title": "Mochi tư vấn, không trực tiếp tạo hay thay đổi giao dịch",
+      "content": "Hỏi: Mochi có tự đặt phòng, hủy booking hoặc thanh toán không?\nHỏi: Tôi bảo đã xác nhận trong chat thì phòng được giữ chưa?\nTrả lời: Mochi hiện tra thông tin và hướng dẫn đặt phòng. Việc chọn phòng từ AI dẫn sang trang đặt phòng hiện có để người dùng xem và xác nhận. Chat không trực tiếp tạo đơn, hủy đơn, thay đổi lịch, thêm dịch vụ hay ghi thanh toán. Không coi câu nói đã đặt xong của model là một giao dịch thật.\nNguồn xác minh: ai-rag/app/server.py"
+    },
+    {
+      "slug": "guide:ai-dates",
+      "title": "Chọn ngày trên Mochi và giới hạn tra phòng theo giờ",
+      "content": "Hỏi: Tôi đã viết ngày trong câu hỏi, sao Mochi vẫn bảo chọn ngày?\nHỏi: Mochi có tra lịch theo từng giờ được không?\nTrả lời: Mochi lấy khoảng ngày từ hai ô Ngày nhận/Ngày trả trên giao diện, không tự trích ngày từ câu văn. Chọn và kiểm tra hai ô này để tra phòng theo đêm. Module chat chưa triển khai tra khả dụng theo từng giờ; để đặt vài tiếng hãy mở trang Đặt phòng và dùng lịch theo giờ.\nNguồn xác minh: ai-rag/app/server.py"
+    },
+    {
+      "slug": "guide:ai-history",
+      "title": "Lịch sử chat khác trí nhớ nhiều lượt của AI",
+      "content": "Hỏi: Mochi có nhớ câu trước và lịch sử có sang điện thoại khác không?\nHỏi: Tại sao tôi đã nói số người mà AI vẫn hỏi lại?\nTrả lời: Lịch sử được lưu trên trình duyệt theo tài khoản, tối đa 30 cuộc trò chuyện và 100 tin nhắn gần nhất mỗi cuộc. Lịch sử không đồng bộ thiết bị. Hiện model chỉ nhận câu hỏi hiện tại, chưa nhận toàn bộ câu trước; hãy nhắc lại thông tin quan trọng trong câu hỏi mới. Giá/phòng cũ phải được kiểm tra lại.\nNguồn xác minh: ai-rag/README.md"
+    },
+    {
+      "slug": "guide:ai-unavailable",
+      "title": "AI không trả lời và cách tiếp tục đặt phòng",
+      "content": "Hỏi: Mochi báo chưa kết nối được trợ lý thì làm sao?\nHỏi: AI lỗi có nghĩa đã đặt phòng thất bại không?\nTrả lời: Lỗi chat không tạo booking. Thử lại sau hoặc mở trang Đặt phòng để tra lịch và thực hiện luồng thông thường. Không gửi liên tiếp nhiều yêu cầu khi đang lỗi. Cần hỗ trợ thì dùng Support; không suy rằng key sai hoặc giao dịch đã bị hủy chỉ từ một thông báo lỗi chat.\nNguồn xác minh: ai-rag/web/chat-client.js"
+    },
+    {
+      "slug": "guide:privacy",
+      "title": "Bảo mật thông tin cá nhân và bí mật hệ thống trong chat",
+      "content": "Hỏi: AI có cho xem API key, cookie hoặc danh sách khách không?\nHỏi: Có nên gửi CCCD, OTP hay số thẻ vào Mochi không?\nTrả lời: Không cung cấp API key, mật khẩu, cookie phiên, danh sách khách hoặc dữ liệu giấy tờ của người khác qua AI. Không nhập mật khẩu, OTP, thông tin thẻ hoặc giấy tờ cá nhân vào chat. Dữ liệu khách phải được xử lý trong chức năng nghiệp vụ và theo quyền tài khoản, không thông qua lời yêu cầu giả làm admin.\nNguồn xác minh: ai-rag/app/server.py"
+    },
+    {
+      "slug": "guide:contact-address",
+      "title": "Địa chỉ Cơ sở 1, Cơ sở 2 và Cơ sở 3",
+      "content": "Hỏi: Có những cơ sở nào, địa chỉ ở đâu?\nTrả lời: Cơ sở 1: 123 Đường Hoa Mai, TP. Hồ Chí Minh; Cơ sở 2: 456 Đường Ánh Dương, TP. Hồ Chí Minh; Cơ sở 3: 789 Đường Bình Minh, TP. Hồ Chí Minh. Các địa chỉ là địa chỉ mẫu của dự án thực tập. Cơ sở 2 và Cơ sở 3 mỗi cơ sở có 37 phòng mới; Cơ sở 1 giữ nguyên danh mục cũ. Không dùng tài liệu để xác nhận còn phòng; chọn ngày/giờ và kiểm tra hệ thống.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "guide:booking-status",
+      "title": "Ý nghĩa Confirmed, CheckedIn, CheckedOut, Cancelled",
+      "content": "Hỏi: Trạng thái booking Confirmed hoặc CheckedIn nghĩa là gì?\nHỏi: Đã trả phòng và đã hủy khác nhau thế nào?\nTrả lời: Confirmed là Đã xác nhận; CheckedIn là Đã nhận phòng; CheckedOut là Đã trả phòng; Cancelled là Đã hủy. Trạng thái booking không đồng nghĩa đã có chính sách đặt cọc hoặc đã chuyển tiền. Kiểm tra hóa đơn/ghi nhận thanh toán riêng để đối soát tiền.\nNguồn xác minh: frontend/js/bookings.js"
+    },
+    {
+      "slug": "guide:check-in",
+      "title": "Nhận phòng từ booking đã xác nhận",
+      "content": "Hỏi: Khi khách đến nhận phòng làm thế nào?\nHỏi: Phòng đang có khách có thể nhận booking khác vào không?\nTrả lời: Người vận hành mở chức năng Nhận phòng, kiểm tra đúng booking và điều kiện trước khi xác nhận. Thao tác yêu cầu trạng thái phù hợp và phòng có thể sử dụng; hệ thống chặn phòng bảo trì, booking đã có hóa đơn hoặc phòng còn booking khác đang lưu trú. Không xác nhận nhận phòng chỉ bằng lời của AI.\nNguồn xác minh: backend/src/main/java/com/homestay/controller/BookingController.java"
+    },
+    {
+      "slug": "guide:conflict",
+      "title": "Trùng lịch, phòng vừa được đặt và lỗi xung đột",
+      "content": "Hỏi: Tại sao vừa thấy trống nhưng xác nhận lại báo trùng lịch?\nHỏi: Hai người đặt cùng phòng một lúc được không?\nTrả lời: Danh sách trống là kết quả tại thời điểm tra. Backend kiểm tra lại lịch và khóa giao dịch khi xác nhận để tránh hai booking trùng khoảng lưu trú. Nếu báo xung đột, tải lại lịch và chọn phòng/giờ khác; không coi AI đã giữ phòng riêng cho bạn và không bỏ qua thông báo trùng.\nNguồn xác minh: backend/src/main/java/com/homestay/controller/RoomSchedule.java"
+    },
+    {
+      "slug": "guide:demo-data",
+      "title": "Mã phòng và thông tin đã đối chiếu từ ảnh",
+      "content": "Hỏi: Mã P101 và DEMO-P101 hiện chuyển thành phòng nào?\nHỏi: Thông tin phòng dựa trên nguồn nào?\nTrả lời: Danh mục đã gộp các bản trùng số về một mã Room cho mỗi số, ví dụ Room 401. Tên và mô tả của 13 phòng 101, 102, 103, 201, 202, 301 và 401–407 được đối chiếu từ đúng ảnh mang số phòng đó. Phòng chưa có ảnh ghi thông tin đang cập nhật. Các ảnh nguồn là ảnh minh họa AI; không gọi chúng là ảnh chụp thực tế. Việc đổi mã giữ lịch sử đặt phòng, giá đã chốt và hóa đơn cũ.\nNguồn xác minh: backend/src/main/resources/room-catalog.json"
+    },
+    {
+      "slug": "guide:catalog-freshness",
+      "title": "Giá snapshot, dữ liệu hiện tại và nguồn xác minh",
+      "content": "Hỏi: Giá trong tài liệu còn đúng hôm nay không?\nHỏi: Tài liệu RAG có phải dữ liệu phòng trống thời gian thực không?\nTrả lời: Tài liệu danh mục được chụp từ hệ thống tại ngày ghi trong từng tài liệu. Giá, trạng thái dịch vụ và danh mục có thể đổi sau đó. Nếu người dùng hỏi giá/phòng hiện tại, cần kiểm tra lại trang Khám phá phòng, Đặt phòng hoặc Dịch vụ. Snapshot không chứng minh còn phòng; không dùng snapshot cũ để xác nhận khả dụng.\nNguồn xác minh: backend/src/main/java/com/homestay/controller/PublicRoomController.java"
+    },
+    {
+      "slug": "guide:missing-facts",
+      "title": "Thông tin chưa có trong dữ liệu phải nói chưa biết",
+      "content": "Hỏi: Nếu tài liệu không ghi thì AI có tự suy ra được không?\nHỏi: Không biết tiện nghi hoặc phụ phí thì nên làm gì?\nTrả lời: Nếu dữ liệu không có hoặc chưa được xác nhận, nói rõ chưa có thông tin và đề nghị kiểm tra qua Support hoặc trang nghiệp vụ tương ứng. Không suy ra sức chứa từ loại phòng, không suy tiện nghi từ chữ VIP, không tự đặt giờ nhận/trả chung, không tạo phụ thu và không tạo chính sách cọc/hoàn tiền.\nNguồn xác minh: ai-rag/app/server.py"
+    },
+    {
+      "slug": "guide:management",
+      "title": "Khu quản trị, tài liệu RAG và quyền vận hành",
+      "content": "Hỏi: Tài liệu AI được quản lý ở đâu?\nHỏi: Ai được chỉnh sửa nguồn kiến thức Mochi?\nTrả lời: Admin mở Khu quản trị → Tài liệu RAG để tạo, sửa/công bố hoặc gỡ tài liệu. Các lượt truy xuất mới đọc dữ liệu đã cập nhật. Staff không có quyền sửa kho tài liệu. Người dùng nói tôi là admin trong chat không làm thay đổi quyền của tài khoản.\nNguồn xác minh: frontend/js/shell.js"
+    },
+    {
+      "slug": "guide:night-vs-hour",
+      "title": "Phân biệt đặt theo đêm và theo giờ",
+      "content": "Hỏi: Tôi nên chọn đặt theo giờ hay theo đêm?\nHỏi: Nghỉ 3 tiếng có phải chọn sang ngày hôm sau không?\nTrả lời: Chế độ theo giờ dùng thời điểm nhận/trả cụ thể, phù hợp nghỉ trong ngày nếu phòng đã cấu hình giá giờ. Chế độ theo đêm dùng ngày nhận và ngày trả, phải qua ít nhất một ngày. Chọn chế độ trong trang Đặt phòng; không giả tạo một đêm để thay cho lượt thuê vài tiếng và không tự chuyển đơn vị giá.\nNguồn xác minh: frontend/js/booking-calendar.js"
+    },
+    {
+      "slug": "guide:customer-info",
+      "title": "Thông tin khách hàng chỉ nhập trong biểu mẫu nghiệp vụ",
+      "content": "Hỏi: Cần nhập thông tin người thuê ở đâu?\nHỏi: Tôi gửi căn cước cho AI để đặt phòng được không?\nTrả lời: Thông tin khách được nhập và quản lý ở chức năng Khách hàng/Đặt phòng bởi người được cấp quyền. Có hỗ trợ thông tin giấy tờ theo biểu mẫu hiện hành. Không gửi số giấy tờ hoặc toàn bộ hồ sơ vào AI để nhờ tạo khách. AI không đọc danh sách khách để tư vấn phòng.\nNguồn xác minh: frontend/js/customers.js"
+    },
+    {
+      "slug": "guide:room-selection",
+      "title": "Chọn phòng từ câu trả lời Mochi",
+      "content": "Hỏi: Bấm Chọn phòng này trên AI thì có đặt luôn không?\nHỏi: Tôi chọn phòng được gợi ý rồi cần làm gì?\nTrả lời: Liên kết Chọn phòng này mở trang Đặt phòng hiện có với gợi ý mã phòng và ngày. Bạn còn phải xem lịch, giá, khách và xác nhận trong biểu mẫu. Liên kết không phải giao dịch giữ phòng hoặc thanh toán, và dữ liệu cần được kiểm tra lại khi mở trang.\nNguồn xác minh: ai-rag/web/chat-client.js"
+    },
+    {
+      "slug": "guide:payment-methods",
+      "title": "Phương thức ghi nhận thanh toán: tiền mặt, chuyển khoản, thẻ",
+      "content": "Hỏi: Có những phương thức thanh toán nào?\nHỏi: Có thanh toán thẻ hoặc chuyển khoản trực tuyến tự động không?\nTrả lời: Biểu mẫu trả phòng cho phép ghi nhận phương thức Tiền mặt, Chuyển khoản hoặc Thẻ ngân hàng. Đây là nhãn ghi nhận trong hóa đơn, không chứng minh hệ thống đã tích hợp cổng thanh toán, tự trừ tiền thẻ hoặc tự xác nhận giao dịch ngân hàng. Chưa có số tài khoản ngân hàng/QR chính thức trong dữ liệu đã duyệt. Người vận hành cần đối soát thực tế trước khi xác nhận.\nNguồn xác minh: backend/src/main/java/com/homestay/controller/BookingController.java"
+    },
+    {
+      "slug": "guide:fees-units",
+      "title": "Đơn vị giá dịch vụ chưa có: kg, suất, chuyến hoặc ngày",
+      "content": "Hỏi: Giặt ủi tính theo kg hay lần?\nHỏi: Giá thuê xe là một ngày hay một giờ?\nTrả lời: Danh mục dịch vụ hiện lưu tên, đơn giá và trạng thái; chưa có trường đơn vị tính chi tiết. Không tự khẳng định giá theo kg, suất, chuyến, người, ngày hoặc giờ nếu quản lý chưa xác nhận. Bản ghi Ăn sáng hay Thuê xe máy không đủ để suy ra đơn vị chỉ từ tên. Xác nhận đơn vị và số lượng với người vận hành trước khi dùng.\nNguồn xác minh: backend/src/main/java/com/homestay/controller/ServiceStatController.java"
+    },
+    {
+      "slug": "service:1",
+      "title": "Dịch vụ Thuê xe máy (cũ DV1) — mã 1 | 2026-11-02",
+      "content": "Bản chụp dữ liệu lúc 2026-11-02T22:10:50+07:00. Không phải dữ liệu khả dụng thời gian thực.\nHỏi: Dịch vụ Thuê xe máy (cũ DV1) giá bao nhiêu và có hoạt động không?\nMã dịch vụ: 1. Tên chính xác: Thuê xe máy (cũ DV1).\nĐơn giá tại thời điểm chụp: 150.000 đồng/đơn vị ghi nhận. Trạng thái: Hoạt động.\nChưa có đơn vị suất/kg/ngày/chuyến được xác nhận; không tự suy đơn vị. Phải chọn đúng mã vì có dịch vụ trùng tên với giá khác. Kiểm tra lại trạng thái trước khi ghi nhận sử dụng.\nBản chụp danh mục lúc 2026-11-02T22:10:50+07:00. Giá/trạng thái có thể thay đổi; kiểm tra lại hệ thống. Không xác nhận còn phòng bằng tài liệu này."
+    },
+    {
+      "slug": "service:2",
+      "title": "Dịch vụ Giặt ủi (cũ DV2) — mã 2 | 2026-11-02",
+      "content": "Bản chụp dữ liệu lúc 2026-11-02T22:10:50+07:00. Không phải dữ liệu khả dụng thời gian thực.\nHỏi: Dịch vụ Giặt ủi (cũ DV2) giá bao nhiêu và có hoạt động không?\nMã dịch vụ: 2. Tên chính xác: Giặt ủi (cũ DV2).\nĐơn giá tại thời điểm chụp: 50.000 đồng/đơn vị ghi nhận. Trạng thái: Hoạt động.\nChưa có đơn vị suất/kg/ngày/chuyến được xác nhận; không tự suy đơn vị. Phải chọn đúng mã vì có dịch vụ trùng tên với giá khác. Kiểm tra lại trạng thái trước khi ghi nhận sử dụng.\nBản chụp danh mục lúc 2026-11-02T22:10:50+07:00. Giá/trạng thái có thể thay đổi; kiểm tra lại hệ thống. Không xác nhận còn phòng bằng tài liệu này."
+    },
+    {
+      "slug": "service:3",
+      "title": "Dịch vụ Đưa đón sân bay (cũ DV3) — mã 3 | 2026-11-02",
+      "content": "Bản chụp dữ liệu lúc 2026-11-02T22:10:50+07:00. Không phải dữ liệu khả dụng thời gian thực.\nHỏi: Dịch vụ Đưa đón sân bay (cũ DV3) giá bao nhiêu và có hoạt động không?\nMã dịch vụ: 3. Tên chính xác: Đưa đón sân bay (cũ DV3).\nĐơn giá tại thời điểm chụp: 200.000 đồng/đơn vị ghi nhận. Trạng thái: Hoạt động.\nChưa có đơn vị suất/kg/ngày/chuyến được xác nhận; không tự suy đơn vị. Phải chọn đúng mã vì có dịch vụ trùng tên với giá khác. Kiểm tra lại trạng thái trước khi ghi nhận sử dụng.\nBản chụp danh mục lúc 2026-11-02T22:10:50+07:00. Giá/trạng thái có thể thay đổi; kiểm tra lại hệ thống. Không xác nhận còn phòng bằng tài liệu này."
+    },
+    {
+      "slug": "service:4",
+      "title": "Dịch vụ Ăn sáng (cũ DV4) — mã 4 | 2026-11-02",
+      "content": "Bản chụp dữ liệu lúc 2026-11-02T22:10:50+07:00. Không phải dữ liệu khả dụng thời gian thực.\nHỏi: Dịch vụ Ăn sáng (cũ DV4) giá bao nhiêu và có hoạt động không?\nMã dịch vụ: 4. Tên chính xác: Ăn sáng (cũ DV4).\nĐơn giá tại thời điểm chụp: 80.000 đồng/đơn vị ghi nhận. Trạng thái: Hoạt động.\nChưa có đơn vị suất/kg/ngày/chuyến được xác nhận; không tự suy đơn vị. Phải chọn đúng mã vì có dịch vụ trùng tên với giá khác. Kiểm tra lại trạng thái trước khi ghi nhận sử dụng.\nBản chụp danh mục lúc 2026-11-02T22:10:50+07:00. Giá/trạng thái có thể thay đổi; kiểm tra lại hệ thống. Không xác nhận còn phòng bằng tài liệu này."
+    },
+    {
+      "slug": "service:5",
+      "title": "Dịch vụ Spa & Massage — mã 5 | 2026-11-02",
+      "content": "Bản chụp dữ liệu lúc 2026-11-02T22:10:50+07:00. Không phải dữ liệu khả dụng thời gian thực.\nHỏi: Dịch vụ Spa & Massage giá bao nhiêu và có hoạt động không?\nMã dịch vụ: 5. Tên chính xác: Spa & Massage.\nĐơn giá tại thời điểm chụp: 300.000 đồng/đơn vị ghi nhận. Trạng thái: Hoạt động.\nChưa có đơn vị suất/kg/ngày/chuyến được xác nhận; không tự suy đơn vị. Phải chọn đúng mã vì có dịch vụ trùng tên với giá khác. Kiểm tra lại trạng thái trước khi ghi nhận sử dụng.\nBản chụp danh mục lúc 2026-11-02T22:10:50+07:00. Giá/trạng thái có thể thay đổi; kiểm tra lại hệ thống. Không xác nhận còn phòng bằng tài liệu này."
+    },
+    {
+      "slug": "service:11",
+      "title": "Dịch vụ Nước uống đóng chai — mã 11 | 2026-11-02",
+      "content": "Bản chụp dữ liệu lúc 2026-11-02T22:10:50+07:00. Không phải dữ liệu khả dụng thời gian thực.\nHỏi: Dịch vụ Nước uống đóng chai giá bao nhiêu và có hoạt động không?\nMã dịch vụ: 11. Tên chính xác: Nước uống đóng chai.\nĐơn giá tại thời điểm chụp: 10.000 đồng/đơn vị ghi nhận. Trạng thái: Hoạt động.\nChưa có đơn vị suất/kg/ngày/chuyến được xác nhận; không tự suy đơn vị. Phải chọn đúng mã vì có dịch vụ trùng tên với giá khác. Kiểm tra lại trạng thái trước khi ghi nhận sử dụng.\nBản chụp danh mục lúc 2026-11-02T22:10:50+07:00. Giá/trạng thái có thể thay đổi; kiểm tra lại hệ thống. Không xác nhận còn phòng bằng tài liệu này."
+    },
+    {
+      "slug": "service:12",
+      "title": "Dịch vụ Ăn sáng — mã 12 | 2026-11-02",
+      "content": "Bản chụp dữ liệu lúc 2026-11-02T22:10:50+07:00. Không phải dữ liệu khả dụng thời gian thực.\nHỏi: Dịch vụ Ăn sáng giá bao nhiêu và có hoạt động không?\nMã dịch vụ: 12. Tên chính xác: Ăn sáng.\nĐơn giá tại thời điểm chụp: 80.000 đồng/đơn vị ghi nhận. Trạng thái: Hoạt động.\nChưa có đơn vị suất/kg/ngày/chuyến được xác nhận; không tự suy đơn vị. Phải chọn đúng mã vì có dịch vụ trùng tên với giá khác. Kiểm tra lại trạng thái trước khi ghi nhận sử dụng.\nBản chụp danh mục lúc 2026-11-02T22:10:50+07:00. Giá/trạng thái có thể thay đổi; kiểm tra lại hệ thống. Không xác nhận còn phòng bằng tài liệu này."
+    },
+    {
+      "slug": "service:13",
+      "title": "Dịch vụ Giặt ủi — mã 13 | 2026-11-02",
+      "content": "Bản chụp dữ liệu lúc 2026-11-02T22:10:50+07:00. Không phải dữ liệu khả dụng thời gian thực.\nHỏi: Dịch vụ Giặt ủi giá bao nhiêu và có hoạt động không?\nMã dịch vụ: 13. Tên chính xác: Giặt ủi.\nĐơn giá tại thời điểm chụp: 30.000 đồng/đơn vị ghi nhận. Trạng thái: Hoạt động.\nChưa có đơn vị suất/kg/ngày/chuyến được xác nhận; không tự suy đơn vị. Phải chọn đúng mã vì có dịch vụ trùng tên với giá khác. Kiểm tra lại trạng thái trước khi ghi nhận sử dụng.\nBản chụp danh mục lúc 2026-11-02T22:10:50+07:00. Giá/trạng thái có thể thay đổi; kiểm tra lại hệ thống. Không xác nhận còn phòng bằng tài liệu này."
+    },
+    {
+      "slug": "service:14",
+      "title": "Dịch vụ Thuê xe máy — mã 14 | 2026-11-02",
+      "content": "Bản chụp dữ liệu lúc 2026-11-02T22:10:50+07:00. Không phải dữ liệu khả dụng thời gian thực.\nHỏi: Dịch vụ Thuê xe máy giá bao nhiêu và có hoạt động không?\nMã dịch vụ: 14. Tên chính xác: Thuê xe máy.\nĐơn giá tại thời điểm chụp: 150.000 đồng/đơn vị ghi nhận. Trạng thái: Hoạt động.\nChưa có đơn vị suất/kg/ngày/chuyến được xác nhận; không tự suy đơn vị. Phải chọn đúng mã vì có dịch vụ trùng tên với giá khác. Kiểm tra lại trạng thái trước khi ghi nhận sử dụng.\nBản chụp danh mục lúc 2026-11-02T22:10:50+07:00. Giá/trạng thái có thể thay đổi; kiểm tra lại hệ thống. Không xác nhận còn phòng bằng tài liệu này."
+    },
+    {
+      "slug": "service:15",
+      "title": "Dịch vụ Đưa đón sân bay — mã 15 | 2026-11-02",
+      "content": "Bản chụp dữ liệu lúc 2026-11-02T22:10:50+07:00. Không phải dữ liệu khả dụng thời gian thực.\nHỏi: Dịch vụ Đưa đón sân bay giá bao nhiêu và có hoạt động không?\nMã dịch vụ: 15. Tên chính xác: Đưa đón sân bay.\nĐơn giá tại thời điểm chụp: 200.000 đồng/đơn vị ghi nhận. Trạng thái: Hoạt động.\nChưa có đơn vị suất/kg/ngày/chuyến được xác nhận; không tự suy đơn vị. Phải chọn đúng mã vì có dịch vụ trùng tên với giá khác. Kiểm tra lại trạng thái trước khi ghi nhận sử dụng.\nBản chụp danh mục lúc 2026-11-02T22:10:50+07:00. Giá/trạng thái có thể thay đổi; kiểm tra lại hệ thống. Không xác nhận còn phòng bằng tài liệu này."
+    },
+    {
+      "slug": "service:16",
+      "title": "Dịch vụ DEMO-LH DV006 - Spa & Massage — mã 16 | 2026-11-02",
+      "content": "Bản chụp dữ liệu lúc 2026-11-02T22:10:50+07:00. Không phải dữ liệu khả dụng thời gian thực.\nHỏi: Dịch vụ DEMO-LH DV006 - Spa & Massage giá bao nhiêu và có hoạt động không?\nMã dịch vụ: 16. Tên chính xác: DEMO-LH DV006 - Spa & Massage.\nĐơn giá tại thời điểm chụp: 300.000 đồng/đơn vị ghi nhận. Trạng thái: Hoạt động.\nChưa có đơn vị suất/kg/ngày/chuyến được xác nhận; không tự suy đơn vị. Phải chọn đúng mã vì có dịch vụ trùng tên với giá khác. Kiểm tra lại trạng thái trước khi ghi nhận sử dụng.\nBản chụp danh mục lúc 2026-11-02T22:10:50+07:00. Giá/trạng thái có thể thay đổi; kiểm tra lại hệ thống. Không xác nhận còn phòng bằng tài liệu này."
+    },
+    {
+      "slug": "service:17",
+      "title": "Dịch vụ Nước ngọt lon — mã 17 | 2026-11-02",
+      "content": "Bản chụp dữ liệu lúc 2026-11-02T22:10:50+07:00. Không phải dữ liệu khả dụng thời gian thực.\nHỏi: Dịch vụ Nước ngọt lon giá bao nhiêu và có hoạt động không?\nMã dịch vụ: 17. Tên chính xác: Nước ngọt lon.\nĐơn giá tại thời điểm chụp: 15.000 đồng/đơn vị ghi nhận. Trạng thái: Hoạt động.\nChưa có đơn vị suất/kg/ngày/chuyến được xác nhận; không tự suy đơn vị. Phải chọn đúng mã vì có dịch vụ trùng tên với giá khác. Kiểm tra lại trạng thái trước khi ghi nhận sử dụng.\nBản chụp danh mục lúc 2026-11-02T22:10:50+07:00. Giá/trạng thái có thể thay đổi; kiểm tra lại hệ thống. Không xác nhận còn phòng bằng tài liệu này."
+    },
+    {
+      "slug": "service:18",
+      "title": "Dịch vụ Tour tham quan địa phương — mã 18 | 2026-11-02",
+      "content": "Bản chụp dữ liệu lúc 2026-11-02T22:10:50+07:00. Không phải dữ liệu khả dụng thời gian thực.\nHỏi: Dịch vụ Tour tham quan địa phương giá bao nhiêu và có hoạt động không?\nMã dịch vụ: 18. Tên chính xác: Tour tham quan địa phương.\nĐơn giá tại thời điểm chụp: 250.000 đồng/đơn vị ghi nhận. Trạng thái: Hoạt động.\nChưa có đơn vị suất/kg/ngày/chuyến được xác nhận; không tự suy đơn vị. Phải chọn đúng mã vì có dịch vụ trùng tên với giá khác. Kiểm tra lại trạng thái trước khi ghi nhận sử dụng.\nBản chụp danh mục lúc 2026-11-02T22:10:50+07:00. Giá/trạng thái có thể thay đổi; kiểm tra lại hệ thống. Không xác nhận còn phòng bằng tài liệu này."
+    },
+    {
+      "slug": "service:19",
+      "title": "Dịch vụ Thuê xe đạp — mã 19 | 2026-11-02",
+      "content": "Bản chụp dữ liệu lúc 2026-11-02T22:10:50+07:00. Không phải dữ liệu khả dụng thời gian thực.\nHỏi: Dịch vụ Thuê xe đạp giá bao nhiêu và có hoạt động không?\nMã dịch vụ: 19. Tên chính xác: Thuê xe đạp.\nĐơn giá tại thời điểm chụp: 50.000 đồng/đơn vị ghi nhận. Trạng thái: Hoạt động.\nChưa có đơn vị suất/kg/ngày/chuyến được xác nhận; không tự suy đơn vị. Phải chọn đúng mã vì có dịch vụ trùng tên với giá khác. Kiểm tra lại trạng thái trước khi ghi nhận sử dụng.\nBản chụp danh mục lúc 2026-11-02T22:10:50+07:00. Giá/trạng thái có thể thay đổi; kiểm tra lại hệ thống. Không xác nhận còn phòng bằng tài liệu này."
+    },
+    {
+      "slug": "service:20",
+      "title": "Dịch vụ Tiệc nướng BBQ — mã 20 | 2026-11-02",
+      "content": "Bản chụp dữ liệu lúc 2026-11-02T22:10:50+07:00. Không phải dữ liệu khả dụng thời gian thực.\nHỏi: Dịch vụ Tiệc nướng BBQ giá bao nhiêu và có hoạt động không?\nMã dịch vụ: 20. Tên chính xác: Tiệc nướng BBQ.\nĐơn giá tại thời điểm chụp: 180.000 đồng/đơn vị ghi nhận. Trạng thái: Hoạt động.\nChưa có đơn vị suất/kg/ngày/chuyến được xác nhận; không tự suy đơn vị. Phải chọn đúng mã vì có dịch vụ trùng tên với giá khác. Kiểm tra lại trạng thái trước khi ghi nhận sử dụng.\nBản chụp danh mục lúc 2026-11-02T22:10:50+07:00. Giá/trạng thái có thể thay đổi; kiểm tra lại hệ thống. Không xác nhận còn phòng bằng tài liệu này."
+    },
+    {
+      "slug": "service:21",
+      "title": "Dịch vụ Karaoke — mã 21 | 2026-11-02",
+      "content": "Bản chụp dữ liệu lúc 2026-11-02T22:10:50+07:00. Không phải dữ liệu khả dụng thời gian thực.\nHỏi: Dịch vụ Karaoke giá bao nhiêu và có hoạt động không?\nMã dịch vụ: 21. Tên chính xác: Karaoke.\nĐơn giá tại thời điểm chụp: 120.000 đồng/đơn vị ghi nhận. Trạng thái: Ngừng.\nChưa có đơn vị suất/kg/ngày/chuyến được xác nhận; không tự suy đơn vị. Phải chọn đúng mã vì có dịch vụ trùng tên với giá khác. Dịch vụ Ngừng không được coi là đang nhận yêu cầu mới.\nBản chụp danh mục lúc 2026-11-02T22:10:50+07:00. Giá/trạng thái có thể thay đổi; kiểm tra lại hệ thống. Không xác nhận còn phòng bằng tài liệu này."
+    },
+    {
+      "slug": "service:22",
+      "title": "Dịch vụ Thuê xe ô tô tự lái — mã 22 | 2026-11-02",
+      "content": "Bản chụp dữ liệu lúc 2026-11-02T22:10:50+07:00. Không phải dữ liệu khả dụng thời gian thực.\nHỏi: Dịch vụ Thuê xe ô tô tự lái giá bao nhiêu và có hoạt động không?\nMã dịch vụ: 22. Tên chính xác: Thuê xe ô tô tự lái.\nĐơn giá tại thời điểm chụp: 800.000 đồng/đơn vị ghi nhận. Trạng thái: Ngừng.\nChưa có đơn vị suất/kg/ngày/chuyến được xác nhận; không tự suy đơn vị. Phải chọn đúng mã vì có dịch vụ trùng tên với giá khác. Dịch vụ Ngừng không được coi là đang nhận yêu cầu mới.\nBản chụp danh mục lúc 2026-11-02T22:10:50+07:00. Giá/trạng thái có thể thay đổi; kiểm tra lại hệ thống. Không xác nhận còn phòng bằng tài liệu này."
+    },
+    {
+      "slug": "catalog:services",
+      "title": "Toàn bộ danh mục dịch vụ hoạt động và ngừng | 2026-11-02",
+      "content": "Bản chụp dữ liệu lúc 2026-11-02T22:10:50+07:00. Không phải dữ liệu khả dụng thời gian thực.\nHỏi: Homestay có những dịch vụ gì? Dịch vụ nào đang hoạt động, dịch vụ nào ngừng?\nHoạt động: 1 — Thuê xe máy (cũ DV1); 2 — Giặt ủi (cũ DV2); 3 — Đưa đón sân bay (cũ DV3); 4 — Ăn sáng (cũ DV4); 5 — Spa & Massage; 11 — Nước uống đóng chai; 12 — Ăn sáng; 13 — Giặt ủi; 14 — Thuê xe máy; 15 — Đưa đón sân bay; 16 — DEMO-LH DV006 - Spa & Massage; 17 — Nước ngọt lon; 18 — Tour tham quan địa phương; 19 — Thuê xe đạp; 20 — Tiệc nướng BBQ\nNgừng: 21 — Karaoke; 22 — Thuê xe ô tô tự lái\nTên gần giống có thể là mã khác nhau; không gộp đơn giá. Kiểm tra trạng thái hiện tại trên trang Dịch vụ."
+    },
+    {
+      "slug": "pricing:poster-hourly-packages-20261103",
+      "title": "Giá gói theo giờ từ ảnh phòng — cập nhật 03/11/2026",
+      "content": "Hỏi: Giá 2 giờ, 3 giờ, 4 giờ, 8 giờ và giờ lẻ bao nhiêu?\nNgười dùng xác nhận ngày 2026-11-03: áp dụng bảng giá trong poster cho mã Room 101, Room 102, Room 103, Room 201, Room 202, Room 301, Room 401–Room 407. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng; giờ lẻ ngoài gói 80.000 đồng/giờ. Thu tối thiểu gói 2 giờ; làm tròn thời gian lên giờ và chọn gói cộng giờ lẻ có tổng tiền thấp nhất. Ví dụ 1–2 giờ 250.000; 3 giờ 330.000; 4 giờ 350.000; 5 giờ 430.000; 6 giờ 510.000; 7–8 giờ 550.000; 9 giờ 630.000 đồng. Không nhân đơn giá giờ lẻ cho toàn bộ thời gian khi phòng có gói. Không áp bảng này cho phòng chưa có ảnh tương ứng. Giá qua đêm đã được cập nhật theo tài liệu riêng ngày 2026-11-03 cho các poster có ghi giá qua đêm; không suy giá đêm cho Room 406/Room 407 từ giá giờ. Booking cũ giữ bảng giá đã chốt. Tra giá hiện tại trên trang Khám phá phòng/Đặt phòng. Mochi chưa tra khả dụng theo từng giờ; không khẳng định còn phòng chỉ từ tài liệu.\nNguồn: poster người dùng và xác nhận cách tính trong phiên làm việc 2026-11-03.\nBổ sung 74 phòng mới: Room 104, Room 105, Room 106, Room 107, Room 108, Room 109, Room 110, Room 203, Room 204, Room 205, Room 206, Room 207, Room 208, Room 209, Room 210, Room 303, Room 304, Room 305, Room 306, Room 307, Room 308, Room 309, Room 310, Room 414, Room 415, Room 416, Room 417, Room 418, Room 419, Room 420, Room 421, Room 422, Room 423, Room 424, Room 425, Room 426, Room 427, Room 501, Room 502, Room 503, Room 504, Room 505, Room 506, Room 507, Room 508, Room 509, Room 510, Room 601, Room 602, Room 603, Room 604, Room 605, Room 606, Room 607, Room 608, Room 609, Room 610, Room 701, Room 702, Room 703, Room 704, Room 705, Room 706, Room 707, Room 708, Room 709, Room 710, Room 801, Room 802, Room 803, Room 804, Room 805, Room 806, Room 807. Bảng giá trên từng ảnh đã đối chiếu: ngày thường 400.000 đồng/đêm, đêm thứ Bảy/Chủ nhật 450.000; gói 2/4/8 giờ 250.000/350.000/550.000 đồng, giờ lẻ 80.000 đồng. Giữ giá đã chốt của booking/hóa đơn cũ."
+    },
+    {
+      "slug": "pricing:poster-nightly-weekend-20261103",
+      "title": "Giá qua đêm ngày thường và cuối tuần — thứ Bảy, Chủ nhật",
+      "content": "Hỏi: Giá qua đêm ngày thường và cuối tuần bao nhiêu? Thứ Sáu tính giá nào? Ở từ thứ Sáu đến thứ Hai tính ra sao?\nNgười dùng xác nhận ngày 2026-11-03: các phòng Room 101, Room 102, Room 103, Room 201, Room 202, Room 301, Room 401–Room 405 dùng giá trong ảnh: 400.000 đồng/đêm ngày thường; 450.000 đồng/đêm thứ Bảy và Chủ nhật. Thứ Sáu là ngày thường. Một đêm được phân loại theo ngày bắt đầu đêm đó, không tính ngày trả phòng. Ví dụ thứ Sáu đến thứ Hai có 1 đêm ngày thường và 2 đêm cuối tuần, tổng 1.300.000 đồng tiền phòng. Thứ Bảy đến Chủ nhật là 1 đêm cuối tuần 450.000 đồng. Chủ nhật đến thứ Hai cũng 450.000 đồng. Booking mới chụp lại cả hai giá và quy định ngày cuối tuần; đổi danh mục sau đó không đổi giá booking/hóa đơn cũ. Phòng 406/407 không ghi bảng giá qua đêm trong ảnh nên giữ giá đêm hiện có, không tự gán 400.000/450.000 cho hai phòng này hoặc các phòng chưa có ảnh. Các gói theo giờ vẫn áp dụng theo tài liệu giá giờ, không tự đổi gói giờ thành giá qua đêm. Kiểm tra giá và lịch thực tế trên web trước khi xác nhận.\nNguồn: ảnh người dùng và lựa chọn đêm thứ Bảy/Chủ nhật trong phiên làm việc 2026-11-03.\nBổ sung 74 phòng mới: Room 104, Room 105, Room 106, Room 107, Room 108, Room 109, Room 110, Room 203, Room 204, Room 205, Room 206, Room 207, Room 208, Room 209, Room 210, Room 303, Room 304, Room 305, Room 306, Room 307, Room 308, Room 309, Room 310, Room 414, Room 415, Room 416, Room 417, Room 418, Room 419, Room 420, Room 421, Room 422, Room 423, Room 424, Room 425, Room 426, Room 427, Room 501, Room 502, Room 503, Room 504, Room 505, Room 506, Room 507, Room 508, Room 509, Room 510, Room 601, Room 602, Room 603, Room 604, Room 605, Room 606, Room 607, Room 608, Room 609, Room 610, Room 701, Room 702, Room 703, Room 704, Room 705, Room 706, Room 707, Room 708, Room 709, Room 710, Room 801, Room 802, Room 803, Room 804, Room 805, Room 806, Room 807. Bảng giá trên từng ảnh đã đối chiếu: ngày thường 400.000 đồng/đêm, đêm thứ Bảy/Chủ nhật 450.000; gói 2/4/8 giờ 250.000/350.000/550.000 đồng, giờ lẻ 80.000 đồng. Giữ giá đã chốt của booking/hóa đơn cũ."
+    },
+    {
+      "slug": "room:7",
+      "title": "Room 101 — Không gian hiện đại · Bếp & máy chiếu | 2026-11-03",
+      "content": "Mã phòng: Room 101. Tên phòng: Không gian hiện đại · Bếp & máy chiếu. Loại: Double.\nThông tin phòng: Không gian riêng tư với bếp đầy đủ tiện nghi, bàn ăn, sofa và máy chiếu màn lớn. Phòng tắm riêng có bồn tắm, cửa sổ lớn đón ánh sáng tự nhiên. Có Wi-Fi tốc độ cao, điều hòa, nước nóng và đồ dùng vệ sinh.\nGiá qua đêm: ngày thường 400.000 đồng; đêm thứ Bảy và Chủ nhật 450.000 đồng. Thứ Sáu là ngày thường; phân loại theo ngày bắt đầu đêm. Thứ Sáu đến thứ Hai có tổng 1.300.000 đồng.\nGói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng; giờ lẻ ngoài gói 80.000 đồng/giờ. Tối thiểu gói 2 giờ, làm tròn lên giờ và tự chọn tổ hợp có tổng thấp nhất.\nThông tin cập nhật 2026-11-03. Mô tả đối chiếu từ đúng ảnh mang số phòng; ảnh là minh họa AI. Phòng chưa có ảnh chưa xác nhận thêm tiện nghi. Kiểm tra giá và lịch thực tế trước khi đặt; lịch sử và hóa đơn cũ giữ giá đã chốt.\nCơ sở: Cơ sở 1. Địa chỉ: 123 Đường Hoa Mai, TP. Hồ Chí Minh."
+    },
+    {
+      "slug": "room:8",
+      "title": "Room 102 — Không gian hiện đại · Sofa & bếp riêng | 2026-11-03",
+      "content": "Mã phòng: Room 102. Tên phòng: Không gian hiện đại · Sofa & bếp riêng. Loại: Double.\nThông tin phòng: Nội thất hiện đại tông tối, sofa da, đảo bếp và bàn ăn. Có máy chiếu màn lớn, phòng tắm riêng với bồn tắm và cửa sổ rộng. Tiện nghi gồm Wi-Fi tốc độ cao, điều hòa, nước nóng, đồ dùng vệ sinh và bếp đầy đủ.\nGiá qua đêm: ngày thường 400.000 đồng; đêm thứ Bảy và Chủ nhật 450.000 đồng. Thứ Sáu là ngày thường; phân loại theo ngày bắt đầu đêm. Thứ Sáu đến thứ Hai có tổng 1.300.000 đồng.\nGói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng; giờ lẻ ngoài gói 80.000 đồng/giờ. Tối thiểu gói 2 giờ, làm tròn lên giờ và tự chọn tổ hợp có tổng thấp nhất.\nThông tin cập nhật 2026-11-03. Mô tả đối chiếu từ đúng ảnh mang số phòng; ảnh là minh họa AI. Phòng chưa có ảnh chưa xác nhận thêm tiện nghi. Kiểm tra giá và lịch thực tế trước khi đặt; lịch sử và hóa đơn cũ giữ giá đã chốt.\nCơ sở: Cơ sở 1. Địa chỉ: 123 Đường Hoa Mai, TP. Hồ Chí Minh."
+    },
+    {
+      "slug": "room:9",
+      "title": "Room 103 — Studio rộng · Nhóm 4 người | 2026-11-03",
+      "content": "Mã phòng: Room 103. Tên phòng: Studio rộng · Nhóm 4 người. Loại: Family.\nThông tin phòng: Studio lớn phù hợp nhóm 4 người như thông tin trên ảnh. Bếp rộng và bàn ăn nhóm, sofa, nhà tắm có bồn tắm, cửa sổ lớn và máy chiếu màn lớn. Nội thất gỗ sáng, Wi-Fi tốc độ cao, điều hòa, nước nóng và đồ dùng vệ sinh.\nGiá qua đêm: ngày thường 400.000 đồng; đêm thứ Bảy và Chủ nhật 450.000 đồng. Thứ Sáu là ngày thường; phân loại theo ngày bắt đầu đêm. Thứ Sáu đến thứ Hai có tổng 1.300.000 đồng.\nGói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng; giờ lẻ ngoài gói 80.000 đồng/giờ. Tối thiểu gói 2 giờ, làm tròn lên giờ và tự chọn tổ hợp có tổng thấp nhất.\nThông tin cập nhật 2026-11-03. Mô tả đối chiếu từ đúng ảnh mang số phòng; ảnh là minh họa AI. Phòng chưa có ảnh chưa xác nhận thêm tiện nghi. Kiểm tra giá và lịch thực tế trước khi đặt; lịch sử và hóa đơn cũ giữ giá đã chốt.\nCơ sở: Cơ sở 1. Địa chỉ: 123 Đường Hoa Mai, TP. Hồ Chí Minh."
+    },
+    {
+      "slug": "room:10",
+      "title": "Room 201 — Studio rộng · Bếp & bàn ăn nhóm | 2026-11-03",
+      "content": "Mã phòng: Room 201. Tên phòng: Studio rộng · Bếp & bàn ăn nhóm. Loại: Family.\nThông tin phòng: Studio lớn phù hợp nhóm 4 người như thông tin trên ảnh. Không gian mở với nội thất gỗ sáng, bếp lớn, bàn ăn nhóm và sofa. Có nhà tắm rộng với bồn tắm, cửa sổ lớn, máy chiếu màn lớn, Wi-Fi tốc độ cao, điều hòa và nước nóng.\nGiá qua đêm: ngày thường 400.000 đồng; đêm thứ Bảy và Chủ nhật 450.000 đồng. Thứ Sáu là ngày thường; phân loại theo ngày bắt đầu đêm. Thứ Sáu đến thứ Hai có tổng 1.300.000 đồng.\nGói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng; giờ lẻ ngoài gói 80.000 đồng/giờ. Tối thiểu gói 2 giờ, làm tròn lên giờ và tự chọn tổ hợp có tổng thấp nhất.\nThông tin cập nhật 2026-11-03. Mô tả đối chiếu từ đúng ảnh mang số phòng; ảnh là minh họa AI. Phòng chưa có ảnh chưa xác nhận thêm tiện nghi. Kiểm tra giá và lịch thực tế trước khi đặt; lịch sử và hóa đơn cũ giữ giá đã chốt.\nCơ sở: Cơ sở 1. Địa chỉ: 123 Đường Hoa Mai, TP. Hồ Chí Minh."
+    },
+    {
+      "slug": "room:11",
+      "title": "Room 202 — Suite Japandi · Góc đọc sách | 2026-11-03",
+      "content": "Mã phòng: Room 202. Tên phòng: Suite Japandi · Góc đọc sách. Loại: Double.\nThông tin phòng: Suite phong cách Japandi và boho với giường tông kem, nội thất gỗ và mây, góc đọc sách cùng đèn ánh sáng ấm. Cửa sổ lớn nhìn ra thành phố. Tiện nghi trên ảnh gồm Wi-Fi tốc độ cao, máy chiếu màn lớn, điều hòa, nước nóng, đồ dùng vệ sinh và bếp.\nGiá qua đêm: ngày thường 400.000 đồng; đêm thứ Bảy và Chủ nhật 450.000 đồng. Thứ Sáu là ngày thường; phân loại theo ngày bắt đầu đêm. Thứ Sáu đến thứ Hai có tổng 1.300.000 đồng.\nGói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng; giờ lẻ ngoài gói 80.000 đồng/giờ. Tối thiểu gói 2 giờ, làm tròn lên giờ và tự chọn tổ hợp có tổng thấp nhất.\nThông tin cập nhật 2026-11-03. Mô tả đối chiếu từ đúng ảnh mang số phòng; ảnh là minh họa AI. Phòng chưa có ảnh chưa xác nhận thêm tiện nghi. Kiểm tra giá và lịch thực tế trước khi đặt; lịch sử và hóa đơn cũ giữ giá đã chốt.\nCơ sở: Cơ sở 1. Địa chỉ: 123 Đường Hoa Mai, TP. Hồ Chí Minh."
+    },
+    {
+      "slug": "room:12",
+      "title": "Room 301 — VIP · Nội thất xanh & bếp đá | 2026-11-03",
+      "content": "Mã phòng: Room 301. Tên phòng: VIP · Nội thất xanh & bếp đá. Loại: VIP.\nThông tin phòng: Phòng VIP với giường bọc nhung xanh, nội thất gỗ, góc thư giãn và cửa sổ rộng nhìn thành phố. Bếp ốp đá marble, máy chiếu màn lớn, Wi-Fi tốc độ cao và điều hòa. Không gian riêng tư, chăn ga và nệm được giới thiệu trên ảnh.\nGiá qua đêm: ngày thường 400.000 đồng; đêm thứ Bảy và Chủ nhật 450.000 đồng. Thứ Sáu là ngày thường; phân loại theo ngày bắt đầu đêm. Thứ Sáu đến thứ Hai có tổng 1.300.000 đồng.\nGói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng; giờ lẻ ngoài gói 80.000 đồng/giờ. Tối thiểu gói 2 giờ, làm tròn lên giờ và tự chọn tổ hợp có tổng thấp nhất.\nThông tin cập nhật 2026-11-03. Mô tả đối chiếu từ đúng ảnh mang số phòng; ảnh là minh họa AI. Phòng chưa có ảnh chưa xác nhận thêm tiện nghi. Kiểm tra giá và lịch thực tế trước khi đặt; lịch sử và hóa đơn cũ giữ giá đã chốt.\nCơ sở: Cơ sở 1. Địa chỉ: 123 Đường Hoa Mai, TP. Hồ Chí Minh."
+    },
+    {
+      "slug": "room:14",
+      "title": "Room 401 — Suite · Bồn tắm & ban công | 2026-11-03",
+      "content": "Mã phòng: Room 401. Tên phòng: Suite · Bồn tắm & ban công. Loại: VIP.\nThông tin phòng: Suite hiện đại với giường tông xanh, góc đọc sách và cửa sổ lớn. Có bồn tắm ở khu ban công nhìn thành phố, bếp đầy đủ tiện nghi, máy chiếu màn lớn, Wi-Fi tốc độ cao và điều hòa. Không gian riêng tư, không chung chủ theo thông tin trên ảnh.\nGiá qua đêm: ngày thường 400.000 đồng; đêm thứ Bảy và Chủ nhật 450.000 đồng. Thứ Sáu là ngày thường; phân loại theo ngày bắt đầu đêm. Thứ Sáu đến thứ Hai có tổng 1.300.000 đồng.\nGói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng; giờ lẻ ngoài gói 80.000 đồng/giờ. Tối thiểu gói 2 giờ, làm tròn lên giờ và tự chọn tổ hợp có tổng thấp nhất.\nThông tin cập nhật 2026-11-03. Mô tả đối chiếu từ đúng ảnh mang số phòng; ảnh là minh họa AI. Phòng chưa có ảnh chưa xác nhận thêm tiện nghi. Kiểm tra giá và lịch thực tế trước khi đặt; lịch sử và hóa đơn cũ giữ giá đã chốt.\nCơ sở: Cơ sở 1. Địa chỉ: 123 Đường Hoa Mai, TP. Hồ Chí Minh."
+    },
+    {
+      "slug": "room:15",
+      "title": "Room 402 — Suite Japandi · Bồn tắm ban công | 2026-11-03",
+      "content": "Mã phòng: Room 402. Tên phòng: Suite Japandi · Bồn tắm ban công. Loại: VIP.\nThông tin phòng: Suite phong cách Japandi tông xám, giường lớn và góc thư giãn. Ban công riêng có bồn tắm và tầm nhìn thành phố. Có bếp ốp đá marble, máy chiếu màn lớn và Wi-Fi tốc độ cao. Nội thất tối giản với gỗ, ánh sáng ấm và cửa sổ rộng.\nGiá qua đêm: ngày thường 400.000 đồng; đêm thứ Bảy và Chủ nhật 450.000 đồng. Thứ Sáu là ngày thường; phân loại theo ngày bắt đầu đêm. Thứ Sáu đến thứ Hai có tổng 1.300.000 đồng.\nGói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng; giờ lẻ ngoài gói 80.000 đồng/giờ. Tối thiểu gói 2 giờ, làm tròn lên giờ và tự chọn tổ hợp có tổng thấp nhất.\nThông tin cập nhật 2026-11-03. Mô tả đối chiếu từ đúng ảnh mang số phòng; ảnh là minh họa AI. Phòng chưa có ảnh chưa xác nhận thêm tiện nghi. Kiểm tra giá và lịch thực tế trước khi đặt; lịch sử và hóa đơn cũ giữ giá đã chốt.\nCơ sở: Cơ sở 1. Địa chỉ: 123 Đường Hoa Mai, TP. Hồ Chí Minh."
+    },
+    {
+      "slug": "room:16",
+      "title": "Room 403 — Suite Industrial Loft · View thành phố | 2026-11-03",
+      "content": "Mã phòng: Room 403. Tên phòng: Suite Industrial Loft · View thành phố. Loại: VIP.\nThông tin phòng: Suite phong cách Industrial Loft với tường gạch trần, giường lớn tông tối và ánh sáng ấm. Góc đọc sách dùng ghế da và kim loại, bếp tiện nghi với tủ sắt và bề mặt bê tông. Có ban công lớn nhìn thành phố, máy chiếu màn lớn và Wi-Fi tốc độ cao.\nGiá qua đêm: ngày thường 400.000 đồng; đêm thứ Bảy và Chủ nhật 450.000 đồng. Thứ Sáu là ngày thường; phân loại theo ngày bắt đầu đêm. Thứ Sáu đến thứ Hai có tổng 1.300.000 đồng.\nGói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng; giờ lẻ ngoài gói 80.000 đồng/giờ. Tối thiểu gói 2 giờ, làm tròn lên giờ và tự chọn tổ hợp có tổng thấp nhất.\nThông tin cập nhật 2026-11-03. Mô tả đối chiếu từ đúng ảnh mang số phòng; ảnh là minh họa AI. Phòng chưa có ảnh chưa xác nhận thêm tiện nghi. Kiểm tra giá và lịch thực tế trước khi đặt; lịch sử và hóa đơn cũ giữ giá đã chốt.\nCơ sở: Cơ sở 1. Địa chỉ: 123 Đường Hoa Mai, TP. Hồ Chí Minh."
+    },
+    {
+      "slug": "room:17",
+      "title": "Room 404 — Suite Japandi · Ban công cây xanh | 2026-11-03",
+      "content": "Mã phòng: Room 404. Tên phòng: Suite Japandi · Ban công cây xanh. Loại: Double.\nThông tin phòng: Suite ấm áp với nội thất gỗ sáng, giường tông kem, tường gạch trắng và góc đọc sách. Ban công riêng có cây xanh và tầm nhìn thành phố. Có bếp trắng kết hợp gỗ sáng, máy chiếu, Wi-Fi tốc độ cao và điều hòa; ảnh giới thiệu khu bồn tắm ban công riêng.\nGiá qua đêm: ngày thường 400.000 đồng; đêm thứ Bảy và Chủ nhật 450.000 đồng. Thứ Sáu là ngày thường; phân loại theo ngày bắt đầu đêm. Thứ Sáu đến thứ Hai có tổng 1.300.000 đồng.\nGói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng; giờ lẻ ngoài gói 80.000 đồng/giờ. Tối thiểu gói 2 giờ, làm tròn lên giờ và tự chọn tổ hợp có tổng thấp nhất.\nThông tin cập nhật 2026-11-03. Mô tả đối chiếu từ đúng ảnh mang số phòng; ảnh là minh họa AI. Phòng chưa có ảnh chưa xác nhận thêm tiện nghi. Kiểm tra giá và lịch thực tế trước khi đặt; lịch sử và hóa đơn cũ giữ giá đã chốt.\nCơ sở: Cơ sở 1. Địa chỉ: 123 Đường Hoa Mai, TP. Hồ Chí Minh."
+    },
+    {
+      "slug": "room:18",
+      "title": "Room 405 — Suite · Cửa vòm & ban công riêng | 2026-11-03",
+      "content": "Mã phòng: Room 405. Tên phòng: Suite · Cửa vòm & ban công riêng. Loại: Double.\nThông tin phòng: Suite với tường trắng, cửa sổ vòm, giường tông xanh và kem cùng góc ngồi mây. Ban công riêng có cây xanh, bếp nhỏ tông sáng và máy chiếu màn lớn. Có Wi-Fi tốc độ cao và điều hòa; ảnh giới thiệu khu bồn tắm và ban công riêng.\nGiá qua đêm: ngày thường 400.000 đồng; đêm thứ Bảy và Chủ nhật 450.000 đồng. Thứ Sáu là ngày thường; phân loại theo ngày bắt đầu đêm. Thứ Sáu đến thứ Hai có tổng 1.300.000 đồng.\nGói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng; giờ lẻ ngoài gói 80.000 đồng/giờ. Tối thiểu gói 2 giờ, làm tròn lên giờ và tự chọn tổ hợp có tổng thấp nhất.\nThông tin cập nhật 2026-11-03. Mô tả đối chiếu từ đúng ảnh mang số phòng; ảnh là minh họa AI. Phòng chưa có ảnh chưa xác nhận thêm tiện nghi. Kiểm tra giá và lịch thực tế trước khi đặt; lịch sử và hóa đơn cũ giữ giá đã chốt.\nCơ sở: Cơ sở 1. Địa chỉ: 123 Đường Hoa Mai, TP. Hồ Chí Minh."
+    },
+    {
+      "slug": "room:19",
+      "title": "Room 406 — Suite · Ghế treo & máy chiếu | 2026-11-03",
+      "content": "Mã phòng: Room 406. Tên phòng: Suite · Ghế treo & máy chiếu. Loại: Double.\nThông tin phòng: Suite tông xanh đậm với giường bọc da, ghế treo cạnh cửa sổ lớn và máy chiếu màn lớn. Có bếp tông xanh kết hợp gỗ, ban công cây xanh nhìn thành phố, Wi-Fi tốc độ cao và điều hòa. Không gian riêng tư với ánh sáng ấm.\nGiá qua đêm trong danh mục: 550.000 đồng/đêm; không suy giá từ ảnh khác.\nGói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng; giờ lẻ ngoài gói 80.000 đồng/giờ. Tối thiểu gói 2 giờ, làm tròn lên giờ và tự chọn tổ hợp có tổng thấp nhất.\nThông tin cập nhật 2026-11-03. Mô tả đối chiếu từ đúng ảnh mang số phòng; ảnh là minh họa AI. Phòng chưa có ảnh chưa xác nhận thêm tiện nghi. Kiểm tra giá và lịch thực tế trước khi đặt; lịch sử và hóa đơn cũ giữ giá đã chốt.\nCơ sở: Cơ sở 1. Địa chỉ: 123 Đường Hoa Mai, TP. Hồ Chí Minh."
+    },
+    {
+      "slug": "room:20",
+      "title": "Room 407 — Suite · Nội thất mây & ghế treo | 2026-11-03",
+      "content": "Mã phòng: Room 407. Tên phòng: Suite · Nội thất mây & ghế treo. Loại: Double.\nThông tin phòng: Suite với giường gỗ, chăn ga tông kem, đèn mây và ghế treo cạnh cửa sổ lớn. Có bếp tông sáng, ban công cây xanh nhìn thành phố, máy chiếu màn lớn, Wi-Fi tốc độ cao và điều hòa. Nội thất gỗ và mây tạo không gian thư giãn ấm áp.\nGiá qua đêm trong danh mục: 1.100.000 đồng/đêm; không suy giá từ ảnh khác.\nGói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng; giờ lẻ ngoài gói 80.000 đồng/giờ. Tối thiểu gói 2 giờ, làm tròn lên giờ và tự chọn tổ hợp có tổng thấp nhất.\nThông tin cập nhật 2026-11-03. Mô tả đối chiếu từ đúng ảnh mang số phòng; ảnh là minh họa AI. Phòng chưa có ảnh chưa xác nhận thêm tiện nghi. Kiểm tra giá và lịch thực tế trước khi đặt; lịch sử và hóa đơn cũ giữ giá đã chốt.\nCơ sở: Cơ sở 1. Địa chỉ: 123 Đường Hoa Mai, TP. Hồ Chí Minh."
+    },
+    {
+      "slug": "room:21",
+      "title": "Room 408 — Room 408 | 2026-11-03",
+      "content": "Mã phòng: Room 408. Tên phòng: Room 408. Loại: Family.\nThông tin phòng: Thông tin phòng đang được cập nhật.\nGiá qua đêm trong danh mục: 1.400.000 đồng/đêm; không suy giá từ ảnh khác.\nChưa khai báo giá theo giờ.\nThông tin cập nhật 2026-11-03. Mô tả đối chiếu từ đúng ảnh mang số phòng; ảnh là minh họa AI. Phòng chưa có ảnh chưa xác nhận thêm tiện nghi. Kiểm tra giá và lịch thực tế trước khi đặt; lịch sử và hóa đơn cũ giữ giá đã chốt.\nCơ sở: Cơ sở 1. Địa chỉ: 123 Đường Hoa Mai, TP. Hồ Chí Minh."
+    },
+    {
+      "slug": "room:22",
+      "title": "Room 409 — Room 409 | 2026-11-03",
+      "content": "Mã phòng: Room 409. Tên phòng: Room 409. Loại: Single.\nThông tin phòng: Thông tin phòng đang được cập nhật.\nGiá qua đêm trong danh mục: 350.000 đồng/đêm; không suy giá từ ảnh khác.\nChưa khai báo giá theo giờ.\nThông tin cập nhật 2026-11-03. Mô tả đối chiếu từ đúng ảnh mang số phòng; ảnh là minh họa AI. Phòng chưa có ảnh chưa xác nhận thêm tiện nghi. Kiểm tra giá và lịch thực tế trước khi đặt; lịch sử và hóa đơn cũ giữ giá đã chốt.\nCơ sở: Cơ sở 1. Địa chỉ: 123 Đường Hoa Mai, TP. Hồ Chí Minh."
+    },
+    {
+      "slug": "room:23",
+      "title": "Room 410 — Room 410 | 2026-11-03",
+      "content": "Mã phòng: Room 410. Tên phòng: Room 410. Loại: Double.\nThông tin phòng: Thông tin phòng đang được cập nhật.\nGiá qua đêm trong danh mục: 550.000 đồng/đêm; không suy giá từ ảnh khác.\nChưa khai báo giá theo giờ.\nThông tin cập nhật 2026-11-03. Mô tả đối chiếu từ đúng ảnh mang số phòng; ảnh là minh họa AI. Phòng chưa có ảnh chưa xác nhận thêm tiện nghi. Kiểm tra giá và lịch thực tế trước khi đặt; lịch sử và hóa đơn cũ giữ giá đã chốt.\nCơ sở: Cơ sở 1. Địa chỉ: 123 Đường Hoa Mai, TP. Hồ Chí Minh."
+    },
+    {
+      "slug": "room:24",
+      "title": "Room 411 — Room 411 | 2026-11-03",
+      "content": "Mã phòng: Room 411. Tên phòng: Room 411. Loại: VIP.\nThông tin phòng: Thông tin phòng đang được cập nhật.\nGiá qua đêm trong danh mục: 1.100.000 đồng/đêm; không suy giá từ ảnh khác.\nChưa khai báo giá theo giờ.\nThông tin cập nhật 2026-11-03. Mô tả đối chiếu từ đúng ảnh mang số phòng; ảnh là minh họa AI. Phòng chưa có ảnh chưa xác nhận thêm tiện nghi. Kiểm tra giá và lịch thực tế trước khi đặt; lịch sử và hóa đơn cũ giữ giá đã chốt.\nCơ sở: Cơ sở 1. Địa chỉ: 123 Đường Hoa Mai, TP. Hồ Chí Minh."
+    },
+    {
+      "slug": "room:25",
+      "title": "Room 412 — Room 412 | 2026-11-03",
+      "content": "Mã phòng: Room 412. Tên phòng: Room 412. Loại: Family.\nThông tin phòng: Thông tin phòng đang được cập nhật.\nGiá qua đêm trong danh mục: 1.400.000 đồng/đêm; không suy giá từ ảnh khác.\nChưa khai báo giá theo giờ.\nThông tin cập nhật 2026-11-03. Mô tả đối chiếu từ đúng ảnh mang số phòng; ảnh là minh họa AI. Phòng chưa có ảnh chưa xác nhận thêm tiện nghi. Kiểm tra giá và lịch thực tế trước khi đặt; lịch sử và hóa đơn cũ giữ giá đã chốt.\nCơ sở: Cơ sở 1. Địa chỉ: 123 Đường Hoa Mai, TP. Hồ Chí Minh."
+    },
+    {
+      "slug": "room:6",
+      "title": "Room 302 — Room 302 | 2026-11-03",
+      "content": "Mã phòng: Room 302. Tên phòng: Room 302. Loại: Double.\nThông tin phòng: Thông tin phòng đang được cập nhật.\nGiá qua đêm trong danh mục: 550.000 đồng/đêm; không suy giá từ ảnh khác.\nChưa khai báo giá theo giờ.\nThông tin cập nhật 2026-11-03. Mô tả đối chiếu từ đúng ảnh mang số phòng; ảnh là minh họa AI. Phòng chưa có ảnh chưa xác nhận thêm tiện nghi. Kiểm tra giá và lịch thực tế trước khi đặt; lịch sử và hóa đơn cũ giữ giá đã chốt.\nCơ sở: Cơ sở 1. Địa chỉ: 123 Đường Hoa Mai, TP. Hồ Chí Minh."
+    },
+    {
+      "slug": "room-type:Double",
+      "title": "Danh sách phòng Double | 2026-11-03",
+      "content": "Room 101 — Không gian hiện đại · Bếp & máy chiếu; Room 102 — Không gian hiện đại · Sofa & bếp riêng; Room 202 — Suite Japandi · Góc đọc sách; Room 404 — Suite Japandi · Ban công cây xanh; Room 405 — Suite · Cửa vòm & ban công riêng; Room 406 — Suite · Ghế treo & máy chiếu; Room 407 — Suite · Nội thất mây & ghế treo; Room 410 — Room 410; Room 302 — Room 302. Giá và khả dụng cần kiểm tra trực tiếp. Chỉ Room 103 và Room 201 có thông tin phù hợp nhóm 4 người trên ảnh.\nPhòng mới tại Cơ sở 2 và 3: Room 104, Room 105, Room 106, Room 107, Room 108, Room 109, Room 110, Room 203, Room 204, Room 205, Room 206, Room 207, Room 208, Room 209, Room 210, Room 303, Room 304, Room 305, Room 306, Room 307, Room 308, Room 309, Room 310, Room 414, Room 415, Room 416, Room 417, Room 418, Room 419, Room 420, Room 421, Room 422, Room 423, Room 424, Room 425, Room 426, Room 427, Room 501, Room 502, Room 503, Room 504, Room 505, Room 506, Room 507, Room 508, Room 509, Room 510, Room 601, Room 602, Room 603, Room 604, Room 605, Room 606, Room 607, Room 608, Room 609, Room 610, Room 701, Room 702, Room 703, Room 704, Room 705, Room 706, Room 707, Room 708, Room 709, Room 710, Room 801, Room 802, Room 803, Room 804, Room 805, Room 806, Room 807. Các phòng này là Suite trong ảnh, phân loại Double trong danh mục; không khẳng định sức chứa khi chưa có thông tin số người."
+    },
+    {
+      "slug": "room-type:Family",
+      "title": "Danh sách phòng Family | 2026-11-03",
+      "content": "Room 103 — Studio rộng · Nhóm 4 người; Room 201 — Studio rộng · Bếp & bàn ăn nhóm; Room 408 — Room 408; Room 412 — Room 412. Giá và khả dụng cần kiểm tra trực tiếp. Chỉ Room 103 và Room 201 có thông tin phù hợp nhóm 4 người trên ảnh."
+    },
+    {
+      "slug": "room-type:Single",
+      "title": "Danh sách phòng Single | 2026-11-03",
+      "content": "Room 409 — Room 409. Giá và khả dụng cần kiểm tra trực tiếp. Chỉ Room 103 và Room 201 có thông tin phù hợp nhóm 4 người trên ảnh."
+    },
+    {
+      "slug": "room-type:VIP",
+      "title": "Danh sách phòng VIP | 2026-11-03",
+      "content": "Room 301 — VIP · Nội thất xanh & bếp đá; Room 401 — Suite · Bồn tắm & ban công; Room 402 — Suite Japandi · Bồn tắm ban công; Room 403 — Suite Industrial Loft · View thành phố; Room 411 — Room 411. Giá và khả dụng cần kiểm tra trực tiếp. Chỉ Room 103 và Room 201 có thông tin phù hợp nhóm 4 người trên ảnh."
+    },
+    {
+      "slug": "room:1",
+      "title": "Mã phòng cũ P101 đã gộp vào Room 101",
+      "content": "Mã P101 là mã cũ, đã gộp vào Room 101. Không còn là phòng riêng trong danh mục. Lịch sử đặt phòng và giá đã chốt được giữ nguyên. Dùng thông tin của Room 101 và tra giá/lịch hiện tại trước khi đặt.\nCơ sở: Cơ sở 1. Địa chỉ: 123 Đường Hoa Mai, TP. Hồ Chí Minh."
+    },
+    {
+      "slug": "room:2",
+      "title": "Mã phòng cũ P102 đã gộp vào Room 102",
+      "content": "Mã P102 là mã cũ, đã gộp vào Room 102. Không còn là phòng riêng trong danh mục. Lịch sử đặt phòng và giá đã chốt được giữ nguyên. Dùng thông tin của Room 102 và tra giá/lịch hiện tại trước khi đặt.\nCơ sở: Cơ sở 1. Địa chỉ: 123 Đường Hoa Mai, TP. Hồ Chí Minh."
+    },
+    {
+      "slug": "room:3",
+      "title": "Mã phòng cũ P201 đã gộp vào Room 201",
+      "content": "Mã P201 là mã cũ, đã gộp vào Room 201. Không còn là phòng riêng trong danh mục. Lịch sử đặt phòng và giá đã chốt được giữ nguyên. Dùng thông tin của Room 201 và tra giá/lịch hiện tại trước khi đặt.\nCơ sở: Cơ sở 1. Địa chỉ: 123 Đường Hoa Mai, TP. Hồ Chí Minh."
+    },
+    {
+      "slug": "room:4",
+      "title": "Mã phòng cũ P202 đã gộp vào Room 202",
+      "content": "Mã P202 là mã cũ, đã gộp vào Room 202. Không còn là phòng riêng trong danh mục. Lịch sử đặt phòng và giá đã chốt được giữ nguyên. Dùng thông tin của Room 202 và tra giá/lịch hiện tại trước khi đặt.\nCơ sở: Cơ sở 1. Địa chỉ: 123 Đường Hoa Mai, TP. Hồ Chí Minh."
+    },
+    {
+      "slug": "room:5",
+      "title": "Mã phòng cũ P301 đã gộp vào Room 301",
+      "content": "Mã P301 là mã cũ, đã gộp vào Room 301. Không còn là phòng riêng trong danh mục. Lịch sử đặt phòng và giá đã chốt được giữ nguyên. Dùng thông tin của Room 301 và tra giá/lịch hiện tại trước khi đặt.\nCơ sở: Cơ sở 1. Địa chỉ: 123 Đường Hoa Mai, TP. Hồ Chí Minh."
+    },
+    {
+      "slug": "catalog:rooms",
+      "title": "Danh mục phòng đã gộp theo số | 2026-11-03",
+      "content": "Danh mục cloud sau cập nhật: 93 phòng công khai; Cơ sở 1 có 19 phòng giữ nguyên, Cơ sở 2 có 37 phòng mới và Cơ sở 3 có 37 phòng mới. Các ảnh trùng mã Room 408–413 được bỏ qua theo yêu cầu, không tạo thêm hoặc chuyển phòng cũ. Phòng trống cần tra theo khoảng lưu trú. Cơ sở 1: 123 Đường Hoa Mai, TP. Hồ Chí Minh; Cơ sở 2: 456 Đường Ánh Dương, TP. Hồ Chí Minh; Cơ sở 3: 789 Đường Bình Minh, TP. Hồ Chí Minh. Các địa chỉ là địa chỉ mẫu của dự án thực tập. Cơ sở 2 và Cơ sở 3 mỗi cơ sở có 37 phòng mới; Cơ sở 1 giữ nguyên danh mục cũ. Không dùng tài liệu để xác nhận còn phòng; chọn ngày/giờ và kiểm tra hệ thống."
+    },
+    {
+      "slug": "room-code:104",
+      "title": "Room 104 — Suite Japandi Walnut · Gỗ óc chó · Cơ sở 2",
+      "content": "Mã phòng: Room 104. Tên: Suite Japandi Walnut · Gỗ óc chó. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Giường gỗ óc chó, vách nan dọc, đèn giấy và ban công bonsai. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:105",
+      "title": "Room 105 — Suite Santorini · Xanh & trắng · Cơ sở 2",
+      "content": "Mã phòng: Room 105. Tên: Suite Santorini · Xanh & trắng. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Tường trắng, cửa vòm, chăn ga xanh và ban công hoa giấy. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:106",
+      "title": "Room 106 — Suite New York Loft · Gạch & da · Cơ sở 2",
+      "content": "Mã phòng: Room 106. Tên: Suite New York Loft · Gạch & da. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Tường gạch mộc, cửa sổ khung đen, ghế da và nội thất gỗ tối. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:107",
+      "title": "Room 107 — Suite Matcha Latte · Xanh pastel · Cơ sở 2",
+      "content": "Mã phòng: Room 107. Tên: Suite Matcha Latte · Xanh pastel. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Giường tông kem, vách xanh matcha và góc ngồi hồng pastel. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:108",
+      "title": "Room 108 — Suite Italian Marble · Đá & nhung · Cơ sở 2",
+      "content": "Mã phòng: Room 108. Tên: Suite Italian Marble · Đá & nhung. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Vách đá marble, giường bọc nệm và ghế da tông be. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:109",
+      "title": "Room 109 — Suite Boho Chic · Xích đu mây · Cơ sở 2",
+      "content": "Mã phòng: Room 109. Tên: Suite Boho Chic · Xích đu mây. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Giường có đầu mây đan, xích đu macrame và đèn dây ánh vàng. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:110",
+      "title": "Room 110 — Suite Wine Velvet · Nhung đỏ · Cơ sở 2",
+      "content": "Mã phòng: Room 110. Tên: Suite Wine Velvet · Nhung đỏ. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Giường nhung đỏ rượu, đèn ánh ấm và cửa sổ nhìn thành phố về đêm. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:203",
+      "title": "Room 203 — Suite Scandinavian Hygge · Cơ sở 2",
+      "content": "Mã phòng: Room 203. Tên: Suite Scandinavian Hygge. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Nội thất gỗ sáng, giường trắng và cửa sổ lớn đón ánh sáng. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:204",
+      "title": "Room 204 — Suite Retro Sunset 70s · Cơ sở 2",
+      "content": "Mã phòng: Room 204. Tên: Suite Retro Sunset 70s. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Mảng tường họa tiết gợn sóng, tông cam ấm và ghế đọc sách hoài cổ. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:205",
+      "title": "Room 205 — Suite Hà Nội Phố Cổ · Cơ sở 2",
+      "content": "Mã phòng: Room 205. Tên: Suite Hà Nội Phố Cổ. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Giường gỗ, cửa chớp, tông vàng và ban công hoa giấy. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:206",
+      "title": "Room 206 — Suite Duplex · Gác lửng · Cơ sở 2",
+      "content": "Mã phòng: Room 206. Tên: Suite Duplex · Gác lửng. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Không gian trần cao, cầu thang lên gác lửng và cửa kính lớn. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:207",
+      "title": "Room 207 — Suite Cloud Pastel Blue · Cơ sở 2",
+      "content": "Mã phòng: Room 207. Tên: Suite Cloud Pastel Blue. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Đầu giường hình mây, tông xanh pastel và đèn thả hình mây. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:208",
+      "title": "Room 208 — Suite Desert Adobe · Cơ sở 2",
+      "content": "Mã phòng: Room 208. Tên: Suite Desert Adobe. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Tường vòm tông đất cát, hốc trang trí và trần có dầm gỗ. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:209",
+      "title": "Room 209 — Suite Black & Gold Penthouse · Cơ sở 2",
+      "content": "Mã phòng: Room 209. Tên: Suite Black & Gold Penthouse. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Vách đá đen vân vàng, đèn vòng kim loại và nội thất tông tối. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:210",
+      "title": "Room 210 — Suite Library Café Suite · Cơ sở 2",
+      "content": "Mã phòng: Room 210. Tên: Suite Library Café Suite. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Kệ sách cao sát trần, giường họa tiết kẻ và góc cà phê. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:303",
+      "title": "Room 303 — Suite Hội An · Đèn lồng · Cơ sở 2",
+      "content": "Mã phòng: Room 303. Tên: Suite Hội An · Đèn lồng. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Tường vàng, đèn lồng nhiều màu và ban công hoa rực rỡ. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:304",
+      "title": "Room 304 — Suite Arch & Terrazzo · Cơ sở 2",
+      "content": "Mã phòng: Room 304. Tên: Suite Arch & Terrazzo. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Vách cong mềm, bề mặt terrazzo và nội thất tông hồng xanh nhẹ. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:305",
+      "title": "Room 305 — Suite Starlight · Giường tròn · Cơ sở 2",
+      "content": "Mã phòng: Room 305. Tên: Suite Starlight · Giường tròn. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Giường tròn tông tối, đèn viền và trần ánh sao. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:306",
+      "title": "Room 306 — Suite British Heritage Olive · Cơ sở 2",
+      "content": "Mã phòng: Room 306. Tên: Suite British Heritage Olive. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Vách xanh olive, nội thất gỗ tối và ghế đọc sách kiểu cổ điển. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:307",
+      "title": "Room 307 — Suite Sand Dune Travertine · Cơ sở 2",
+      "content": "Mã phòng: Room 307. Tên: Suite Sand Dune Travertine. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Vách đá travertine, chăn ga màu cát và ánh sáng dịu. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:308",
+      "title": "Room 308 — Suite Caramel & Birch · Cơ sở 2",
+      "content": "Mã phòng: Room 308. Tên: Suite Caramel & Birch. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Giường bọc da caramel, gỗ sáng và ghế đọc sách da. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:309",
+      "title": "Room 309 — Suite Sapa Indigo Timber · Cơ sở 2",
+      "content": "Mã phòng: Room 309. Tên: Suite Sapa Indigo Timber. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Gỗ mộc, đèn đan và họa tiết thổ cẩm xanh chàm. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:310",
+      "title": "Room 310 — Suite Art Gallery 3D · Cơ sở 2",
+      "content": "Mã phòng: Room 310. Tên: Suite Art Gallery 3D. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Nội thất trắng kem tối giản, phù điêu tường và góc trưng bày nghệ thuật. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:414",
+      "title": "Room 414 — Suite Modern Cinema LED · Cơ sở 2",
+      "content": "Mã phòng: Room 414. Tên: Suite Modern Cinema LED. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Giường tông tối, đèn LED xanh cam và màn chiếu lớn. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:415",
+      "title": "Room 415 — Suite Moroccan Boho Terracotta · Cơ sở 2",
+      "content": "Mã phòng: Room 415. Tên: Suite Moroccan Boho Terracotta. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Tông đất nung, cửa vòm, thảm họa tiết và góc ngồi boho. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:416",
+      "title": "Room 416 — Suite Nordic Sage Green · Cơ sở 2",
+      "content": "Mã phòng: Room 416. Tên: Suite Nordic Sage Green. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Vách xanh sage, gỗ sáng và giường tông kem. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:417",
+      "title": "Room 417 — Suite Japanese Ryokan Tatami · Cơ sở 2",
+      "content": "Mã phòng: Room 417. Tên: Suite Japanese Ryokan Tatami. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Giường bệ thấp, góc trà và các chi tiết gỗ kiểu Nhật. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:418",
+      "title": "Room 418 — Suite Art Deco Emerald Gold · Cơ sở 2",
+      "content": "Mã phòng: Room 418. Tên: Suite Art Deco Emerald Gold. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Đầu giường nhung xanh ngọc, vách hình học và chi tiết ánh kim. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:419",
+      "title": "Room 419 — Suite Coastal Hamptons · Cơ sở 2",
+      "content": "Mã phòng: Room 419. Tên: Suite Coastal Hamptons. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Nội thất gỗ trắng, chăn ga sọc xanh và ánh sáng tự nhiên. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:420",
+      "title": "Room 420 — Suite Rustic Chalet Pine · Cơ sở 2",
+      "content": "Mã phòng: Room 420. Tên: Suite Rustic Chalet Pine. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Vách và trần gỗ thông, chăn ga tông nâu cùng ánh sáng ấm. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:421",
+      "title": "Room 421 — Suite Romantic Dusty Rose · Cơ sở 2",
+      "content": "Mã phòng: Room 421. Tên: Suite Romantic Dusty Rose. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Giường hồng phấn, vách hồng nhẹ và ghế thư giãn đồng tông. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:422",
+      "title": "Room 422 — Suite Bauhaus Retro Pop · Cơ sở 2",
+      "content": "Mã phòng: Room 422. Tên: Suite Bauhaus Retro Pop. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Tranh hình học, điểm nhấn xanh đỏ vàng và nội thất tông sáng. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:423",
+      "title": "Room 423 — Suite Quiet Luxury Espresso · Cơ sở 2",
+      "content": "Mã phòng: Room 423. Tên: Suite Quiet Luxury Espresso. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Giường tông tối, vách nan gỗ espresso và bề mặt đá travertine. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:424",
+      "title": "Room 424 — Suite Botanical Glasshouse · Cơ sở 2",
+      "content": "Mã phòng: Room 424. Tên: Suite Botanical Glasshouse. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Vách kính, cây xanh và góc ngồi phong cách khu vườn trong nhà. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:425",
+      "title": "Room 425 — Suite Minimalist Concrete · Cơ sở 2",
+      "content": "Mã phòng: Room 425. Tên: Suite Minimalist Concrete. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Vách bê tông tông xám, giường thấp và đèn tối giản. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:426",
+      "title": "Room 426 — Suite Vintage Provence Lavender · Cơ sở 2",
+      "content": "Mã phòng: Room 426. Tên: Suite Vintage Provence Lavender. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Giường gỗ sơn sáng, họa tiết hoa và chăn ga màu lavender. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:427",
+      "title": "Room 427 — Suite Luxury Spa · Bồn tắm · Cơ sở 2",
+      "content": "Mã phòng: Room 427. Tên: Suite Luxury Spa · Bồn tắm. Cơ sở: Cơ sở 2. Địa chỉ: 456 Đường Ánh Dương, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Bồn tắm tròn cạnh cửa kính, giường bệ sáng đèn và ghế thư giãn. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:501",
+      "title": "Room 501 — Suite Champagne Silk Luxury · Cơ sở 3",
+      "content": "Mã phòng: Room 501. Tên: Suite Champagne Silk Luxury. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Giường tông kem champagne, vách bọc nệm và đèn thả ánh kim. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:502",
+      "title": "Room 502 — Suite Attic Skylight Roof · Cơ sở 3",
+      "content": "Mã phòng: Room 502. Tên: Suite Attic Skylight Roof. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Trần mái dốc có cửa kính, nội thất gỗ và góc ngồi tầng áp mái. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:503",
+      "title": "Room 503 — Suite Peacock Teal & Copper · Cơ sở 3",
+      "content": "Mã phòng: Room 503. Tên: Suite Peacock Teal & Copper. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Giường và ghế tông xanh teal, vách nan cùng điểm nhấn màu đồng. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:504",
+      "title": "Room 504 — Suite Muji Minimalist Oak · Cơ sở 3",
+      "content": "Mã phòng: Room 504. Tên: Suite Muji Minimalist Oak. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Giường gỗ sồi sáng, chăn ga kem và nội thất tối giản. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:505",
+      "title": "Room 505 — Suite Tropical Havana Mint · Cơ sở 3",
+      "content": "Mã phòng: Room 505. Tên: Suite Tropical Havana Mint. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Giường cột gỗ, sắc xanh mint và chi tiết mây tre. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:506",
+      "title": "Room 506 — Suite Amber Glass Bronze · Cơ sở 3",
+      "content": "Mã phòng: Room 506. Tên: Suite Amber Glass Bronze. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Vách kính màu hổ phách, giường tông nâu và ánh sáng ấm. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:507",
+      "title": "Room 507 — Suite Zen Window Tea Nook · Cơ sở 3",
+      "content": "Mã phòng: Room 507. Tên: Suite Zen Window Tea Nook. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Giường bệ thấp, góc trà sát cửa sổ và nội thất gỗ sáng. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:508",
+      "title": "Room 508 — Suite Butter Yellow Gingham · Cơ sở 3",
+      "content": "Mã phòng: Room 508. Tên: Suite Butter Yellow Gingham. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Chăn ga kẻ vàng bơ, ghế thư giãn màu vàng và nội thất kem. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:509",
+      "title": "Room 509 — Suite Midnight Royal Blue · Cơ sở 3",
+      "content": "Mã phòng: Room 509. Tên: Suite Midnight Royal Blue. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Vách xanh navy, giường bọc nhung và chi tiết viền ánh kim. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:510",
+      "title": "Room 510 — Suite Eco Bamboo Resort · Cơ sở 3",
+      "content": "Mã phòng: Room 510. Tên: Suite Eco Bamboo Resort. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Đầu giường đan, trần và vách tre, cây xanh cùng ghế mây. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:601",
+      "title": "Room 601 — Suite Milanese Modern · Cơ sở 3",
+      "content": "Mã phòng: Room 601. Tên: Suite Milanese Modern. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Vách xám phối cam đất, giường tông tối và ghế đọc sách da. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:602",
+      "title": "Room 602 — Suite Princess Canopy Fairy · Cơ sở 3",
+      "content": "Mã phòng: Room 602. Tên: Suite Princess Canopy Fairy. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Giường có màn khung, đèn dây và nội thất tông kem nhẹ. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:603",
+      "title": "Room 603 — Suite Malibu Coastal · Cơ sở 3",
+      "content": "Mã phòng: Room 603. Tên: Suite Malibu Coastal. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Chăn ga xanh biển, nội thất gỗ sáng và góc ngồi ven cửa sổ. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:604",
+      "title": "Room 604 — Suite Cố Đô Huế Heritage · Cơ sở 3",
+      "content": "Mã phòng: Room 604. Tên: Suite Cố Đô Huế Heritage. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Nội thất gỗ sẫm, sắc tím điểm nhấn và họa tiết trang trí cung đình. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:605",
+      "title": "Room 605 — Suite Futuristic Halo · Cơ sở 3",
+      "content": "Mã phòng: Room 605. Tên: Suite Futuristic Halo. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Giường bệ thấp, vòm sáng Halo và nội thất trắng tối giản. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:606",
+      "title": "Room 606 — Suite Pistachio Walnut · Cơ sở 3",
+      "content": "Mã phòng: Room 606. Tên: Suite Pistachio Walnut. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Vách xanh pistachio, giường gỗ óc chó và góc ngồi sáng màu. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:607",
+      "title": "Room 607 — Suite Winter Fireplace Lounge · Cơ sở 3",
+      "content": "Mã phòng: Room 607. Tên: Suite Winter Fireplace Lounge. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Lò sưởi, vách gỗ tối, chăn ga ấm và góc đọc sách. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:608",
+      "title": "Room 608 — Suite Vinyl Music Lounge · Cơ sở 3",
+      "content": "Mã phòng: Room 608. Tên: Suite Vinyl Music Lounge. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Góc đĩa than, tranh âm nhạc, vách gỗ và giường tông nâu ấm. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:609",
+      "title": "Room 609 — Suite Pastel Lilac Chrome · Cơ sở 3",
+      "content": "Mã phòng: Room 609. Tên: Suite Pastel Lilac Chrome. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Giường và ghế tím lilac, nội thất kem và phụ kiện ánh kim. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:610",
+      "title": "Room 610 — Suite Sài Gòn Retro · Cơ sở 3",
+      "content": "Mã phòng: Room 610. Tên: Suite Sài Gòn Retro. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Gạch bông, giường và tủ gỗ teak cùng màu sắc hoài cổ. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:701",
+      "title": "Room 701 — Suite Sunset Lamp & Jacuzzi · Cơ sở 3",
+      "content": "Mã phòng: Room 701. Tên: Suite Sunset Lamp & Jacuzzi. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Đèn chiếu hiệu ứng hoàng hôn, bồn sục tròn và nội thất tông tối. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:702",
+      "title": "Room 702 — Suite Tuscan Olive Villa · Cơ sở 3",
+      "content": "Mã phòng: Room 702. Tên: Suite Tuscan Olive Villa. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Tường vòm sáng màu, nội thất gỗ và sắc xanh olive nhẹ. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:703",
+      "title": "Room 703 — Suite Black Oak & Bouclé · Cơ sở 3",
+      "content": "Mã phòng: Room 703. Tên: Suite Black Oak & Bouclé. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Gỗ sồi đen, giường thấp và ghế vải bouclé tông kem. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:704",
+      "title": "Room 704 — Suite Tropical Peach Palm · Cơ sở 3",
+      "content": "Mã phòng: Room 704. Tên: Suite Tropical Peach Palm. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Họa tiết lá cọ, chăn ga màu đào và ghế mây thư giãn. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:705",
+      "title": "Room 705 — Suite Gentleman's Club Leather · Cơ sở 3",
+      "content": "Mã phòng: Room 705. Tên: Suite Gentleman's Club Leather. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Giường bọc da cognac, gỗ sồi hun khói và ánh sáng trầm. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:706",
+      "title": "Room 706 — Suite Kyoto Bamboo Garden · Cơ sở 3",
+      "content": "Mã phòng: Room 706. Tên: Suite Kyoto Bamboo Garden. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Cây trúc trong không gian phòng, giường thấp và góc trà kiểu Nhật. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:707",
+      "title": "Room 707 — Suite Celadon Paris Mint · Cơ sở 3",
+      "content": "Mã phòng: Room 707. Tên: Suite Celadon Paris Mint. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Vách phào chỉ xanh ngọc, đầu giường bọc nệm và ban công hoa. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:708",
+      "title": "Room 708 — Suite Mocha Mousse Corduroy · Cơ sở 3",
+      "content": "Mã phòng: Room 708. Tên: Suite Mocha Mousse Corduroy. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Giường màu mocha, đầu giường vải nhung tăm và tông kem ấm. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:709",
+      "title": "Room 709 — Suite Glasshouse Glamping · Cơ sở 3",
+      "content": "Mã phòng: Room 709. Tên: Suite Glasshouse Glamping. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Mái và vách kính, giường có màn cùng cây xanh trang trí. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:710",
+      "title": "Room 710 — Suite Blush Navy Art Deco · Cơ sở 3",
+      "content": "Mã phòng: Room 710. Tên: Suite Blush Navy Art Deco. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Vách vòm hồng, giường xanh navy và chi tiết ánh kim. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:801",
+      "title": "Room 801 — Suite Sky Penthouse Marble Tub · Cơ sở 3",
+      "content": "Mã phòng: Room 801. Tên: Suite Sky Penthouse Marble Tub. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Bồn tắm đá cạnh kính lớn, giường tông tối và tầm nhìn thành phố. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:802",
+      "title": "Room 802 — Suite Đà Lạt Pine Veranda · Cơ sở 3",
+      "content": "Mã phòng: Room 802. Tên: Suite Đà Lạt Pine Veranda. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Trần và vách gỗ thông, chăn ga tông kem cùng hiên có hoa. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:803",
+      "title": "Room 803 — Suite Seoul Line Art Cream · Cơ sở 3",
+      "content": "Mã phòng: Room 803. Tên: Suite Seoul Line Art Cream. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Giường tông kem, tranh nét đen và nội thất tối giản. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:804",
+      "title": "Room 804 — Suite Marrakesh Riad Arch · Cơ sở 3",
+      "content": "Mã phòng: Room 804. Tên: Suite Marrakesh Riad Arch. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Đầu giường kiểu vòm, đèn kim loại chạm khắc và sắc xanh ngọc. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:805",
+      "title": "Room 805 — Suite Nordic Fjord Blue · Cơ sở 3",
+      "content": "Mã phòng: Room 805. Tên: Suite Nordic Fjord Blue. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Đầu giường xanh nhạt, nội thất gỗ sáng và ghế đọc sách tông xám. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:806",
+      "title": "Room 806 — Suite Hollywood Regency Glam · Cơ sở 3",
+      "content": "Mã phòng: Room 806. Tên: Suite Hollywood Regency Glam. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Giường bọc nệm, đèn chùm pha lê và phụ kiện ánh kim. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "room-code:807",
+      "title": "Room 807 — Suite Mallorca Clay Arch · Cơ sở 3",
+      "content": "Mã phòng: Room 807. Tên: Suite Mallorca Clay Arch. Cơ sở: Cơ sở 3. Địa chỉ: 789 Đường Bình Minh, TP. Hồ Chí Minh.\nThông tin đối chiếu ảnh đúng số phòng: Tường vòm đất nung, nội thất gỗ mộc và góc ngồi mây. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh.\nLoại trong danh mục: Double. Chưa xác minh số khách tối đa.\nGiá qua đêm: 400.000 đồng ngày thường; 450.000 đồng đêm thứ Bảy và Chủ nhật. Gói 2 giờ 250.000 đồng, 4 giờ 350.000 đồng, 8 giờ 550.000 đồng. Giờ lẻ 80.000 đồng, tối thiểu gói 2 giờ, làm tròn lên giờ và chọn tổng thấp nhất. Kiểm tra giá/lịch hiện tại trước khi đặt; không thay đổi giá booking cũ. Ảnh nguồn là ảnh minh họa AI.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "property:1",
+      "title": "Cơ sở 1 — Địa chỉ và danh sách phòng",
+      "content": "Cơ sở 1 có địa chỉ 123 Đường Hoa Mai, TP. Hồ Chí Minh. Giữ nguyên các phòng cũ: Room 101–103, 201–202, 301–302, 401–412 trong bản cloud; Room 413 hiện chỉ có ở local.. Đây là danh mục, không xác nhận khả dụng. Dùng bộ chọn cơ sở trên web để xem đúng phòng.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "property:2",
+      "title": "Cơ sở 2 — Địa chỉ và danh sách phòng",
+      "content": "Cơ sở 2 có địa chỉ 456 Đường Ánh Dương, TP. Hồ Chí Minh. 37 phòng mới: Room 104, Room 105, Room 106, Room 107, Room 108, Room 109, Room 110, Room 203, Room 204, Room 205, Room 206, Room 207, Room 208, Room 209, Room 210, Room 303, Room 304, Room 305, Room 306, Room 307, Room 308, Room 309, Room 310, Room 414, Room 415, Room 416, Room 417, Room 418, Room 419, Room 420, Room 421, Room 422, Room 423, Room 424, Room 425, Room 426, Room 427. Đây là danh mục, không xác nhận khả dụng. Dùng bộ chọn cơ sở trên web để xem đúng phòng.\nNguồn: backend/src/main/resources/room-expansion.json"
+    },
+    {
+      "slug": "property:3",
+      "title": "Cơ sở 3 — Địa chỉ và danh sách phòng",
+      "content": "Cơ sở 3 có địa chỉ 789 Đường Bình Minh, TP. Hồ Chí Minh. 37 phòng mới: Room 501, Room 502, Room 503, Room 504, Room 505, Room 506, Room 507, Room 508, Room 509, Room 510, Room 601, Room 602, Room 603, Room 604, Room 605, Room 606, Room 607, Room 608, Room 609, Room 610, Room 701, Room 702, Room 703, Room 704, Room 705, Room 706, Room 707, Room 708, Room 709, Room 710, Room 801, Room 802, Room 803, Room 804, Room 805, Room 806, Room 807. Đây là danh mục, không xác nhận khả dụng. Dùng bộ chọn cơ sở trên web để xem đúng phòng.\nNguồn: backend/src/main/resources/room-expansion.json"
+    }
+  ]
+}

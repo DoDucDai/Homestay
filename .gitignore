@@ -2,6 +2,7 @@
 # ENV / Config bi mat
 # ========================
 .env
+.env.docker
 __pycache__/
 ai-rag/data/
 
@@ -9,6 +10,7 @@ ai-rag/data/
 # Java / Maven
 # ========================
 target/
+backend/target-*/
 *.class
 *.jar
 *.war

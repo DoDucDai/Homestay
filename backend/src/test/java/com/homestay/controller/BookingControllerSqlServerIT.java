@@ -9,10 +9,13 @@ import java.util.concurrent.*;
 import java.util.function.Supplier;
 
 /** Real SQL Server checks in a disposable database, never the configured database. */
+// NOTE KIỂM THỬ: Kiểm tra nhận/trả phòng đúng trạng thái, chống hóa đơn trùng, thao tác đồng thời và rollback khi ghi lỗi.
+// File này thuộc src/test, không phải endpoint và không nằm trong mã nghiệp vụ chạy phục vụ người dùng.
 public class BookingControllerSqlServerIT {
     private static final BookingController controller = new BookingController();
     private static int passed;
 
+    // NOTE KIỂM THỬ: Điểm chạy nhóm kiểm tra; dùng AssertionError/kết thúc khác 0 để báo điều kiện không đạt.
     public static void main(String[] args) throws Exception {
         if (args.length == 1 && "--isolated-child".equals(args[0])) {
             String database = System.getenv("DB_NAME");
@@ -36,8 +39,9 @@ public class BookingControllerSqlServerIT {
                 // Keep table definitions, skip CREATE DATABASE / USE of the real database.
                 schema = schema.substring(schema.indexOf("CREATE TABLE Users"));
                 for (String batch : schema.split("(?im)^\\s*GO\\s*$")) {
-                    if (!batch.isBlank()) stmt.execute(batch);
+                    if (!batch.isBlank()) CurrentPricingTestSchema.execute(stmt,batch);
                 }
+                CurrentPricingTestSchema.migrate(bootstrap);
                 ProcessBuilder child = new ProcessBuilder(
                         Path.of(System.getProperty("java.home"), "bin", "java.exe").toString(),
                         "-cp", System.getProperty("java.class.path"),
@@ -122,6 +126,7 @@ public class BookingControllerSqlServerIT {
         }
     }
 
+    // NOTE KIỂM THỬ: Tạo tình huống, gọi code cần kiểm tra rồi đối chiếu kết quả/trạng thái dữ liệu với giá trị mong đợi.
     private static void runChecks() throws Exception {
         for (String status : List.of("Cancelled", "CheckedOut", "CheckedIn")) {
             int id = fixture(status);

@@ -1,3 +1,5 @@
+// NOTE KIỂM THỬ: Kiểm tra tải/phân trang dịch vụ, lỗi trường nhập, chống gửi lặp và chặn thao tác khi đang lưu/xóa.
+// Code chạy bằng Node trong môi trường giả để kiểm tra frontend; các assert so kết quả thực tế với kết quả mong đợi.
 const assert=require('node:assert/strict');
 const {env}=require('./frontend-test-env.cjs');
 const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {resolve,promise};};

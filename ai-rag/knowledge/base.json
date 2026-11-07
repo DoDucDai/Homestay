@@ -1,0 +1,547 @@
+[
+  {
+    "slug": "start",
+    "title": "Hướng dẫn đặt phòng lần đầu",
+    "source": "frontend/js/bookings.js",
+    "questions": [
+      "Tôi muốn đặt phòng lần đầu cần làm gì?",
+      "Các bước đặt phòng homestay là gì?"
+    ],
+    "answer": "Đăng nhập tài khoản được cấp, mở Đặt phòng, chọn ngày hoặc giờ nhận/trả, kiểm tra phòng trống và giá, chọn khách và phòng rồi xem lại trước khi xác nhận. Chỉ coi thành công khi hệ thống trả thông báo xác nhận. Không có bước bắt buộc đặt cọc được công bố."
+  },
+  {
+    "slug": "success",
+    "title": "Xác nhận đặt phòng thành công và mã booking",
+    "source": "frontend/js/bookings.js",
+    "questions": [
+      "Làm sao biết đã đặt phòng thành công?",
+      "AI nói đã đặt xong có phải xác nhận không?"
+    ],
+    "answer": "Chỉ coi lượt đặt thành công khi hệ thống đặt phòng trả thông báo xác nhận và lượt đặt xuất hiện trong danh sách/lịch. Tin nhắn của Mochi không tự tạo booking, không phải bằng chứng đã giữ phòng hay thanh toán. Kiểm tra lại trạng thái thực tế trước khi gửi lại một thao tác bị lỗi mạng."
+  },
+  {
+    "slug": "dates",
+    "title": "Chọn ngày nhận và trả phòng theo đêm",
+    "source": "backend/src/main/java/com/homestay/controller/RoomSchedule.java",
+    "questions": [
+      "Ngày nhận và ngày trả phải như thế nào?",
+      "Có đặt ngày quá khứ hoặc nhận trả cùng ngày được không?"
+    ],
+    "answer": "Đặt theo đêm yêu cầu ngày nhận không trong quá khứ theo giờ Việt Nam và ngày trả phải sau ngày nhận. Ngày phải hợp lệ. Nhận và trả cùng ngày không hợp lệ cho chế độ theo đêm; nếu nghỉ trong ngày, dùng chế độ theo giờ trên trang Đặt phòng. Không coi chữ tối nay/cuối tuần trong câu hỏi là đã chọn ngày trên giao diện."
+  },
+  {
+    "slug": "availability",
+    "title": "Kiểm tra phòng trống theo khoảng lưu trú",
+    "source": "backend/src/main/java/com/homestay/controller/BookingController.java",
+    "questions": [
+      "Phòng nào còn trống tối nay hoặc cuối tuần?",
+      "Tại sao phải chọn ngày mới tra được phòng trống?"
+    ],
+    "answer": "Phòng còn trống phải được kiểm tra từ backend theo khoảng nhận/trả đã chọn. Danh mục giới thiệu, giá niêm yết hoặc tài liệu RAG không chứng minh còn phòng. Trước khi có kết quả tra phòng theo ngày, không khẳng định mã phòng nào chắc chắn còn trống. Kết quả có thể thay đổi trước khi xác nhận vì người khác đặt hoặc tình trạng vận hành đổi."
+  },
+  {
+    "slug": "hourly",
+    "title": "Đặt phòng theo giờ và cách làm tròn thời gian",
+    "source": "backend/src/main/java/com/homestay/controller/HourlyStay.java",
+    "questions": [
+      "Nghỉ vài tiếng hoặc thuê trong ngày được không?",
+      "Ở 1 giờ 20 phút tính mấy giờ?"
+    ],
+    "answer": "Trang Đặt phòng có chế độ theo giờ với thời điểm nhận và trả theo giờ Việt Nam. Giờ trả phải sau giờ nhận; giờ nhận không được trong quá khứ. Số giờ tính tiền được làm tròn lên: 1 giờ 20 phút tính 2 giờ, đúng 2 giờ tính 2 giờ. Không suy ra một quy định check-in 14:00 hay check-out 12:00 vì hệ thống chưa công bố khung giờ cố định đó."
+  },
+  {
+    "slug": "hourly-price",
+    "title": "Giá theo giờ chưa khai báo không thể tự suy từ giá đêm",
+    "source": "backend/src/main/java/com/homestay/controller/BookingController.java",
+    "questions": [
+      "Giá giờ bằng giá đêm chia 24 phải không?",
+      "Tại sao không chọn được phòng trong chế độ theo giờ?"
+    ],
+    "answer": "Giá theo giờ là trường cấu hình riêng của phòng. Nếu chưa có giá giờ hợp lệ, quản trị viên cần khai báo trước khi nhận đặt theo giờ. Không chia giá đêm cho 24, không tự tạo giá theo giờ và không coi giá giờ chưa khai báo là 0 đồng. Kiểm tra giá hiện tại trong trang Đặt phòng hoặc Quản lý phòng."
+  },
+  {
+    "slug": "night-price",
+    "title": "Tính tiền phòng theo đêm và số đêm",
+    "source": "frontend/js/bookings.js",
+    "questions": [
+      "Ở từ ngày 4 đến ngày 6 tính mấy đêm?",
+      "Tiền phòng theo đêm được tính ra sao?"
+    ],
+    "answer": "Số đêm bằng số ngày từ ngày nhận đến ngày trả, không tính thêm ngày trả như một đêm riêng. Ví dụ nhận ngày 4, trả ngày 6 là 2 đêm. Tiền phòng theo đêm bằng số đêm nhân đơn giá được hệ thống chốt cho booking. Ví dụ minh họa 300.000 đồng/đêm trong 2 đêm là 600.000 đồng tiền phòng; đây là phép tính ví dụ, không phải xác nhận giá cho một phòng cụ thể."
+  },
+  {
+    "slug": "price-services",
+    "title": "Giá phòng chưa bao gồm dịch vụ phát sinh",
+    "source": "frontend/js/support-page.js",
+    "questions": [
+      "Giá thuê đã gồm ăn sáng, giặt ủi và đưa đón chưa?",
+      "Tiền phòng có bao gồm tất cả dịch vụ không?"
+    ],
+    "answer": "Tiền phòng tạm tính chưa bao gồm các dịch vụ phát sinh. Chỉ cộng dịch vụ đã được ghi nhận cho lượt lưu trú theo đơn giá, số lượng và tên dịch vụ tại thời điểm sử dụng. Không mặc định ăn sáng, xe đưa đón, spa hoặc giặt ủi miễn phí hay đã nằm trong giá phòng."
+  },
+  {
+    "slug": "room-status",
+    "title": "Phân biệt Trống, Đã đặt, Đang sử dụng và Bảo trì",
+    "source": "backend/src/main/java/com/homestay/controller/RoomSchedule.java",
+    "questions": [
+      "Các trạng thái phòng có nghĩa gì?",
+      "Phòng Trống trên danh mục có chắc trống vào ngày tôi đến không?"
+    ],
+    "answer": "Trống, Đã đặt, Đang sử dụng và Bảo trì là các trạng thái vận hành. Trạng thái hiện tại không thay cho việc kiểm tra lịch của khoảng tương lai. Phòng đang có booking lưu trú, lịch bị trùng hoặc bảo trì không được tự khẳng định có thể nhận khách mới. Chọn đúng ngày/giờ và kiểm tra lại trong hệ thống trước khi xác nhận."
+  },
+  {
+    "slug": "maintenance",
+    "title": "Phòng bảo trì hoặc mô tả đang sửa chữa",
+    "source": "backend/src/main/java/com/homestay/controller/PublicRoomController.java",
+    "questions": [
+      "Phòng đang bảo trì có đặt được không?",
+      "Mô tả phòng ghi sửa chữa thì có thể ở không?"
+    ],
+    "answer": "Phòng có trạng thái Bảo trì bị loại khỏi danh mục công khai và kết quả phòng trống. Nếu mô tả còn ghi đang sửa chữa hoặc có mâu thuẫn với trạng thái đang hiển thị, cần nhờ quản lý kiểm tra trước khi đặt; không tự kết luận đã sửa xong. Tài liệu mô tả không phải xác nhận khả dụng."
+  },
+  {
+    "slug": "room-types",
+    "title": "Loại phòng Single, Double, VIP và Family",
+    "source": "backend/src/main/java/com/homestay/controller/PublicRoomController.java",
+    "questions": [
+      "Hệ thống có những loại phòng nào?",
+      "Family, Double, Single và VIP khác nhau ra sao?"
+    ],
+    "answer": "Danh mục hiện có các nhãn loại phòng Single, Double, VIP và Family. Đây là nhãn phân loại, không phải thông số sức chứa hay số giường. Mô tả của từng phòng mới là nguồn để nêu tiện nghi được ghi rõ. Không mặc định Single chỉ được 1 khách, Double 2 khách, Family 4 khách hay VIP có dịch vụ cụ thể khi chưa có xác nhận."
+  },
+  {
+    "slug": "capacity",
+    "title": "Thông tin nhóm 4 người trên ảnh Room 103 và Room 201",
+    "source": "backend/src/main/resources/room-catalog.json",
+    "questions": [
+      "Phòng nào phù hợp nhóm 4 người?",
+      "Phòng chứa mấy người và có bao nhiêu giường?"
+    ],
+    "answer": "Ảnh Room 103 và Room 201 ghi studio lớn phù hợp nhóm 4 người. Các phòng khác chưa có số khách tối đa được xác nhận; không suy từ loại phòng, giá hoặc số giường nhìn thấy. Thêm người, trẻ em và giường phụ cần quản lý xác nhận."
+  },
+  {
+    "slug": "amenities",
+    "title": "Tiện nghi wifi, hồ bơi, bãi xe và mô tả phòng",
+    "source": "backend/src/main/java/com/homestay/controller/PublicRoomController.java",
+    "questions": [
+      "Phòng có wifi, hồ bơi, máy lạnh hoặc bãi đỗ xe không?",
+      "Mô tả đầy đủ tiện nghi có chắc bao gồm bếp không?"
+    ],
+    "answer": "Chỉ khẳng định tiện nghi được ghi rõ trong mô tả hoặc tài liệu đã duyệt của đúng phòng. Cụm đầy đủ tiện nghi không đủ để suy ra wifi, hồ bơi, điều hòa, bếp, máy giặt, bãi xe hay miễn phí sử dụng. Nếu thiếu thông tin cụ thể, nói chưa xác nhận và hướng tới Support."
+  },
+  {
+    "slug": "deposit",
+    "title": "Chưa công bố chính sách đặt cọc, tiền cọc và trả trước",
+    "source": "frontend/js/support-page.js",
+    "questions": [
+      "Có bắt buộc đặt cọc không?",
+      "Phải cọc 50 phần trăm hoặc chuyển tiền trước bao nhiêu?",
+      "deposit prepayment advance payment"
+    ],
+    "answer": "Hiện Homestay chưa công bố quy định đặt cọc. Không có căn cứ để yêu cầu cọc 50%, cọc 500.000 đồng, chuyển tiền giữ phòng hoặc thêm bước xác nhận đặt cọc vào hướng dẫn đặt phòng. Cần làm rõ khoản thu cho lượt đặt cụ thể thì gửi Support để admin xác nhận trước khi thanh toán."
+  },
+  {
+    "slug": "cancel",
+    "title": "Hủy đặt phòng và điều kiện booking Confirmed",
+    "source": "backend/src/main/java/com/homestay/controller/BookingController.java",
+    "questions": [
+      "Làm sao hủy phòng?",
+      "Hủy booking Confirmed có tự được hoàn tiền không?",
+      "cancel cancellation"
+    ],
+    "answer": "Hệ thống vận hành có thao tác hủy booking ở trạng thái Confirmed. Việc hủy trạng thái trong phần mềm không chứng minh được miễn phí hủy hoặc tự động hoàn tiền. Hiện chưa công bố chính sách hủy. Gửi mã đặt phòng và yêu cầu thay đổi qua Support để admin kiểm tra điều kiện thực tế; không hủy hay nói đã hủy chỉ qua lời của AI."
+  },
+  {
+    "slug": "refund",
+    "title": "Chưa công bố hoàn tiền, phí hủy và hoàn cọc",
+    "source": "frontend/js/support-page.js",
+    "questions": [
+      "Hủy có hoàn 100% không?",
+      "Có mất cọc hoặc phí hủy không?",
+      "refund policy reimbursement money back"
+    ],
+    "answer": "Hiện chưa có chính sách hoàn tiền, phí hủy hoặc hoàn cọc được công bố. Không cam kết hoàn 100%, hoàn trong bao nhiêu ngày, giữ tiền cọc hay áp một khoản phí. Gửi mã đặt phòng và tình huống thực tế cho Support để admin đối chiếu; không yêu cầu gửi thông tin thẻ hay giấy tờ trong chat."
+  },
+  {
+    "slug": "change-booking",
+    "title": "Đổi ngày, đổi phòng và thay đổi lượt thuê",
+    "source": "frontend/js/support-page.js",
+    "questions": [
+      "Tôi muốn đổi ngày nhận hoặc đổi sang phòng khác?",
+      "Mochi đổi booking giúp tôi được không?",
+      "Đổi sang phòng khác và đổi ngày như thế nào?"
+    ],
+    "answer": "Gửi mã lượt đặt, thời gian/phòng mong muốn và nội dung thay đổi qua Support. Admin cần kiểm tra lịch trống, giá và trạng thái booking. AI không trực tiếp sửa booking và không hứa miễn phí thay đổi. Không tạo thêm một booking trùng để thay cho việc xác minh yêu cầu sửa."
+  },
+  {
+    "slug": "early-late",
+    "title": "Nhận phòng sớm, trả phòng muộn và giờ cố định",
+    "source": "frontend/js/support-page.js",
+    "questions": [
+      "Có nhận sớm, trả muộn hoặc check-in lúc 14 giờ không?",
+      "Phí late checkout là bao nhiêu?"
+    ],
+    "answer": "Nhận sớm hoặc trả muộn phụ thuộc lịch thực tế và xác nhận của homestay. Hiện không có quy định chung 14:00/12:00 hoặc bảng phụ thu nhận sớm/trả muộn được xác nhận trong bộ dữ liệu. Gửi mã đặt và giờ mong muốn qua Support. Không tự hứa miễn phí hay tự tính phụ thu."
+  },
+  {
+    "slug": "pets",
+    "title": "Thú cưng, sự kiện và yêu cầu lưu trú đặc biệt",
+    "source": "frontend/js/support-page.js",
+    "questions": [
+      "Được mang chó mèo không?",
+      "Có thể tổ chức tiệc, sinh nhật hoặc sự kiện trong phòng không?"
+    ],
+    "answer": "Chưa có nội quy chi tiết hoặc bảng phí cho thú cưng và sự kiện trong dữ liệu xác nhận. Cần trao đổi với quản lý qua Support trước khi đặt hoặc sử dụng. Không tự nói được mang thú cưng, được tổ chức tiệc, miễn phí vệ sinh hay được phép gây tiếng ồn."
+  },
+  {
+    "slug": "children",
+    "title": "Trẻ em, thêm khách và phụ thu người ở",
+    "source": "backend/src/main/java/com/homestay/controller/PublicRoomController.java",
+    "questions": [
+      "Trẻ em được miễn phí không?",
+      "Thêm người ở có phụ thu bao nhiêu?"
+    ],
+    "answer": "Chưa có bảng độ tuổi trẻ em, phụ thu người ở, giường phụ hoặc sức chứa tối đa được xác nhận trong hệ thống. Không tự đặt mốc tuổi hay mức phí. Nêu số người, số trẻ và yêu cầu với quản lý qua Support để xác nhận trước khi chốt lượt thuê."
+  },
+  {
+    "slug": "services",
+    "title": "Danh mục dịch vụ và đơn giá hiện hành",
+    "source": "backend/src/main/java/com/homestay/controller/ServiceStatController.java",
+    "questions": [
+      "Homestay có những dịch vụ gì?",
+      "Giá ăn sáng, thuê xe hoặc giặt ủi xem ở đâu?"
+    ],
+    "answer": "Mở trang Dịch vụ để xem tên, đơn giá và trạng thái hiện tại. Tài liệu từng dịch vụ trong RAG là bản chụp có ngày cập nhật, không cam kết giá vẫn giữ nguyên sau ngày đó. Không tự suy đơn vị giá theo kg, suất, người, ngày hoặc chuyến nếu danh mục chưa ghi rõ đơn vị."
+  },
+  {
+    "slug": "service-add",
+    "title": "Thêm dịch vụ cho khách đang lưu trú",
+    "source": "backend/src/main/java/com/homestay/controller/BookingController.java",
+    "questions": [
+      "Làm sao gọi thêm ăn sáng hoặc giặt ủi?",
+      "Booking chưa nhận phòng có ghi dịch vụ sử dụng được không?"
+    ],
+    "answer": "Nhân viên/admin ghi nhận dịch vụ trên booking đã nhận phòng, trạng thái CheckedIn. Cần chọn đúng dịch vụ đang Hoạt động và số lượng hợp lệ; tổng tiền dựa trên đơn giá tại thời điểm ghi nhận. AI chỉ hướng dẫn, không tự thêm dịch vụ hoặc nói đã gọi dịch vụ thành công."
+  },
+  {
+    "slug": "service-stopped",
+    "title": "Dịch vụ Ngừng khác dịch vụ Hoạt động",
+    "source": "backend/src/main/java/com/homestay/controller/ServiceStatController.java",
+    "questions": [
+      "Karaoke hoặc dịch vụ ngừng có đặt mới được không?",
+      "Dịch vụ đã dùng có thể xóa khỏi danh mục không?"
+    ],
+    "answer": "Dịch vụ có trạng thái Ngừng không được coi là đang nhận yêu cầu mới. Dịch vụ đã có dữ liệu sử dụng không được xóa khỏi danh mục để bảo toàn lịch sử, có thể được chuyển sang Ngừng. Kiểm tra trạng thái đang hiển thị và hỏi quản lý nếu cần xác nhận phục vụ."
+  },
+  {
+    "slug": "service-duplicate",
+    "title": "Dịch vụ trùng tên và bản ghi cũ có giá khác nhau",
+    "source": "backend/src/main/java/com/homestay/controller/ServiceStatController.java",
+    "questions": [
+      "Tại sao giặt ủi có giá 30.000 và 50.000?",
+      "Dịch vụ có chữ cũ DV hoặc DEMO-LH khác gì bản thường?"
+    ],
+    "answer": "Hệ thống có thể lưu nhiều bản ghi dịch vụ tương tự tên nhưng mã và đơn giá khác nhau, gồm dữ liệu cũ và dữ liệu demo. Phải đối chiếu đúng mã dịch vụ được chọn. Không gộp các bản ghi, không tự chọn một giá làm giá duy nhất và không suy rằng bản cũ đã ngừng nếu trạng thái vẫn Hoạt động."
+  },
+  {
+    "slug": "service-total",
+    "title": "Số lượng dịch vụ và cách tính thành tiền",
+    "source": "backend/src/main/java/com/homestay/controller/BookingController.java",
+    "questions": [
+      "Dịch vụ tính tổng tiền thế nào?",
+      "2 đơn vị ăn sáng giá 80.000 tính bao nhiêu?"
+    ],
+    "answer": "Thành tiền dịch vụ bằng số lượng nhân đơn giá được chốt lúc thêm. Ví dụ minh họa 2 đơn vị với giá 80.000 đồng/đơn vị là 160.000 đồng. Số lượng phải là số nguyên dương trong giới hạn hệ thống; không tự dùng số thập phân hay số âm. Chưa có đơn vị mô tả rõ thì không suy 1 đơn vị là 1 người hay 1 suất."
+  },
+  {
+    "slug": "checkout",
+    "title": "Trả phòng và xem trước thanh toán",
+    "source": "backend/src/main/java/com/homestay/controller/BookingController.java",
+    "questions": [
+      "Trả phòng và thanh toán như thế nào?",
+      "Có xem trước tiền phòng và dịch vụ trước khi trả không?"
+    ],
+    "answer": "Mở Hóa đơn & trả phòng để xem lượt đang ở, xem trước tiền phòng, dịch vụ và tổng thanh toán; đối chiếu rồi mới xác nhận. Thao tác trả phòng yêu cầu booking đang CheckedIn và chưa có hóa đơn. AI không tự thu tiền, ghi thanh toán hoặc trả phòng thay người vận hành."
+  },
+  {
+    "slug": "invoice",
+    "title": "Hóa đơn đã thanh toán và bảo toàn giá lịch sử",
+    "source": "backend/src/main/java/com/homestay/controller/BookingInvoiceSnapshot.java",
+    "questions": [
+      "Đổi giá phòng có làm hóa đơn cũ thay đổi không?",
+      "Vì sao hóa đơn dùng giá khác danh mục hôm nay?"
+    ],
+    "answer": "Booking lưu giá đã chốt; các dòng dịch vụ lưu tên và đơn giá tại thời điểm sử dụng; hóa đơn lưu bản chi tiết giao dịch. Đổi giá hoặc tên trong danh mục không tính lại hóa đơn đã thanh toán. Khi cần đối soát, xem hóa đơn và booking liên quan thay vì áp giá danh mục mới cho giao dịch cũ."
+  },
+  {
+    "slug": "double-payment",
+    "title": "Chống thanh toán trùng và xử lý mất phản hồi",
+    "source": "backend/src/main/java/com/homestay/controller/BookingController.java",
+    "questions": [
+      "Tôi bấm thanh toán rồi mất mạng có bấm lại không?",
+      "Một booking có thể có hai hóa đơn không?"
+    ],
+    "answer": "Hệ thống kiểm soát một hóa đơn cho mỗi booking và kiểm tra trạng thái khi trả phòng. Nếu mất phản hồi, hãy tải lại và xem hóa đơn/trạng thái trước khi gửi tiếp; không coi việc chưa thấy thông báo là chắc chắn chưa ghi giao dịch. Nếu chưa rõ, nhờ admin đối soát."
+  },
+  {
+    "slug": "discounts",
+    "title": "Khuyến mãi, mã giảm giá và phụ phí chưa công bố",
+    "source": "frontend/js/support-page.js",
+    "questions": [
+      "Có mã giảm giá, giảm giá nhóm hoặc ưu đãi sinh viên không?",
+      "Phí vệ sinh, VAT hay phí cuối tuần bao nhiêu?"
+    ],
+    "answer": "Chưa có bảng khuyến mãi, mã giảm giá, phụ phí cuối tuần, phí vệ sinh hoặc quy tắc thuế riêng được xác nhận trong bộ tài liệu này. Không tự tạo mã giảm giá, tỷ lệ thuế hoặc lời hứa miễn phí. Đối chiếu số tiền hiển thị cho lượt thuê và hỏi quản lý về khoản chưa rõ."
+  },
+  {
+    "slug": "account-access",
+    "title": "Tài khoản admin và staff, quyền khách chưa có",
+    "source": "ai-rag/README.md",
+    "questions": [
+      "Khách có thể tự đăng ký rồi đặt phòng được chưa?",
+      "Website hiện có những vai trò tài khoản nào?"
+    ],
+    "answer": "Hệ thống hiện có vai trò admin và staff. Chat và đặt phòng cần phiên đăng nhập hợp lệ bằng tài khoản được cấp; chưa có vai trò khách thực tế hoàn chỉnh. Không nói khách đã có thể tự đăng ký và sử dụng đầy đủ chức năng khi phần đăng ký còn là giao diện xem trước."
+  },
+  {
+    "slug": "profile",
+    "title": "Cập nhật hồ sơ, số điện thoại và địa chỉ Gmail",
+    "source": "frontend/js/api.js",
+    "questions": [
+      "Sửa thông tin cá nhân ở đâu?",
+      "Số điện thoại và email hồ sơ cần định dạng gì?",
+      "Số điện thoại hồ sơ có bao nhiêu số, bao nhiêu chữ số?"
+    ],
+    "answer": "Mở Thông tin tài khoản để cập nhật họ tên, điện thoại, email, ngày sinh và thành phố theo biểu mẫu. Điện thoại yêu cầu 10 chữ số, bắt đầu bằng 0. Email hồ sơ hiện chỉ chấp nhận Gmail theo định dạng biểu mẫu. Nhập dữ liệu cá nhân trực tiếp trong trang tài khoản; không gửi toàn bộ hồ sơ qua chat AI."
+  },
+  {
+    "slug": "password",
+    "title": "Đổi mật khẩu và quy tắc mật khẩu mới",
+    "source": "frontend/js/api.js",
+    "questions": [
+      "Đổi mật khẩu ở đâu?",
+      "Mật khẩu mới cần bao nhiêu ký tự và đổi xong có đăng nhập lại không?"
+    ],
+    "answer": "Mở menu tài khoản hoặc trang tài khoản để đổi mật khẩu. Mật khẩu mới cần 6–128 ký tự, có chữ hoa, chữ thường, chữ số và ký tự đặc biệt, khác mật khẩu hiện tại. Sau khi đổi cần đăng nhập lại. Không nhập mật khẩu vào chat hay yêu cầu Support."
+  },
+  {
+    "slug": "login-failure",
+    "title": "Không đăng nhập được và phiên hết hạn",
+    "source": "frontend/js/account.js",
+    "questions": [
+      "Tôi bị đăng xuất hoặc không đăng nhập được phải làm gì?",
+      "Tại sao chat yêu cầu đăng nhập lại?"
+    ],
+    "answer": "Kiểm tra tên tài khoản, tải lại trang và đăng nhập lại khi phiên hết hạn. Nếu vẫn lỗi, liên hệ đơn vị vận hành qua kênh đã dùng hoặc Support khi còn truy cập được. Không nhờ AI lấy lại mật khẩu, cung cấp cookie hay giả quyền admin. Chức năng quên mật khẩu/đăng ký có phần xem trước, không tự hứa đã gửi email đặt lại."
+  },
+  {
+    "slug": "support-create",
+    "title": "Gửi yêu cầu hỗ trợ qua Support",
+    "source": "ai-rag/web/support.js",
+    "questions": [
+      "Liên hệ hỗ trợ bằng cách nào?",
+      "Gửi yêu cầu Support cần ghi gì?"
+    ],
+    "answer": "Mở Support, đăng nhập, nhập tiêu đề và nội dung trong phần Gửi yêu cầu hỗ trợ rồi gửi cho admin. Có thể ghi mã đặt phòng, thời gian mong muốn và mô tả lỗi. Không gửi mật khẩu, OTP, thông tin thẻ hoặc toàn bộ giấy tờ cá nhân. Chưa có thời hạn phản hồi cố định được công bố."
+  },
+  {
+    "slug": "support-owner",
+    "title": "Theo dõi phản hồi Support và quyền xem yêu cầu",
+    "source": "ai-rag/app/server.py",
+    "questions": [
+      "Tôi xem câu trả lời của admin ở đâu?",
+      "Nhân viên khác có xem được yêu cầu hỗ trợ của tôi không?"
+    ],
+    "answer": "Tài khoản gửi yêu cầu xem lại yêu cầu của mình trong phần Theo dõi/Yêu cầu của bạn trên Support. Admin được xem và phản hồi các yêu cầu để xử lý. Tài khoản thường không được xem tất cả yêu cầu của tài khoản khác. Kiểm tra đúng tài khoản nếu không thấy lịch sử hỗ trợ."
+  },
+  {
+    "slug": "support-limits",
+    "title": "Giới hạn số yêu cầu Support và số câu hỏi Mochi",
+    "source": "ai-rag/app/server.py",
+    "questions": [
+      "Tại sao bị báo gửi quá nhiều câu hỏi hoặc yêu cầu?",
+      "Một phút hỏi AI được mấy câu?"
+    ],
+    "answer": "Mochi giới hạn tối đa 5 câu hỏi/phút/tài khoản. Yêu cầu Support giới hạn 5 yêu cầu trong khoảng 10 phút cho mỗi người gửi. Khi bị giới hạn, chờ trước khi thử tiếp; không đổi tài khoản để né giới hạn. AI không tự cấp thêm quota hay tăng quyền."
+  },
+  {
+    "slug": "ai-role",
+    "title": "Mochi tư vấn, không trực tiếp tạo hay thay đổi giao dịch",
+    "source": "ai-rag/app/server.py",
+    "questions": [
+      "Mochi có tự đặt phòng, hủy booking hoặc thanh toán không?",
+      "Tôi bảo đã xác nhận trong chat thì phòng được giữ chưa?"
+    ],
+    "answer": "Mochi hiện tra thông tin và hướng dẫn đặt phòng. Việc chọn phòng từ AI dẫn sang trang đặt phòng hiện có để người dùng xem và xác nhận. Chat không trực tiếp tạo đơn, hủy đơn, thay đổi lịch, thêm dịch vụ hay ghi thanh toán. Không coi câu nói đã đặt xong của model là một giao dịch thật."
+  },
+  {
+    "slug": "ai-dates",
+    "title": "Chọn ngày trên Mochi và giới hạn tra phòng theo giờ",
+    "source": "ai-rag/app/server.py",
+    "questions": [
+      "Tôi đã viết ngày trong câu hỏi, sao Mochi vẫn bảo chọn ngày?",
+      "Mochi có tra lịch theo từng giờ được không?"
+    ],
+    "answer": "Mochi lấy khoảng ngày từ hai ô Ngày nhận/Ngày trả trên giao diện, không tự trích ngày từ câu văn. Chọn và kiểm tra hai ô này để tra phòng theo đêm. Module chat chưa triển khai tra khả dụng theo từng giờ; để đặt vài tiếng hãy mở trang Đặt phòng và dùng lịch theo giờ."
+  },
+  {
+    "slug": "ai-history",
+    "title": "Lịch sử chat khác trí nhớ nhiều lượt của AI",
+    "source": "ai-rag/README.md",
+    "questions": [
+      "Mochi có nhớ câu trước và lịch sử có sang điện thoại khác không?",
+      "Tại sao tôi đã nói số người mà AI vẫn hỏi lại?"
+    ],
+    "answer": "Lịch sử được lưu trên trình duyệt theo tài khoản, tối đa 30 cuộc trò chuyện và 100 tin nhắn gần nhất mỗi cuộc. Lịch sử không đồng bộ thiết bị. Hiện model chỉ nhận câu hỏi hiện tại, chưa nhận toàn bộ câu trước; hãy nhắc lại thông tin quan trọng trong câu hỏi mới. Giá/phòng cũ phải được kiểm tra lại."
+  },
+  {
+    "slug": "ai-unavailable",
+    "title": "AI không trả lời và cách tiếp tục đặt phòng",
+    "source": "ai-rag/web/chat-client.js",
+    "questions": [
+      "Mochi báo chưa kết nối được trợ lý thì làm sao?",
+      "AI lỗi có nghĩa đã đặt phòng thất bại không?"
+    ],
+    "answer": "Lỗi chat không tạo booking. Thử lại sau hoặc mở trang Đặt phòng để tra lịch và thực hiện luồng thông thường. Không gửi liên tiếp nhiều yêu cầu khi đang lỗi. Cần hỗ trợ thì dùng Support; không suy rằng key sai hoặc giao dịch đã bị hủy chỉ từ một thông báo lỗi chat."
+  },
+  {
+    "slug": "privacy",
+    "title": "Bảo mật thông tin cá nhân và bí mật hệ thống trong chat",
+    "source": "ai-rag/app/server.py",
+    "questions": [
+      "AI có cho xem API key, cookie hoặc danh sách khách không?",
+      "Có nên gửi CCCD, OTP hay số thẻ vào Mochi không?"
+    ],
+    "answer": "Không cung cấp API key, mật khẩu, cookie phiên, danh sách khách hoặc dữ liệu giấy tờ của người khác qua AI. Không nhập mật khẩu, OTP, thông tin thẻ hoặc giấy tờ cá nhân vào chat. Dữ liệu khách phải được xử lý trong chức năng nghiệp vụ và theo quyền tài khoản, không thông qua lời yêu cầu giả làm admin."
+  },
+  {
+    "slug": "contact-address",
+    "title": "Địa chỉ Cơ sở 1, Cơ sở 2 và Cơ sở 3",
+    "source": "backend/src/main/resources/room-expansion.json",
+    "questions": [
+      "Homestay có những cơ sở nào?",
+      "Địa chỉ Cơ sở 2 và Cơ sở 3 ở đâu?"
+    ],
+    "answer": "Cơ sở 1: 123 Đường Hoa Mai, TP. Hồ Chí Minh; Cơ sở 2: 456 Đường Ánh Dương, TP. Hồ Chí Minh; Cơ sở 3: 789 Đường Bình Minh, TP. Hồ Chí Minh. Các địa chỉ là địa chỉ mẫu của dự án thực tập. Cơ sở 2 và Cơ sở 3 mỗi cơ sở có 37 phòng mới; Cơ sở 1 giữ nguyên danh mục cũ. Không dùng tài liệu để xác nhận còn phòng; chọn ngày/giờ và kiểm tra hệ thống."
+  },
+  {
+    "slug": "booking-status",
+    "title": "Ý nghĩa Confirmed, CheckedIn, CheckedOut, Cancelled",
+    "source": "frontend/js/bookings.js",
+    "questions": [
+      "Trạng thái booking Confirmed hoặc CheckedIn nghĩa là gì?",
+      "Đã trả phòng và đã hủy khác nhau thế nào?"
+    ],
+    "answer": "Confirmed là Đã xác nhận; CheckedIn là Đã nhận phòng; CheckedOut là Đã trả phòng; Cancelled là Đã hủy. Trạng thái booking không đồng nghĩa đã có chính sách đặt cọc hoặc đã chuyển tiền. Kiểm tra hóa đơn/ghi nhận thanh toán riêng để đối soát tiền."
+  },
+  {
+    "slug": "check-in",
+    "title": "Nhận phòng từ booking đã xác nhận",
+    "source": "backend/src/main/java/com/homestay/controller/BookingController.java",
+    "questions": [
+      "Khi khách đến nhận phòng làm thế nào?",
+      "Phòng đang có khách có thể nhận booking khác vào không?"
+    ],
+    "answer": "Người vận hành mở chức năng Nhận phòng, kiểm tra đúng booking và điều kiện trước khi xác nhận. Thao tác yêu cầu trạng thái phù hợp và phòng có thể sử dụng; hệ thống chặn phòng bảo trì, booking đã có hóa đơn hoặc phòng còn booking khác đang lưu trú. Không xác nhận nhận phòng chỉ bằng lời của AI."
+  },
+  {
+    "slug": "conflict",
+    "title": "Trùng lịch, phòng vừa được đặt và lỗi xung đột",
+    "source": "backend/src/main/java/com/homestay/controller/RoomSchedule.java",
+    "questions": [
+      "Tại sao vừa thấy trống nhưng xác nhận lại báo trùng lịch?",
+      "Hai người đặt cùng phòng một lúc được không?"
+    ],
+    "answer": "Danh sách trống là kết quả tại thời điểm tra. Backend kiểm tra lại lịch và khóa giao dịch khi xác nhận để tránh hai booking trùng khoảng lưu trú. Nếu báo xung đột, tải lại lịch và chọn phòng/giờ khác; không coi AI đã giữ phòng riêng cho bạn và không bỏ qua thông báo trùng."
+  },
+  {
+    "slug": "demo-data",
+    "title": "Mã phòng và thông tin đã đối chiếu từ ảnh",
+    "source": "backend/src/main/resources/room-catalog.json",
+    "questions": [
+      "Mã P101 và DEMO-P101 hiện chuyển thành phòng nào?",
+      "Thông tin phòng dựa trên nguồn nào?"
+    ],
+    "answer": "Danh mục đã gộp các bản trùng số về một mã Room cho mỗi số, ví dụ Room 401. Tên và mô tả của 13 phòng 101, 102, 103, 201, 202, 301 và 401–407 được đối chiếu từ đúng ảnh mang số phòng đó. Phòng chưa có ảnh ghi thông tin đang cập nhật. Các ảnh nguồn là ảnh minh họa AI; không gọi chúng là ảnh chụp thực tế. Việc đổi mã giữ lịch sử đặt phòng, giá đã chốt và hóa đơn cũ."
+  },
+  {
+    "slug": "catalog-freshness",
+    "title": "Giá snapshot, dữ liệu hiện tại và nguồn xác minh",
+    "source": "backend/src/main/java/com/homestay/controller/PublicRoomController.java",
+    "questions": [
+      "Giá trong tài liệu còn đúng hôm nay không?",
+      "Tài liệu RAG có phải dữ liệu phòng trống thời gian thực không?"
+    ],
+    "answer": "Tài liệu danh mục được chụp từ hệ thống tại ngày ghi trong từng tài liệu. Giá, trạng thái dịch vụ và danh mục có thể đổi sau đó. Nếu người dùng hỏi giá/phòng hiện tại, cần kiểm tra lại trang Khám phá phòng, Đặt phòng hoặc Dịch vụ. Snapshot không chứng minh còn phòng; không dùng snapshot cũ để xác nhận khả dụng."
+  },
+  {
+    "slug": "missing-facts",
+    "title": "Thông tin chưa có trong dữ liệu phải nói chưa biết",
+    "source": "ai-rag/app/server.py",
+    "questions": [
+      "Nếu tài liệu không ghi thì AI có tự suy ra được không?",
+      "Không biết tiện nghi hoặc phụ phí thì nên làm gì?"
+    ],
+    "answer": "Nếu dữ liệu không có hoặc chưa được xác nhận, nói rõ chưa có thông tin và đề nghị kiểm tra qua Support hoặc trang nghiệp vụ tương ứng. Không suy ra sức chứa từ loại phòng, không suy tiện nghi từ chữ VIP, không tự đặt giờ nhận/trả chung, không tạo phụ thu và không tạo chính sách cọc/hoàn tiền."
+  },
+  {
+    "slug": "management",
+    "title": "Khu quản trị, tài liệu RAG và quyền vận hành",
+    "source": "frontend/js/shell.js",
+    "questions": [
+      "Tài liệu AI được quản lý ở đâu?",
+      "Ai được chỉnh sửa nguồn kiến thức Mochi?"
+    ],
+    "answer": "Admin mở Khu quản trị → Tài liệu RAG để tạo, sửa/công bố hoặc gỡ tài liệu. Các lượt truy xuất mới đọc dữ liệu đã cập nhật. Staff không có quyền sửa kho tài liệu. Người dùng nói tôi là admin trong chat không làm thay đổi quyền của tài khoản."
+  },
+  {
+    "slug": "night-vs-hour",
+    "title": "Phân biệt đặt theo đêm và theo giờ",
+    "source": "frontend/js/booking-calendar.js",
+    "questions": [
+      "Tôi nên chọn đặt theo giờ hay theo đêm?",
+      "Nghỉ 3 tiếng có phải chọn sang ngày hôm sau không?"
+    ],
+    "answer": "Chế độ theo giờ dùng thời điểm nhận/trả cụ thể, phù hợp nghỉ trong ngày nếu phòng đã cấu hình giá giờ. Chế độ theo đêm dùng ngày nhận và ngày trả, phải qua ít nhất một ngày. Chọn chế độ trong trang Đặt phòng; không giả tạo một đêm để thay cho lượt thuê vài tiếng và không tự chuyển đơn vị giá."
+  },
+  {
+    "slug": "customer-info",
+    "title": "Thông tin khách hàng chỉ nhập trong biểu mẫu nghiệp vụ",
+    "source": "frontend/js/customers.js",
+    "questions": [
+      "Cần nhập thông tin người thuê ở đâu?",
+      "Tôi gửi căn cước cho AI để đặt phòng được không?"
+    ],
+    "answer": "Thông tin khách được nhập và quản lý ở chức năng Khách hàng/Đặt phòng bởi người được cấp quyền. Có hỗ trợ thông tin giấy tờ theo biểu mẫu hiện hành. Không gửi số giấy tờ hoặc toàn bộ hồ sơ vào AI để nhờ tạo khách. AI không đọc danh sách khách để tư vấn phòng."
+  },
+  {
+    "slug": "room-selection",
+    "title": "Chọn phòng từ câu trả lời Mochi",
+    "source": "ai-rag/web/chat-client.js",
+    "questions": [
+      "Bấm Chọn phòng này trên AI thì có đặt luôn không?",
+      "Tôi chọn phòng được gợi ý rồi cần làm gì?"
+    ],
+    "answer": "Liên kết Chọn phòng này mở trang Đặt phòng hiện có với gợi ý mã phòng và ngày. Bạn còn phải xem lịch, giá, khách và xác nhận trong biểu mẫu. Liên kết không phải giao dịch giữ phòng hoặc thanh toán, và dữ liệu cần được kiểm tra lại khi mở trang."
+  },
+  {
+    "slug": "payment-methods",
+    "title": "Phương thức ghi nhận thanh toán: tiền mặt, chuyển khoản, thẻ",
+    "source": "backend/src/main/java/com/homestay/controller/BookingController.java",
+    "questions": [
+      "Có những phương thức thanh toán nào?",
+      "Có thanh toán thẻ hoặc chuyển khoản trực tuyến tự động không?"
+    ],
+    "answer": "Biểu mẫu trả phòng cho phép ghi nhận phương thức Tiền mặt, Chuyển khoản hoặc Thẻ ngân hàng. Đây là nhãn ghi nhận trong hóa đơn, không chứng minh hệ thống đã tích hợp cổng thanh toán, tự trừ tiền thẻ hoặc tự xác nhận giao dịch ngân hàng. Chưa có số tài khoản ngân hàng/QR chính thức trong dữ liệu đã duyệt. Người vận hành cần đối soát thực tế trước khi xác nhận."
+  },
+  {
+    "slug": "fees-units",
+    "title": "Đơn vị giá dịch vụ chưa có: kg, suất, chuyến hoặc ngày",
+    "source": "backend/src/main/java/com/homestay/controller/ServiceStatController.java",
+    "questions": [
+      "Giặt ủi tính theo kg hay lần?",
+      "Giá thuê xe là một ngày hay một giờ?"
+    ],
+    "answer": "Danh mục dịch vụ hiện lưu tên, đơn giá và trạng thái; chưa có trường đơn vị tính chi tiết. Không tự khẳng định giá theo kg, suất, chuyến, người, ngày hoặc giờ nếu quản lý chưa xác nhận. Bản ghi Ăn sáng hay Thuê xe máy không đủ để suy ra đơn vị chỉ từ tên. Xác nhận đơn vị và số lượng với người vận hành trước khi dùng."
+  }
+]

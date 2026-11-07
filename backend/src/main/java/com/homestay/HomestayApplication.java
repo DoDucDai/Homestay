@@ -13,7 +13,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * 3. Server se chay tai: http://localhost:8080
  */
 @SpringBootApplication
+// NOTE BACKEND: Điểm bắt đầu chạy Java; Spring Boot tạo các thành phần, nạp cấu hình và mở web server.
 public class HomestayApplication {
+    // NOTE BACKEND: Khởi động ứng dụng với tham số dòng lệnh; các controller, cấu hình và runner được Spring tự tìm trong com.homestay.
     public static void main(String[] args) {
         SpringApplication.run(HomestayApplication.class, args);
     }

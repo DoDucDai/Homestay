@@ -1,0 +1,772 @@
+[
+  {
+    "roomNumber": "201",
+    "asset": "room-201.webp",
+    "sourceFile": "Gemini_Generated_Image_1n2waf1n2waf1n2w.png",
+    "width": 1152,
+    "height": 925,
+    "bytes": 175648
+  },
+  {
+    "roomNumber": "101",
+    "asset": "room-101.webp",
+    "sourceFile": "Gemini_Generated_Image_3mr0aj3mr0aj3mr0.png",
+    "width": 1152,
+    "height": 925,
+    "bytes": 172066
+  },
+  {
+    "roomNumber": "301",
+    "asset": "room-301.webp",
+    "sourceFile": "Gemini_Generated_Image_4u45o34u45o34u45.png",
+    "width": 896,
+    "height": 1200,
+    "bytes": 184014
+  },
+  {
+    "roomNumber": "202",
+    "asset": "room-202.webp",
+    "sourceFile": "Gemini_Generated_Image_7ha3ub7ha3ub7ha3.png",
+    "width": 896,
+    "height": 1200,
+    "bytes": 177144
+  },
+  {
+    "roomNumber": "405",
+    "asset": "room-405.webp",
+    "sourceFile": "Gemini_Generated_Image_g5hlwug5hlwug5hl.png",
+    "width": 896,
+    "height": 1200,
+    "bytes": 165482
+  },
+  {
+    "roomNumber": "103",
+    "asset": "room-103.webp",
+    "sourceFile": "Gemini_Generated_Image_m3anulm3anulm3an.png",
+    "width": 1152,
+    "height": 925,
+    "bytes": 181790
+  },
+  {
+    "roomNumber": "102",
+    "asset": "room-102.webp",
+    "sourceFile": "Gemini_Generated_Image_mytw95mytw95mytw.png",
+    "width": 1152,
+    "height": 925,
+    "bytes": 170336
+  },
+  {
+    "roomNumber": "404",
+    "asset": "room-404.webp",
+    "sourceFile": "Gemini_Generated_Image_r2onvxr2onvxr2on.png",
+    "width": 896,
+    "height": 1200,
+    "bytes": 178770
+  },
+  {
+    "roomNumber": "403",
+    "asset": "room-403.webp",
+    "sourceFile": "Gemini_Generated_Image_rjf1jrrjf1jrrjf1.png",
+    "width": 1200,
+    "height": 896,
+    "bytes": 246936
+  },
+  {
+    "roomNumber": "406",
+    "asset": "room-406.webp",
+    "sourceFile": "Gemini_Generated_Image_sd2u6vsd2u6vsd2u.png",
+    "width": 768,
+    "height": 1376,
+    "bytes": 162446
+  },
+  {
+    "roomNumber": "402",
+    "asset": "room-402.webp",
+    "sourceFile": "Gemini_Generated_Image_ud21diud21diud21.png",
+    "width": 896,
+    "height": 1200,
+    "bytes": 173608
+  },
+  {
+    "roomNumber": "401",
+    "asset": "room-401.webp",
+    "sourceFile": "Gemini_Generated_Image_x9xxuzx9xxuzx9xx.png",
+    "width": 896,
+    "height": 1200,
+    "bytes": 153666
+  },
+  {
+    "roomNumber": "407",
+    "asset": "room-407.webp",
+    "sourceFile": "Gemini_Generated_Image_xzfc22xzfc22xzfc.png",
+    "width": 896,
+    "height": 1200,
+    "bytes": 179140
+  },
+  {
+    "roomNumber": "104",
+    "asset": "room-104.webp",
+    "sourceFile": "Room_104_Japandi_Walnut.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 156494,
+    "sourceSha256": "b4662ec8d0a387ef11c01477b4a5864b116c2560349bfdc8c8c509a78706959b"
+  },
+  {
+    "roomNumber": "105",
+    "asset": "room-105.webp",
+    "sourceFile": "Room_105_Santorini_Blue_White.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 164458,
+    "sourceSha256": "cc050a7cc0dcf430687982fea83752d87a5ff3ff6bcf85d4d88284cf80599f9b"
+  },
+  {
+    "roomNumber": "106",
+    "asset": "room-106.webp",
+    "sourceFile": "Room_106_New_York_Loft.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 204850,
+    "sourceSha256": "ae4cc96b926a62c0390b537cc5670d6ae2f80f226b2f66dc83ba5d85d8efe607"
+  },
+  {
+    "roomNumber": "107",
+    "asset": "room-107.webp",
+    "sourceFile": "Room_107_Matcha_Latte_Pastel.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 151762,
+    "sourceSha256": "93fe8b1b44acdcdf66a88c914322eb951c78513976b477bfd47010f93c69272a"
+  },
+  {
+    "roomNumber": "108",
+    "asset": "room-108.webp",
+    "sourceFile": "Room_108_Italian_Marble_Luxury.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 165608,
+    "sourceSha256": "4a6c129aa73867a7707cb8d2232cd3f1728d5108013d5262c1040e0d27460efc"
+  },
+  {
+    "roomNumber": "109",
+    "asset": "room-109.webp",
+    "sourceFile": "Room_109_Boho_Chic_Swing.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 195298,
+    "sourceSha256": "d5664b7f865bd86c6ee5ef9234725c7c6c7e2e991206613a87f53b6ca38af2aa"
+  },
+  {
+    "roomNumber": "110",
+    "asset": "room-110.webp",
+    "sourceFile": "Room_110_Wine_Velvet_Moody.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 136216,
+    "sourceSha256": "d155920416f830b9b36ee63d0e63838d2c9e348b2101c7cc3ba1393e267408dd"
+  },
+  {
+    "roomNumber": "203",
+    "asset": "room-203.webp",
+    "sourceFile": "Room_203_Scandinavian_Hygge.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 149242,
+    "sourceSha256": "f0acaa0eae2a45dcccb0152d7bc799d047bb4a739c430137a0b6eabc3257bfed"
+  },
+  {
+    "roomNumber": "204",
+    "asset": "room-204.webp",
+    "sourceFile": "Room_204_Retro_Sunset_70s.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 155558,
+    "sourceSha256": "088711a3f41e24b4e158e55a64893e1b9996fe39bacb243a03253bd65c886b15"
+  },
+  {
+    "roomNumber": "205",
+    "asset": "room-205.webp",
+    "sourceFile": "Room_205_Ha_Noi_Pho_Co.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 178648,
+    "sourceSha256": "019a94702fd865e7e5a3a19dc5367613329a3917bf1c66e1b97f76346a59d4c0"
+  },
+  {
+    "roomNumber": "206",
+    "asset": "room-206.webp",
+    "sourceFile": "Room_206_Duplex_Gac_Lung.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 177920,
+    "sourceSha256": "21dd42acb88ecac70c444c73bf67990951f0d6dea102aca6e3bd6b0f2ee75cb5"
+  },
+  {
+    "roomNumber": "207",
+    "asset": "room-207.webp",
+    "sourceFile": "Room_207_Cloud_Pastel_Blue.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 169390,
+    "sourceSha256": "0afa3d851f4c5ad66c043525d32c3a04b8442bfa32264eec563b024d4fb3e5e1"
+  },
+  {
+    "roomNumber": "208",
+    "asset": "room-208.webp",
+    "sourceFile": "Room_208_Desert_Adobe.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 173390,
+    "sourceSha256": "3babadae56b51e5d0bf6c367a494acb273709e59e03d561778112f852b14b458"
+  },
+  {
+    "roomNumber": "209",
+    "asset": "room-209.webp",
+    "sourceFile": "Room_209_Black_Gold_Penthouse.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 177626,
+    "sourceSha256": "dc8a08b6f40d64f00738a46f10c3679cc7f909160ca44b643a4b9e8c9b211f3c"
+  },
+  {
+    "roomNumber": "210",
+    "asset": "room-210.webp",
+    "sourceFile": "Room_210_Library_Cafe_Suite.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 210464,
+    "sourceSha256": "e8481b55a0dcb3b582cfd74922db6b4e91ac08f210429ae83e5ebb4fa7402b80"
+  },
+  {
+    "roomNumber": "303",
+    "asset": "room-303.webp",
+    "sourceFile": "Room_303_Hoi_An_Lantern.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 215850,
+    "sourceSha256": "5a85288a02a2240166999f2b09c257cd8daa38f602d07d3ac2d5841e4a7e209b"
+  },
+  {
+    "roomNumber": "304",
+    "asset": "room-304.webp",
+    "sourceFile": "Room_304_Arch_Terrazzo.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 156934,
+    "sourceSha256": "87210cb68210749f13337236ecaed56ef4b339441f843986e3a99cd01fd1b5f7"
+  },
+  {
+    "roomNumber": "305",
+    "asset": "room-305.webp",
+    "sourceFile": "Room_305_Starlight_Round_Bed.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 165082,
+    "sourceSha256": "6de7e82b8e1b41cf8055b25e26262b193f318eed9806eaa7fdd16572503cc370"
+  },
+  {
+    "roomNumber": "306",
+    "asset": "room-306.webp",
+    "sourceFile": "Room_306_British_Heritage_Olive.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 161414,
+    "sourceSha256": "52e03289bb0c95e7be9c2893954c4b2d752af85426c93f54e6c2ef45a2cd236e"
+  },
+  {
+    "roomNumber": "307",
+    "asset": "room-307.webp",
+    "sourceFile": "Room_307_Sand_Dune_Travertine.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 162124,
+    "sourceSha256": "304b4f9ffba98ade62e004305cf017bad32e73d79b41345fe440c0dab489a40e"
+  },
+  {
+    "roomNumber": "308",
+    "asset": "room-308.webp",
+    "sourceFile": "Room_308_Caramel_Leather_Birch.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 157108,
+    "sourceSha256": "7806673f7c83837e3e67acf515bb144cf07d6ab82b113c568bd36ce7bef4a572"
+  },
+  {
+    "roomNumber": "309",
+    "asset": "room-309.webp",
+    "sourceFile": "Room_309_Sapa_Indigo_Timber.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 198016,
+    "sourceSha256": "e73297602b311d87fd3ef79e7eb92c3ba948b95279cc6c3704f6d6198ee89daf"
+  },
+  {
+    "roomNumber": "310",
+    "asset": "room-310.webp",
+    "sourceFile": "Room_310_Art_Gallery_3D.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 150198,
+    "sourceSha256": "fc72573be971e2fb3fe3e7fa9dd1a2475104f271098f0ff9b0d99142261c801a"
+  },
+  {
+    "roomNumber": "414",
+    "asset": "room-414.webp",
+    "sourceFile": "Room_414_Modern_Cinema_LED.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 150582,
+    "sourceSha256": "ad6f8832b6f0d61fbf23d5685a90c8e3a428f57ed66e1a6425e5ecb3390a1d47"
+  },
+  {
+    "roomNumber": "415",
+    "asset": "room-415.webp",
+    "sourceFile": "Room_415_Moroccan_Boho_Terracotta.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 192784,
+    "sourceSha256": "02d12e7eef4e59371c6e7fa6f9cf48177c31dd9ab7af4cb7298ebf8da7d4b4cc"
+  },
+  {
+    "roomNumber": "416",
+    "asset": "room-416.webp",
+    "sourceFile": "Room_416_Nordic_Sage_Green.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 148834,
+    "sourceSha256": "f59cfc1a96c82cfcb73da05c573e9067b388ccba2a382c58437e2928f639f302"
+  },
+  {
+    "roomNumber": "417",
+    "asset": "room-417.webp",
+    "sourceFile": "Room_417_Japanese_Ryokan_Tatami.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 151216,
+    "sourceSha256": "0a7542e372dcc531cc64aacfa644fe5ed4edca2e8f43370c638355f2d41cc8fa"
+  },
+  {
+    "roomNumber": "418",
+    "asset": "room-418.webp",
+    "sourceFile": "Room_418_Art_Deco_Emerald_Gold.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 187398,
+    "sourceSha256": "77fbd4af0c811ca1416a84777f89168a5ed3ee4b32c3034b51a0d1300668cda9"
+  },
+  {
+    "roomNumber": "419",
+    "asset": "room-419.webp",
+    "sourceFile": "Room_419_Coastal_Hamptons.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 153758,
+    "sourceSha256": "62e80c5e0740ff852d2b924aea3d6b380a29958d613472078007a0099bea049c"
+  },
+  {
+    "roomNumber": "420",
+    "asset": "room-420.webp",
+    "sourceFile": "Room_420_Rustic_Chalet_Pine.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 216286,
+    "sourceSha256": "62e0eae7999818883339f0ebf38c47f3cffd53fcd2cd38446469116d3a0b9f02"
+  },
+  {
+    "roomNumber": "421",
+    "asset": "room-421.webp",
+    "sourceFile": "Room_421_Romantic_Dusty_Rose.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 158868,
+    "sourceSha256": "540671bce723a111641c32f756f9a46b27e37a2fbd028d83a6df426c01beb078"
+  },
+  {
+    "roomNumber": "422",
+    "asset": "room-422.webp",
+    "sourceFile": "Room_422_Bauhaus_Retro_Pop.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 157698,
+    "sourceSha256": "685b09e30a0f7e30156e014ffa8c391d001ab9c5af227984c59be9b0911ca6ae"
+  },
+  {
+    "roomNumber": "423",
+    "asset": "room-423.webp",
+    "sourceFile": "Room_423_Quiet_Luxury_Espresso.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 155404,
+    "sourceSha256": "0c2e7742a0f45adb16ef259fecb7a72d048f8b578ce300749245fe00bbab3083"
+  },
+  {
+    "roomNumber": "424",
+    "asset": "room-424.webp",
+    "sourceFile": "Room_424_Botanical_Glasshouse.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 241882,
+    "sourceSha256": "b7c775a31011a37193f8c9f85a115a8b068d737140177da548b1d8ead2799ca8"
+  },
+  {
+    "roomNumber": "425",
+    "asset": "room-425.webp",
+    "sourceFile": "Room_425_Minimalist_Concrete.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 157864,
+    "sourceSha256": "334f00d436bf4ecf86c48e2f4fef51f039060d7a5668a9ed33ce23609bb0ae75"
+  },
+  {
+    "roomNumber": "426",
+    "asset": "room-426.webp",
+    "sourceFile": "Room_426_Vintage_Provence_Lavender.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 191516,
+    "sourceSha256": "8e468bc7c4cf0d4a9ca3948caeb6e61ff95298ea6a0d945a937a66374e2fe24e"
+  },
+  {
+    "roomNumber": "427",
+    "asset": "room-427.webp",
+    "sourceFile": "Room_427_Luxury_Spa_Bathtub.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 161366,
+    "sourceSha256": "0c7c56da0c7c4c0d0b5798f29dd9be7e1756d5c6a02018b19cc7427175196b35"
+  },
+  {
+    "roomNumber": "501",
+    "asset": "room-501.webp",
+    "sourceFile": "Room_501_Champagne_Silk_Luxury.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 149552,
+    "sourceSha256": "2b4b6f64d09343a198142955a74cb05d2894943b89478be8a7197853a7f3fd14"
+  },
+  {
+    "roomNumber": "502",
+    "asset": "room-502.webp",
+    "sourceFile": "Room_502_Attic_Skylight_Roof.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 182446,
+    "sourceSha256": "f81860e9087233cce388541ae9726951c8615d0b514a821d8f6ef9ff5c79df74"
+  },
+  {
+    "roomNumber": "503",
+    "asset": "room-503.webp",
+    "sourceFile": "Room_503_Peacock_Teal_Copper.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 170276,
+    "sourceSha256": "101ea73c42ef4b12bbcd894b001daa262d0d0fbbc271e078a8a9544f84886dba"
+  },
+  {
+    "roomNumber": "504",
+    "asset": "room-504.webp",
+    "sourceFile": "Room_504_Muji_Minimalist_Oak.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 147540,
+    "sourceSha256": "0a5ae81e013b556c2d517724ea110f6be19747d340ee02045156aa7b03a93f63"
+  },
+  {
+    "roomNumber": "505",
+    "asset": "room-505.webp",
+    "sourceFile": "Room_505_Tropical_Havana_Mint.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 196784,
+    "sourceSha256": "c7380234f90b2388e6e1e0deea2c0c321a4b12bd3411ce47ef07fa70fb23da84"
+  },
+  {
+    "roomNumber": "506",
+    "asset": "room-506.webp",
+    "sourceFile": "Room_506_Amber_Glass_Bronze.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 170716,
+    "sourceSha256": "7512aba7e1c761ca4dba4fe4487e325ebd88b0621a2deded83b88e4d5be45bf2"
+  },
+  {
+    "roomNumber": "507",
+    "asset": "room-507.webp",
+    "sourceFile": "Room_507_Zen_Window_Tea_Nook.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 156572,
+    "sourceSha256": "9f22b50504f5a682a0fec64dbcbfd36b2009f3ea61e325248405c2f4ee80a424"
+  },
+  {
+    "roomNumber": "508",
+    "asset": "room-508.webp",
+    "sourceFile": "Room_508_Butter_Yellow_Gingham.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 152718,
+    "sourceSha256": "c9a7b8a4b540ec6f12e0d4e7d1d5f8f4a579c82ac9db8d25c86f8e365c4a3cb6"
+  },
+  {
+    "roomNumber": "509",
+    "asset": "room-509.webp",
+    "sourceFile": "Room_509_Midnight_Royal_Blue.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 167434,
+    "sourceSha256": "870b186cbed113de01cec0ffdd3618f83cabdebb12289eac33d6ddd2d7a4895b"
+  },
+  {
+    "roomNumber": "510",
+    "asset": "room-510.webp",
+    "sourceFile": "Room_510_Eco_Bamboo_Resort.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 223642,
+    "sourceSha256": "483f7c2e6e868090be2749a94ad94dd10ef6e5d76cd71b8530598bf0fafde0c5"
+  },
+  {
+    "roomNumber": "601",
+    "asset": "room-601.webp",
+    "sourceFile": "Room_601_Milanese_Modern.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 141776,
+    "sourceSha256": "21bc30127c56e4f22c9ac98788546d641cfbdd7e1c47ab43c39d254c2e55fb72"
+  },
+  {
+    "roomNumber": "602",
+    "asset": "room-602.webp",
+    "sourceFile": "Room_602_Princess_Canopy_Fairy.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 163830,
+    "sourceSha256": "a1610871adde982914d810beb44eebec3811f686a9e660fd996696f9f51ac3ac"
+  },
+  {
+    "roomNumber": "603",
+    "asset": "room-603.webp",
+    "sourceFile": "Room_603_Malibu_Coastal.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 175594,
+    "sourceSha256": "1f1c4601f74f97e7b0ae26c9c135775574bce25541e1eca816853f0369c59c53"
+  },
+  {
+    "roomNumber": "604",
+    "asset": "room-604.webp",
+    "sourceFile": "Room_604_Co_Do_Hue_Heritage.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 181098,
+    "sourceSha256": "bbbe56488513c74f1f9d597cdfc5c4b69f978518c986172363b726737c1c5cec"
+  },
+  {
+    "roomNumber": "605",
+    "asset": "room-605.webp",
+    "sourceFile": "Room_605_Futuristic_Halo.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 126712,
+    "sourceSha256": "9664e22b25387c78bfb5fb5eda08f945277a1b0838cc518a13429e2d949b8d67"
+  },
+  {
+    "roomNumber": "606",
+    "asset": "room-606.webp",
+    "sourceFile": "Room_606_Pistachio_Walnut.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 156052,
+    "sourceSha256": "14187b47d335a8d8949f380c84dbb6719d7e75cf67091c1323b5d9c7b154c2fc"
+  },
+  {
+    "roomNumber": "607",
+    "asset": "room-607.webp",
+    "sourceFile": "Room_607_Winter_Fireplace_Lounge.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 172826,
+    "sourceSha256": "4ae04acb3355421d99793d9458aa0300c5a2d72b09534becaf461e345797fc61"
+  },
+  {
+    "roomNumber": "608",
+    "asset": "room-608.webp",
+    "sourceFile": "Room_608_Vinyl_Music_Lounge.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 173564,
+    "sourceSha256": "651baa3e54a236700068353ce7ee87bc43be6d16cf6ea6a2b8485c61ae7c2a42"
+  },
+  {
+    "roomNumber": "609",
+    "asset": "room-609.webp",
+    "sourceFile": "Room_609_Pastel_Lilac_Chrome.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 144220,
+    "sourceSha256": "b5869af2f60a79d172334396830bf48c369e3cc70245258ef6056a6e37882ca4"
+  },
+  {
+    "roomNumber": "610",
+    "asset": "room-610.webp",
+    "sourceFile": "Room_610_Sai_Gon_Retro.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 189636,
+    "sourceSha256": "dd99c6de223ee2e5266d6e0967756b0d1c25bbaa2aa5a8fb20b4bbd25f1d0dbf"
+  },
+  {
+    "roomNumber": "701",
+    "asset": "room-701.webp",
+    "sourceFile": "Room_701_Sunset_Lamp_Jacuzzi.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 149704,
+    "sourceSha256": "86d9c67aa83270d6946eebe62c2fb44beac186e4ef05b80c16d4737f5a569f6c"
+  },
+  {
+    "roomNumber": "702",
+    "asset": "room-702.webp",
+    "sourceFile": "Room_702_Tuscan_Olive_Villa.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 183082,
+    "sourceSha256": "24b01f1eea03b34847dcf3d0326d244ae76c267d3c244f39241a0c44e0268238"
+  },
+  {
+    "roomNumber": "703",
+    "asset": "room-703.webp",
+    "sourceFile": "Room_703_Black_Oak_Boucle.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 168390,
+    "sourceSha256": "e4b44fd2323c5e208b350afb3a88cf64e0f7c8d4d40dd796d41b247913cc3b85"
+  },
+  {
+    "roomNumber": "704",
+    "asset": "room-704.webp",
+    "sourceFile": "Room_704_Tropical_Peach_Palm.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 182040,
+    "sourceSha256": "3cbb24c7294ae5f138cd61d8dc6201856d43ddcff420d659dbcbec94d225cb1b"
+  },
+  {
+    "roomNumber": "705",
+    "asset": "room-705.webp",
+    "sourceFile": "Room_705_Gentlemans_Club_Leather.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 183224,
+    "sourceSha256": "c15b32fe52c69dd35a5137e1f15f90bf7bdfc615464af2e7b8296ceda42f7905"
+  },
+  {
+    "roomNumber": "706",
+    "asset": "room-706.webp",
+    "sourceFile": "Room_706_Kyoto_Bamboo_Garden.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 211534,
+    "sourceSha256": "8ebf8c289bbf738a82c983d5000c266da2c1b0ddfc7f8d0ac34d4bba84990b46"
+  },
+  {
+    "roomNumber": "707",
+    "asset": "room-707.webp",
+    "sourceFile": "Room_707_Celadon_Paris_Mint.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 165986,
+    "sourceSha256": "41485e0dbc190ce56d4ea6b70eafc1f874c1ec04104f08f7a7be371f9fca7faf"
+  },
+  {
+    "roomNumber": "708",
+    "asset": "room-708.webp",
+    "sourceFile": "Room_708_Mocha_Mousse_Corduroy.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 164972,
+    "sourceSha256": "f4c6537d391c575b256f95a171aebb9da1437d1683b37c4f853d42f2c3c7f470"
+  },
+  {
+    "roomNumber": "709",
+    "asset": "room-709.webp",
+    "sourceFile": "Room_709_Glasshouse_Glamping.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 249080,
+    "sourceSha256": "f8661fda1c814788f0a09e4120bae1229412b7add272760ab10c4168c26ef813"
+  },
+  {
+    "roomNumber": "710",
+    "asset": "room-710.webp",
+    "sourceFile": "Room_710_Blush_Navy_Art_Deco.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 156490,
+    "sourceSha256": "1e22d968659a8ea13ec8f3a221eb753effbdba6e571c56f9912ce41a4f9de0cb"
+  },
+  {
+    "roomNumber": "801",
+    "asset": "room-801.webp",
+    "sourceFile": "Room_801_Sky_Penthouse_Marble_Tub.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 172034,
+    "sourceSha256": "a105665f40f4e198c686edf654deff0873360e20a848402dd5bb748a79378b84"
+  },
+  {
+    "roomNumber": "802",
+    "asset": "room-802.webp",
+    "sourceFile": "Room_802_Dalat_Pine_Veranda.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 219782,
+    "sourceSha256": "5b91d8863a29002a393dc50e8f5f81190a0554d66ed4450e2ab0886e7d7f3404"
+  },
+  {
+    "roomNumber": "803",
+    "asset": "room-803.webp",
+    "sourceFile": "Room_803_Seoul_Line_Art_Cream.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 151796,
+    "sourceSha256": "c1ad5cd055356f7020164ac159f3d1c704c0a1a085efbc5b4f6f90688c7fc45e"
+  },
+  {
+    "roomNumber": "804",
+    "asset": "room-804.webp",
+    "sourceFile": "Room_804_Marrakesh_Riad_Arch.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 237604,
+    "sourceSha256": "1907398e1523d0bbe2d96d5b295000758e11a523a75293be06287503d64b7be4"
+  },
+  {
+    "roomNumber": "805",
+    "asset": "room-805.webp",
+    "sourceFile": "Room_805_Nordic_Fjord_Blue.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 146714,
+    "sourceSha256": "d89ab45bf2da6bdc68ced4ac5c081e20ad1cd2aff52ecc66951f3b579737f6ed"
+  },
+  {
+    "roomNumber": "806",
+    "asset": "room-806.webp",
+    "sourceFile": "Room_806_Hollywood_Regency_Glam.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 194844,
+    "sourceSha256": "043363393654cb5e1a45c5eb78627e80af3495cab75a5eef04fede5edc57a24f"
+  },
+  {
+    "roomNumber": "807",
+    "asset": "room-807.webp",
+    "sourceFile": "Room_807_Mallorca_Clay_Arch.jpg",
+    "width": 896,
+    "height": 1200,
+    "bytes": 190026,
+    "sourceSha256": "4cd1e6377cc1fdffa714e70fb1334451f25cf37c5503f6f50b789ea2010dd969"
+  }
+]

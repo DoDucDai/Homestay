@@ -22,7 +22,7 @@ CREATE TABLE Users (
     password_scheme NVARCHAR(32) NOT NULL DEFAULT 'pbkdf2-v58',
     auth_version INT NOT NULL DEFAULT 0,
     full_name  NVARCHAR(100) NOT NULL,
-    role       NVARCHAR(20)  NOT NULL DEFAULT 'staff', -- admin / staff
+    role       NVARCHAR(20)  NOT NULL DEFAULT 'customer' CONSTRAINT CK_Users_Role CHECK(role IN('admin','customer')), -- admin / customer
     created_at DATETIME      DEFAULT GETDATE()
 );
 
@@ -30,9 +30,19 @@ CREATE TABLE Users (
 -- BANG 2: ROOMS (Phong)
 -- NGUOI LAM: LONG
 -- ============================================
+CREATE TABLE Properties (
+    property_id INT PRIMARY KEY,
+    property_name NVARCHAR(100) NOT NULL,
+    address NVARCHAR(250) NOT NULL
+);
+INSERT INTO Properties(property_id,property_name,address)
+VALUES(1,N'Cơ sở 1',N'123 Đường Hoa Mai, TP. Hồ Chí Minh');
+
 CREATE TABLE Rooms (
     room_id     INT IDENTITY(1,1) PRIMARY KEY,
-    room_code   NVARCHAR(20)  NOT NULL UNIQUE,   -- VD: P101, P102
+    room_code   NVARCHAR(20)  NOT NULL UNIQUE,   -- VD: Room 101, Room 102
+    property_id INT NOT NULL CONSTRAINT DF_Rooms_Property DEFAULT 1
+        CONSTRAINT FK_Rooms_Property REFERENCES Properties(property_id),
     room_name   NVARCHAR(100) NOT NULL,
     room_type   NVARCHAR(50)  NOT NULL,           -- Single, Double, VIP, Family
     price       DECIMAL(12,0) NOT NULL,           -- Gia / dem

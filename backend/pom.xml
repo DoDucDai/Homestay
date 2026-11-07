@@ -4,6 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- NOTE BUILD: Kế thừa phiên bản thư viện và cấu hình plugin từ Spring Boot để các thành phần dùng phiên bản tương thích. -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -15,10 +16,13 @@
     <version>1.0.0</version>
     <name>Homestay Management Backend</name>
 
+    <!-- NOTE BUILD: Chọn Java 17 và thư mục build; homestay.build.directory có thể đổi khi cần tạo bản build kiểm tra riêng. -->
     <properties>
         <java.version>17</java.version>
+        <homestay.build.directory>target</homestay.build.directory>
     </properties>
 
+    <!-- NOTE BUILD: Khai báo thư viện cho bảo mật, HTTP, đọc .env, JDBC SQL Server và xử lý Excel; Maven tự tải các phụ thuộc cần thiết. -->
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -53,11 +57,15 @@
     </dependencies>
 
     <build>
+        <directory>${homestay.build.directory}</directory>
+        <!-- NOTE BUILD: Đóng gói migration tài khoản/quyền, giao diện AI, cấu hình và frontend vào classpath/JAR cùng backend. -->
         <resources>
+            <resource><directory>../database/migrations</directory><targetPath>db</targetPath><includes><include>008_account_registration.sql</include><include>009_two_roles.sql</include></includes><filtering>false</filtering></resource>
             <resource><directory>../ai-rag/web</directory><targetPath>static/ai</targetPath><filtering>false</filtering></resource>
             <resource><directory>src/main/resources</directory><filtering>false</filtering></resource>
             <resource><directory>../frontend</directory><targetPath>static</targetPath><filtering>false</filtering></resource>
         </resources>
+        <!-- NOTE BUILD: Plugin Spring Boot tạo JAR thực thi chứa ứng dụng và các thư viện phụ thuộc. -->
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

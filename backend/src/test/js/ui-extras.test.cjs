@@ -1,3 +1,5 @@
+// NOTE KIỂM THỬ: Kiểm tra xuất CSV an toàn, phân trang, hộp xác nhận và hiển thị từ chối quyền thống kê.
+// Code chạy bằng Node trong môi trường giả để kiểm tra frontend; các assert so kết quả thực tế với kết quả mong đợi.
 const assert=require('node:assert/strict');
 const vm=require('node:vm');
 const {env,Element,payload}=require('./frontend-test-env.cjs');
@@ -51,7 +53,7 @@ const defer=()=>{let resolve;const promise=new Promise(r=>{resolve=r;});return {
  assert.equal(e.el('yearly-total').textContent,'--');assert.equal(e.el('yearly-chart').children.length,0);assert.match(e.el('yearly-status').textContent,/Năm đã thay đổi/);
  pass('changing report filters clears old totals/CSV/charts and invalidates pending responses before the next load');
 
- e=env('statistics');e.context.checkLogin=async()=>({role:'staff'});let statisticsReads=0;e.context.apiGet=async()=>{statisticsReads++;return [];};
+ e=env('statistics');e.context.checkLogin=async()=>({role:'customer'});let statisticsReads=0;e.context.apiGet=async()=>{statisticsReads++;return [];};
  e.el('statistics-content').hidden=true;e.el('statistics-denied').hidden=true;await e.events.DOMContentLoaded();
  assert.equal(statisticsReads,0);assert.equal(e.el('statistics-content').hidden,true);assert.equal(e.el('statistics-denied').hidden,false);
  pass('staff direct navigation shows an explicit denial without requesting statistics or exposing report controls');

@@ -1,3 +1,4 @@
+# NOTE BACKEND: Kiểm tra biến kết nối database và các cờ HTTPS/TLS theo profile rồi chạy JAR phát hành; không tự tạo database hoặc sửa mật khẩu.
 param([string]$JarPath = (Join-Path $PSScriptRoot 'homestay.jar'), [ValidateSet('dev','prod')][string]$Profile = 'prod')
 $ErrorActionPreference = 'Stop'
 foreach ($setting in @('DB_HOST','DB_PORT','DB_NAME','DB_USER','DB_PASSWORD')) {

@@ -8,6 +8,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 
+// NOTE API: API đặt phòng, nhận/trả phòng, dịch vụ đã dùng và hóa đơn; admin và customer dùng luồng chung.
+// @...Mapping xác định phương thức HTTP và đường dẫn; @RequestBody đọc JSON,
+// @PathVariable đọc ID trong URL, @RequestParam đọc tham số sau dấu ?. Quyền truy cập nằm trong SecurityConfig.
 @RestController
 @RequestMapping("/api")
 
@@ -18,16 +21,19 @@ public class BookingController {
     public BookingController() { this(RoomSchedule.CLOCK); }
     BookingController(java.time.Clock clock) { this.clock = clock; }
 
+    // NOTE BACKEND: Dùng bộ quản lý giao dịch chung của RoomSchedule cho thao tác có nhiều câu ghi SQL.
     private Map<String, Object> inTransaction(RoomSchedule.Work work, String errorMessage) {
         return RoomSchedule.transaction(work, errorMessage);
     }
 
     // Always lock Rooms before Bookings; the room lock serializes operations
     // on different bookings for the same physical room as well.
+    // NOTE BACKEND: Khóa phòng trước rồi khóa booking; kiểm tra trạng thái, bảo trì, người đang ở và hóa đơn để các thao tác đồng thời giữ cùng thứ tự khóa.
     private int lockBookingRoom(Connection conn, int bookingId, String expectedStatus) throws SQLException {
         return lockBookingRoom(conn, bookingId, expectedStatus, true);
     }
 
+    // NOTE BACKEND: Khóa phòng trước rồi khóa booking; kiểm tra trạng thái, bảo trì, người đang ở và hóa đơn để các thao tác đồng thời giữ cùng thứ tự khóa.
     private int lockBookingRoom(Connection conn, int bookingId, String expectedStatus, boolean requireUsable) throws SQLException {
         int roomId;
         try (PreparedStatement stmt = conn.prepareStatement("SELECT room_id FROM Bookings WHERE booking_id = ?")) {
@@ -69,6 +75,7 @@ public class BookingController {
         return roomId;
     }
 
+    // NOTE BACKEND: Chỉ đổi trạng thái nếu giá trị cũ vẫn khớp; nếu booking vừa bị thao tác khác sửa thì báo xung đột.
     private void transitionBooking(Connection conn, int bookingId, String from, String to) throws SQLException {
         try (PreparedStatement stmt = conn.prepareStatement(
                 "UPDATE Bookings SET status = ? WHERE booking_id = ? AND status = ?")) {
@@ -79,6 +86,7 @@ public class BookingController {
         }
     }
 
+    // NOTE BACKEND: Đọc số nguyên chính xác, không nhận phần thập phân; trả giá trị dự phòng nếu không đọc được.
     private int parseInt(Object val, int defaultVal) {
         if (val == null) return defaultVal;
         try {
@@ -89,17 +97,22 @@ public class BookingController {
     }
 
     // GET /api/bookings?status=Confirmed
-    @GetMapping("/bookings")
     public List<Map<String, Object>> getBookings(@RequestParam(required = false) String status) {
+        return getBookings(status,null);
+    }
+    // NOTE API: GET /api/bookings lấy danh sách đặt phòng, có thể lọc status và propertyId.
+    // Trả thông tin lượt đặt kèm khách, phòng và dữ liệu giá cần cho danh sách/lịch lưu trú.
+    @GetMapping("/bookings")
+    public List<Map<String,Object>> getBookings(@RequestParam(required=false) String status,@RequestParam(required=false) Integer propertyId) {
         if(status!=null && !status.isBlank() && !status.equalsIgnoreCase("all")) {
             Input.oneOf(status.trim(),Set.of("Confirmed","CheckedIn","CheckedOut","Cancelled"),"Trạng thái booking");
         }
         List<Map<String, Object>> result = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder("""
-            SELECT b.booking_id, b.customer_id, b.room_id, b.checkin_date, b.checkout_date, b.status, b.note, b.created_at,b.billing_unit,b.checkin_at,b.checkout_at,b.price_per_hour,
+            SELECT b.booking_id, b.customer_id, b.room_id, b.checkin_date, b.checkout_date, b.status, b.note, b.created_at,b.billing_unit,b.checkin_at,b.checkout_at,b.price_per_hour,b.hourly_packages_snapshot,b.nightly_pricing_snapshot,
                    c.full_name AS customer_name, c.phone, c.cccd,
-                   r.room_code, r.room_name, b.price_per_night AS price, r.room_type
+                   r.room_code, r.room_name, b.price_per_night AS price, r.room_type,r.property_id
             FROM Bookings b
             JOIN Customers c ON b.customer_id = c.customer_id
             JOIN Rooms r ON b.room_id = r.room_id
@@ -109,6 +122,8 @@ public class BookingController {
         if (hasStatusFilter) {
             sql.append(" WHERE b.status = ?");
         }
+        if(!hasStatusFilter)sql.append(" WHERE 1=1");
+        sql.append(PropertyController.roomScope(propertyId,"b.room_id"));
         sql.append(" ORDER BY b.booking_id DESC");
 
         try (Connection conn = DBConnection.getConnection();
@@ -126,6 +141,8 @@ public class BookingController {
                     row.put("checkinAt",rs.getTimestamp("checkin_at")==null?null:rs.getTimestamp("checkin_at").toLocalDateTime().toString());
                     row.put("checkoutAt",rs.getTimestamp("checkout_at")==null?null:rs.getTimestamp("checkout_at").toLocalDateTime().toString());
                     row.put("pricePerHour",rs.getBigDecimal("price_per_hour"));
+                    row.put("hourlyPackages",HourlyPricing.decode(rs.getString("hourly_packages_snapshot")));
+                    row.put("nightlyPricing",NightlyPricing.decode(rs.getString("nightly_pricing_snapshot")));
                     row.put("customerId", rs.getInt("customer_id"));
                     row.put("customerName", rs.getString("customer_name"));
                     row.put("phone", rs.getString("phone"));
@@ -134,6 +151,7 @@ public class BookingController {
                     row.put("roomCode", rs.getString("room_code"));
                     row.put("roomName", rs.getString("room_name"));
                     row.put("roomType", rs.getString("room_type"));
+                    row.put("propertyId",rs.getInt("property_id"));
                     row.put("price", rs.getLong("price"));
                     row.put("checkinDate", rs.getString("checkin_date"));
                     row.put("checkoutDate", rs.getString("checkout_date"));
@@ -159,6 +177,8 @@ public class BookingController {
         });
     }
 
+    // NOTE API: GET /api/bookings/available-rooms nhận query checkin, checkout theo ngày.
+    // Loại phòng bảo trì hoặc trùng lịch; trả danh sách phòng phù hợp kèm số đêm và tiền phòng dự kiến.
     @GetMapping("/bookings/available-rooms")
     public List<Map<String, Object>> getAvailableRooms(@RequestParam String checkin, @RequestParam String checkout) {
         LocalDate today = RoomSchedule.today(clock);
@@ -170,7 +190,12 @@ public class BookingController {
             RoomSchedule.bindToday(stmt, today);
             RoomSchedule.bindRange(stmt, 3, range, today);
             try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) rooms.add(RoomSchedule.roomRow(rs));
+                while (rs.next()) {
+                    var row=RoomSchedule.roomRow(rs);
+                    var quote=NightlyPricing.quote(rs.getBigDecimal("price"),NightlyPricing.room(rs),range.checkin(),range.checkout());
+                    row.put("estimatedRoomTotal",quote.total());row.put("nights",quote.nights());
+                    rooms.add(row);
+                }
             }
         } catch (SQLException e) {
             throw new RoomSchedule.QueryFailure(e);
@@ -178,6 +203,8 @@ public class BookingController {
         return rooms;
     }
 
+    // NOTE API: PUT /api/bookings/{bookingId}/cancel hủy lượt đặt đang Confirmed.
+    // Khóa dữ liệu, đổi sang Cancelled và tính lại trạng thái phòng trong cùng giao dịch.
     @PutMapping("/bookings/{bookingId}/cancel")
     public Map<String, Object> cancelBooking(@PathVariable int bookingId) {
         return ApiErrors.guard(() -> {
@@ -196,6 +223,9 @@ public class BookingController {
 
     // POST /api/bookings
     // Body: { "customerId": 1, "roomId": 2, "checkinDate": "2026-09-15", "checkoutDate": "2026-09-18", "note": "..." }
+    // NOTE API: POST /api/bookings tạo lượt đặt từ customerId, roomId, billingUnit và thời gian lưu trú.
+    // Night dùng checkinDate/checkoutDate; Hour dùng checkinAt/checkoutAt. Giá lấy từ database, không lấy từ client.
+    // Kiểm tra khách/phòng và trùng lịch trong giao dịch; lưu giá tại lúc đặt và trả bookingId mới.
     @PostMapping("/bookings")
     public Map<String, Object> createBooking(@RequestBody Map<String, Object> body) {
         return ApiErrors.guard(() -> {
@@ -224,6 +254,11 @@ public class BookingController {
                 LocalDate today = RoomSchedule.today(clock);
                 RoomSchedule.requireAvailable(conn, roomId, range, today);
                 BigDecimal capturedPrice = BookingInvoiceSnapshot.money(room.price());
+                Map<String,Object> nightly;
+                try(var st=conn.prepareStatement("SELECT weekend_price,weekend_days FROM Rooms WHERE room_id=?")) {
+                    st.setInt(1,roomId);try(var rs=st.executeQuery()){rs.next();nightly=NightlyPricing.room(rs);}
+                }
+                NightlyPricing.quote(capturedPrice,nightly,range.checkin(),range.checkout());
                 try (PreparedStatement stmt = conn.prepareStatement("SELECT customer_id FROM Customers WHERE customer_id=?")) {
                     stmt.setInt(1, customerId);
                     try (ResultSet rs = stmt.executeQuery()) {
@@ -233,7 +268,7 @@ public class BookingController {
 
                 // 2. Thêm mới Booking
                 int newBookingId = 0;
-                String insertBookingSql = "INSERT INTO Bookings (customer_id, room_id, checkin_date, checkout_date, status, note, price_per_night, created_at) VALUES (?, ?, ?, ?, 'Confirmed', ?, ?, ?)";
+                String insertBookingSql = "INSERT INTO Bookings (customer_id, room_id, checkin_date, checkout_date, status, note, price_per_night, created_at, nightly_pricing_snapshot) VALUES (?, ?, ?, ?, 'Confirmed', ?, ?, ?, ?)";
                 try (PreparedStatement insertStmt = conn.prepareStatement(insertBookingSql, Statement.RETURN_GENERATED_KEYS)) {
                     insertStmt.setInt(1, customerId);
                     insertStmt.setInt(2, roomId);
@@ -242,6 +277,7 @@ public class BookingController {
                     insertStmt.setString(5, note);
                     insertStmt.setBigDecimal(6, capturedPrice);
                     insertStmt.setTimestamp(7,Timestamp.valueOf(java.time.LocalDateTime.now(clock.withZone(RoomSchedule.ZONE))));
+                    insertStmt.setString(8,NightlyPricing.encode(nightly));
                     insertStmt.executeUpdate();
 
                     try (ResultSet generatedKeys = insertStmt.getGeneratedKeys()) {
@@ -260,6 +296,7 @@ public class BookingController {
         });
     }
 
+    // NOTE BACKEND: Tạo booking giờ với thời điểm Việt Nam, khóa phòng và kiểm tra chồng lịch; giữ đơn giá/gói tại lúc đặt để tính hóa đơn sau.
     private Map<String,Object> createHourly(Map<String,Object> body) {
         int customerId=Input.integer(body,"customerId",1,Integer.MAX_VALUE);
         int roomId=Input.integer(body,"roomId",1,Integer.MAX_VALUE);
@@ -268,7 +305,8 @@ public class BookingController {
         return inTransaction(conn -> {
             RoomSchedule.lockRoom(conn,roomId);
             java.math.BigDecimal rate;
-            try(var stmt=conn.prepareStatement("SELECT hourly_price,status FROM Rooms WHERE room_id=?")) {
+            Map<String,Long> packages;
+            try(var stmt=conn.prepareStatement("SELECT hourly_price,hourly_package_2,hourly_package_4,hourly_package_8,status FROM Rooms WHERE room_id=?")) {
                 stmt.setInt(1,roomId);
                 try(var rs=stmt.executeQuery()) {
                     if(!rs.next()) throw ApiErrors.notFound("Không tìm thấy phòng!");
@@ -276,7 +314,8 @@ public class BookingController {
                     rate=rs.getBigDecimal("hourly_price");
                     if(rate==null || rate.signum()<=0) throw new RoomSchedule.Conflict("Phòng chưa khai báo giá giờ. Hãy nhờ quản lý nhập giá trước!");
                     rate=BookingInvoiceSnapshot.money(rate);
-                    BookingInvoiceSnapshot.money(rate.multiply(java.math.BigDecimal.valueOf(range.hours())));
+                    packages=HourlyPricing.packages(rs);
+                    HourlyPricing.quote(rate,packages,range.hours());
                 }
             }
             try(var stmt=conn.prepareStatement("""
@@ -297,12 +336,13 @@ public class BookingController {
             if(!endDate.isAfter(range.start().toLocalDate())) endDate=range.start().toLocalDate().plusDays(1);
             try(var stmt=conn.prepareStatement("""
                 INSERT Bookings(customer_id,room_id,checkin_date,checkout_date,status,note,price_per_night,
-                    billing_unit,checkin_at,checkout_at,price_per_hour,created_at)
-                VALUES(?,?,?,?,'Confirmed',?,0,'Hour',?,?,?,?)
+                    billing_unit,checkin_at,checkout_at,price_per_hour,created_at,hourly_packages_snapshot)
+                VALUES(?,?,?,?,'Confirmed',?,0,'Hour',?,?,?,?,?)
                 """,Statement.RETURN_GENERATED_KEYS)) {
                 stmt.setInt(1,customerId);stmt.setInt(2,roomId);stmt.setDate(3,java.sql.Date.valueOf(range.start().toLocalDate()));
                 stmt.setDate(4,java.sql.Date.valueOf(endDate));stmt.setString(5,note);stmt.setTimestamp(6,Timestamp.valueOf(range.start()));
                 stmt.setTimestamp(7,Timestamp.valueOf(range.end()));stmt.setBigDecimal(8,rate);stmt.setTimestamp(9,Timestamp.valueOf(HourlyStay.now(clock)));
+                stmt.setString(10,HourlyPricing.encode(packages));
                 stmt.executeUpdate();try(var rs=stmt.getGeneratedKeys()) {
                     if(!rs.next())throw new SQLException("Missing booking key");
                     return Map.of("success",true,"bookingId",rs.getInt(1),"message","Đã đặt phòng theo giờ!","billedHours",range.hours());
@@ -312,6 +352,8 @@ public class BookingController {
     }
 
     // PUT /api/checkin/{bookingId}
+    // NOTE API: PUT /api/checkin/{bookingId} nhận phòng cho lượt đặt Confirmed.
+    // Chỉ cho nhận trong thời gian đã đặt, phòng sử dụng được và chưa có hóa đơn; đổi sang CheckedIn.
     @PutMapping("/checkin/{bookingId}")
     public Map<String, Object> checkIn(@PathVariable int bookingId) {
         return ApiErrors.guard(() -> {
@@ -344,6 +386,8 @@ public class BookingController {
     }
 
     // Each order is a separate captured-price line, serialized with checkout.
+    // NOTE API: POST /api/bookings/{bookingId}/services nhận serviceId và quantity.
+    // Chỉ thêm cho lượt đặt CheckedIn; lưu tên và đơn giá tại lúc gọi để giữ đúng tiền khi danh mục đổi giá.
     @PostMapping("/bookings/{bookingId}/services")
     public Map<String, Object> addServiceToBooking(@PathVariable int bookingId, @RequestBody(required = false) Map<String, Object> body) {
         return ApiErrors.guard(() -> {
@@ -393,6 +437,8 @@ public class BookingController {
         });
     }
 
+    // NOTE API: DELETE /api/bookings/services/{bookingServiceId} xóa một dòng dịch vụ gọi nhầm.
+    // ID ở URL là ID dòng sử dụng dịch vụ, không phải serviceId; chỉ xóa khi lượt lưu trú chưa thanh toán.
     @DeleteMapping("/bookings/services/{bookingServiceId}")
     public Map<String, Object> removeServiceFromBooking(@PathVariable int bookingServiceId) {
         return ApiErrors.guard(() -> {
@@ -432,6 +478,8 @@ public class BookingController {
         });
     }
 
+    // NOTE API: GET /api/checkout/preview/{bookingId} lấy hóa đơn tạm tính cho lượt CheckedIn.
+    // Tính tiền phòng và các dịch vụ theo giá đã lưu; thao tác này chưa ghi nhận thanh toán.
     @GetMapping("/checkout/preview/{bookingId}")
     public Map<String, Object> previewCheckout(@PathVariable int bookingId) {
         return ApiErrors.guard(() -> {
@@ -447,6 +495,9 @@ public class BookingController {
         });
     }
 
+    // NOTE API: POST /api/checkout/{bookingId} nhận paymentMethod, mặc định là tiền mặt.
+    // Lưu một hóa đơn cố định, đổi booking sang CheckedOut và cập nhật phòng trong cùng giao dịch.
+    // Trả paymentId và invoice; nếu có lỗi thì hoàn tác toàn bộ để tránh ghi nhận thanh toán dở dang.
     @PostMapping("/checkout/{bookingId}")
     public Map<String, Object> checkOut(@PathVariable int bookingId, @RequestBody(required = false) Map<String, Object> body) {
         return ApiErrors.guard(() -> {
@@ -468,12 +519,17 @@ public class BookingController {
         });
     }
 
-    @GetMapping("/payments")
     public List<Map<String,Object>> getPayments(@RequestParam(required=false) Integer bookingId) {
+        return getPayments(bookingId,null);
+    }
+    // NOTE API: GET /api/payments lấy các hóa đơn đã thanh toán, có thể lọc bookingId và propertyId.
+    // Trả mã hóa đơn, lượt đặt, thời điểm, phương thức và tổng tiền để hiển thị danh sách hóa đơn.
+    @GetMapping("/payments")
+    public List<Map<String,Object>> getPayments(@RequestParam(required=false) Integer bookingId,@RequestParam(required=false) Integer propertyId) {
         if (bookingId != null) Input.id(bookingId);
         List<Map<String,Object>> result = new ArrayList<>();
         String sql = "SELECT payment_id,booking_id,paid_at,payment_method,grand_total FROM Payments WHERE payment_status=N'Đã thanh toán'"
-                + (bookingId == null ? "" : " AND booking_id=?") + " ORDER BY payment_id DESC";
+                + (bookingId == null ? "" : " AND booking_id=?")+PropertyController.paymentScope(propertyId,"booking_id") + " ORDER BY payment_id DESC";
         try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             if (bookingId != null) stmt.setInt(1,bookingId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -485,6 +541,8 @@ public class BookingController {
         return result;
     }
 
+    // NOTE API: GET /api/payments/{paymentId} lấy chi tiết hóa đơn đã lưu để xem hoặc in lại.
+    // Đọc bản chụp dữ liệu lúc thanh toán, không tính lại theo tên khách hay giá phòng/dịch vụ hiện tại.
     @GetMapping("/payments/{paymentId}")
     public Map<String, Object> getPayment(@PathVariable int paymentId) {
         return ApiErrors.guard(() -> {

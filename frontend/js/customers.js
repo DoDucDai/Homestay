@@ -1,3 +1,5 @@
+// NOTE FRONTEND: Nối màn hình hồ sơ khách với CustomerController: tìm kiếm, thêm/sửa/xóa, xem chi tiết và lịch sử lưu trú.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
 // ============================================
 // customers.js - XU LY TRANG KHACH HANG
 // NGUOI LAM: DUC DAI (LEADER)
@@ -37,6 +39,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
+// NOTE FRONTEND: Gửi từ khóa đã mã hóa lên API, chỉ áp dụng phản hồi mới nhất và chỉ cho xuất CSV khi dữ liệu tải thành công.
 async function loadCustomers() {
     customersExportReady = false;document.getElementById('customers-export').disabled = true;
     const version = ++customersVersion;
@@ -58,6 +61,7 @@ async function loadCustomers() {
         showRequestError(err, 'Lỗi khi tải danh sách khách hàng!');
     }
 }
+// NOTE FRONTEND: Xuất các khách trong kết quả hiện tại; giữ giấy tờ/điện thoại dạng văn bản để không mất số 0 đầu.
 function exportCustomers() {
     return downloadCsv('khach-hang-'+vietnamToday()+'.csv',[
         {label:'Mã khách',value:c=>'KH'+c.customerId},{label:'Họ tên',value:c=>c.fullName,text:true},
@@ -66,6 +70,7 @@ function exportCustomers() {
     ],currentCustomers,customersExportReady && !customersLoadFailed);
 }
 
+// NOTE FRONTEND: Dựng bảng bằng các nút/liên kết an toàn, phân trang và cảnh báo dữ liệu cũ; nút xóa chỉ hiện với admin.
 function renderTable(customers) {
     const tbody = document.getElementById('customers-tbody'); if (!tbody) return;
     tbody.replaceChildren();
@@ -96,12 +101,14 @@ function renderTable(customers) {
         Array.from(row.children).forEach((cell,index)=>cell.setAttribute('data-label',['Mã KH','Họ tên / Địa chỉ','Giấy tờ','Điện thoại','Email','Thao tác'][index]));
     });
 }
+// NOTE FRONTEND: Tạo liên kết mở hồ sơ từ giá trị tên/địa chỉ/email/giấy tờ thay vì gắn HTML động vào bảng.
 function customerDetailLink(value,customer,className='') {
     const button=actionButton(value,'customer-detail-link '+className,()=>openCustomerDetails(customer));
     button.title=value;
     button.setAttribute('aria-label','Xem đầy đủ hồ sơ KH'+customer.customerId+': '+value);
     return button;
 }
+// NOTE FRONTEND: Mở hộp chi tiết đầy đủ của đúng khách đã chọn, ghi rõ các trường chưa có dữ liệu.
 function openCustomerDetails(customer) {
     document.getElementById('customer-details-title').textContent='Hồ sơ KH'+customer.customerId;
     const fields=document.getElementById('customer-details-fields');fields.replaceChildren();
@@ -112,6 +119,7 @@ function openCustomerDetails(customer) {
     openModal('customer-details-modal');
 }
 
+// NOTE FRONTEND: Xóa trạng thái chỉnh sửa và dữ liệu cũ rồi mở form tạo hồ sơ khách.
 function openAddModal() {
     if (customerSaving) return;
     clearCustomerErrors();
@@ -129,6 +137,7 @@ function openAddModal() {
     openModal('customer-modal');
 }
 
+// NOTE FRONTEND: Giữ customerId và điền hồ sơ đã chọn để saveCustomer biết gửi PUT thay vì POST.
 function openEditModal(customer) {
     if (customerSaving || customerDeleting.has(customer.customerId)) return;
     clearCustomerErrors();
@@ -148,6 +157,7 @@ function openEditModal(customer) {
     openModal('customer-modal');
 }
 
+// NOTE FRONTEND: Xóa lỗi và đánh dấu aria-invalid cũ trước một lần kiểm tra form mới.
 function clearCustomerErrors() {
     document.getElementById('customer-form-error').hidden = true;
     ['name','document-type','cccd','phone','email','address'].forEach(key => {
@@ -156,6 +166,7 @@ function clearCustomerErrors() {
     });
 }
 
+// NOTE FRONTEND: Kiểm tra họ tên, loại/số giấy tờ, liên hệ; khóa gửi lặp và chọn POST/PUT theo đang thêm hay sửa.
 async function saveCustomer() {
     if (customerSaving) return;
     clearCustomerErrors();
@@ -247,6 +258,7 @@ async function saveCustomer() {
     }
 }
 
+// NOTE FRONTEND: Xác nhận khách cần xóa, khóa nút trong khi gửi DELETE; backend từ chối nếu đã có lịch sử đặt phòng.
 async function deleteCustomer(id, name) {
     if (currentUser?.role !== 'admin' || customerDeleting.has(id)) return;
     if (!await askConfirmation(`Bạn có chắc chắn muốn xóa khách hàng [${name}] không?`)) {
@@ -270,11 +282,14 @@ async function deleteCustomer(id, name) {
     }
 }
 
+// NOTE FRONTEND: Chỉ đóng form khi không đang lưu và trả trạng thái chỉnh sửa về mặc định.
 function closeCustomerModal() { if (!customerSaving) document.getElementById('customer-modal').classList.remove('show'); }
+// NOTE FRONTEND: Đóng hộp lịch sử và tăng phiên bản yêu cầu để kết quả tải chậm không mở lại dữ liệu cũ.
 function closeCustomerHistory() {
     historyVersion++;
     document.getElementById('customer-history-modal').classList.remove('show');
 }
+// NOTE FRONTEND: Tải lịch sử theo customerId, kiểm tra lần mở hiện tại rồi dựng các lượt đặt/tổng tiền đã thanh toán.
 async function openCustomerHistory(id) {
     const version = ++historyVersion;
     document.getElementById('history-title').textContent = 'Lịch sử KH'+id;
@@ -309,6 +324,7 @@ async function openCustomerHistory(id) {
     }
 }
 
+// NOTE FRONTEND: Hiển thị lượt đặt giờ/đêm, trạng thái và liên kết đúng paymentId để xem hóa đơn đã lưu.
 function renderHistoryBookings(bookings) {
         const body = document.getElementById('history-tbody');body.replaceChildren();
         if (!bookings.length) tableState('history-tbody',9,'Khách hàng chưa có lịch sử đặt phòng.');
@@ -317,7 +333,8 @@ function renderHistoryBookings(bookings) {
             if (b.paymentId != null) invoice.href = 'checkout.html?paymentId='+b.paymentId;
             const status = textNode('span',({Confirmed:'Đã đặt',CheckedIn:'Đang ở',CheckedOut:'Đã trả phòng',Cancelled:'Đã hủy'}[b.status] || b.status),
                 'badge '+({Confirmed:'badge-booked',CheckedIn:'badge-occupied',CheckedOut:'badge-success',Cancelled:'badge-neutral'}[b.status] || 'badge-neutral'));
-            appendTableRow(body,['BK'+b.bookingId,(b.roomCode || '')+' — '+(b.roomName || ''),formatDate(b.checkinDate),formatDate(b.checkoutDate),b.nights,status,
+            const duration=b.billingUnit==='Hour' ? b.billedHours+' giờ (làm tròn)' : b.nights+' đêm';
+            appendTableRow(body,['BK'+b.bookingId,(b.roomCode || '')+' — '+(b.roomName || ''),bookingTime(b,'checkin'),bookingTime(b,'checkout'),duration,status,
                 b.paymentId == null ? 'Chưa thanh toán' : formatMoney(b.paidTotal),b.paymentMethod || '--',invoice]);
         });
 }
