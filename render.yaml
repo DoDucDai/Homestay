@@ -33,3 +33,15 @@ services:
         value: openrouter/free
       - key: AI_RAG_DB_PATH
         value: /tmp/homestay/assistant.sqlite3
+      - key: MAIL_PROVIDER
+        value: brevo
+      - key: EMAIL_VERIFICATION_ENABLED
+        value: "false"
+      - key: MAIL_API_KEY
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: AUTH_TOKEN_SECRET
+        sync: false
+      - key: APP_PUBLIC_URL
+        value: https://homestay-mochi-demo.vercel.app

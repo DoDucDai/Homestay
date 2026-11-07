@@ -19,7 +19,9 @@ public class AccountProfileSqlServerIT {
                 st.execute("CREATE TABLE Users(user_id INT PRIMARY KEY,username VARCHAR(50),full_name NVARCHAR(100),auth_version INT)");
                 String migration = Files.readString(Path.of("../database/migrations/007_account_profile.sql"));
                 st.execute(migration); st.execute(migration);
-                st.execute("INSERT INTO Users(user_id,username,full_name,auth_version) VALUES(1,'staff','Staff',0),(2,'admin','Admin',0)");
+                st.execute("CREATE TABLE Customers(customer_id INT PRIMARY KEY)");
+                com.homestay.db.AccountRegistrationMigration.migrate(conn);
+                st.execute("INSERT INTO Users(user_id,username,full_name,auth_version) VALUES(1,'customer','Staff',0),(2,'admin','Admin',0)");
                 ProcessBuilder child = new ProcessBuilder(Path.of(System.getProperty("java.home"),"bin","java.exe").toString(),
                     "-cp",System.getProperty("java.class.path"),AccountProfileSqlServerIT.class.getName(),"--child");
                 child.environment().put("DB_NAME",database);
@@ -38,9 +40,9 @@ public class AccountProfileSqlServerIT {
     }
     private static void checks() throws Exception {
         if (!System.getenv("DB_NAME").matches("HomestayProfileTest_[a-f0-9]{32}")) throw new AssertionError("Unsafe test database");
-        AuthController controller=new AuthController(null,null,null,null,null);
-        for (String role:List.of("staff","admin")) {
-            int id=role.equals("staff")?1:2;
+        AuthController controller=new AuthController(null,null,null,null,null,new com.homestay.security.AccountSettings(new org.springframework.core.env.StandardEnvironment()));
+        for (String role:List.of("customer","admin")) {
+            int id=role.equals("customer")?1:2;
             AppUser user=new AppUser(id,role,"unused",role,role,0);
             var auth=UsernamePasswordAuthenticationToken.authenticated(user,null,user.getAuthorities());
             Map<String,Object> input=new HashMap<>(Map.of("fullName","Profile Updated","phone","0901234567","email",role+"@gmail.com","birthDate","2000-02-29","city","Ho Chi Minh","userId",3-id,"role","admin"));

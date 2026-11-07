@@ -68,7 +68,7 @@ function addAccountControls(user) {
     let bar = document.getElementById('account-controls');
     if (bar) {
         document.getElementById('account-name').textContent = user.fullName || user.username || '';
-        document.getElementById('account-role').textContent = user.role === 'admin' ? 'Quản trị viên' : 'Nhân viên';
+        document.getElementById('account-role').textContent = user.role === 'admin' ? 'Quản trị viên' : 'Khách hàng';
         document.getElementById('account-role').className = 'account-role badge ' + (user.role === 'admin' ? 'badge-info' : 'badge-neutral');
         document.getElementById('account-admin-link').hidden=user.role!=='admin';
         return;
@@ -79,7 +79,7 @@ function addAccountControls(user) {
     const profile = textNode('a','','account-profile');profile.id='account-profile-link';profile.href='account.html';profile.setAttribute('aria-label','Xem thông tin tài khoản');
     const identity = textNode('div','','account-identity');
     const name = textNode('strong',user.fullName || user.username || '','account-name-link');name.id = 'account-name';
-    const role = textNode('span',user.role === 'admin' ? 'Quản trị viên' : 'Nhân viên','account-role badge ' + (user.role === 'admin' ? 'badge-info' : 'badge-neutral'));role.id = 'account-role';
+    const role = textNode('span',user.role === 'admin' ? 'Quản trị viên' : 'Khách hàng','account-role badge ' + (user.role === 'admin' ? 'badge-info' : 'badge-neutral'));role.id = 'account-role';
     identity.append(name,role);
     profile.append(identity);
     const actions = textNode('div','','account-actions');

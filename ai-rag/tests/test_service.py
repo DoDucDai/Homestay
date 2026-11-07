@@ -27,7 +27,7 @@ class ServiceTest(unittest.TestCase):
         self.auth=True
         def backend(handler,path):
             if not self.auth: raise urllib.error.HTTPError(path,401,'Unauthorized',{},None)
-            if path=='/auth/me':return {'user':{'userId':self.uid,'role':'admin' if self.admin else 'staff'}}
+            if path=='/auth/me':return {'user':{'userId':self.uid,'role':'admin' if self.admin else 'customer'}}
             if path=='/auth/csrf':return {'token':'test-csrf'}
             if path.startswith('/bookings/available-rooms'):return [{'roomId':1,'roomCode':'101','price':100,'secret':'hidden'}]
             raise AssertionError('Unexpected backend access: '+path)

@@ -1,6 +1,6 @@
 const loginForm = document.getElementById('login-form');
 let loginSubmitting = false, loginChecking = true, loginRedirecting = false, loginCheckVersion = 0;
-function loginDestination() {
+function loginDestination(user) {
     const next=new URLSearchParams(window.location.search).get('next');
     if(!next) return 'landing.html';
     try {
@@ -40,7 +40,7 @@ async function initializeLoginSession(force = false) {
     const user = await checkLogin(force);
     if (version !== loginCheckVersion) return;
     loginChecking = false;
-    if (user) { loginRedirecting = true; updateLoginControls(); window.location.replace(loginDestination()); }
+    if (user) { loginRedirecting = true; updateLoginControls(); window.location.replace(loginDestination(user)); }
     else updateLoginControls();
 }
 if (loginForm) {
@@ -62,7 +62,8 @@ if (loginForm) {
             await apiPost('/auth/login', {username, password});
             document.getElementById('password').value = '';
             setPasswordVisibility(document.getElementById('password'), document.getElementById('password-toggle'));
-            loginRedirecting = true; window.location.replace(loginDestination());
+            const user=await checkLogin(true);
+            loginRedirecting = true; window.location.replace(loginDestination(user));
         } catch (error) {
             setPasswordVisibility(document.getElementById('password'), document.getElementById('password-toggle'));
             loginMessage(error.message || 'Không thể đăng nhập. Vui lòng thử lại!');
@@ -74,6 +75,7 @@ if (loginForm) {
 }
 document.addEventListener('DOMContentLoaded', async () => {
     if (!loginForm) return;
+    if(['register','forgot-password','reset-password'].includes(new URLSearchParams(window.location.search).get('view')))return;
     if (new URLSearchParams(window.location.search).get('changed') === '1') loginMessage('Đã đổi mật khẩu. Vui lòng đăng nhập lại!', 'success');
     await initializeLoginSession();
 });

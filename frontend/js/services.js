@@ -6,10 +6,10 @@ checkLogin();
 let currentServices = [];
 let servicesVersion = 0, serviceSaving = false;
 const serviceDeleting = new Set();
-function canManageServices() { return ['admin','staff'].includes(currentUser?.role); }
+function canManageServices() { return ['admin','customer'].includes(currentUser?.role); }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    if (!await checkLogin()) return;
+    const user=await checkLogin();if (!user) return;
     document.getElementById('service-add-btn').hidden=!canManageServices();
     loadServices();
 });
@@ -35,7 +35,7 @@ async function loadServices() {
 function renderTable(services) {
     const tbody = document.getElementById('services-tbody'); if (!tbody) return;
     tbody.replaceChildren();
-    document.getElementById('services-result').textContent = services.length+' dịch vụ · Thêm, sửa hoặc ngừng cung cấp dịch vụ';
+    document.getElementById('services-result').textContent = services.length+(canManageServices()?' dịch vụ · Thêm, sửa hoặc ngừng cung cấp dịch vụ':' dịch vụ đang cung cấp · Liên hệ hỗ trợ khi cần sử dụng');
     if (!services.length) { tableState('services-tbody', 5, 'Chưa có dịch vụ trong danh mục.'); return; }
     pageRows('services', services, renderTable).forEach(service => {
         const actions = canManageServices() ? [actionButton('Sửa','btn btn-secondary',() => openEditModal(service)),

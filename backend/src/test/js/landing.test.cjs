@@ -1,5 +1,6 @@
 const assert=require('node:assert/strict');
-const {env,payload,Element}=require('./frontend-test-env.cjs');
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+const {env,payload,Element,root}=require('./frontend-test-env.cjs');
 const rooms=[
     {roomId:1,roomCode:'P101',roomName:payload,roomType:'Single',status:'Trống',price:300000,hourlyPrice:null,description:payload},
     {roomId:2,roomCode:'P102',roomName:'Double',roomType:'Double',status:'Đang sử dụng',price:500000,hourlyPrice:80000},
@@ -7,6 +8,8 @@ const rooms=[
 ];
 (async()=>{
     const header=env('landing');
+    vm.runInContext(fs.readFileSync(path.join(root,'account.js'),'utf8'),header.context);
+    header.context.window.location={pathname:'/pages/landing.html',search:'',hash:''};
     const host=header.el('landing-account'),account=header.el('account-controls');
     const profile=new Element('a'),actions=new Element('div');
     account.append(profile,actions);

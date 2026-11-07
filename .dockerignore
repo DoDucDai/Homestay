@@ -22,3 +22,11 @@ database
 **/*.sqlite*
 **/*.db
 **/*.sql
+
+# Account migrations are build resources; keep other database files private.
+!database/
+database/*
+!database/migrations/
+database/migrations/*
+!database/migrations/008_account_registration.sql
+!database/migrations/009_two_roles.sql

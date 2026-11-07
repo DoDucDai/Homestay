@@ -317,7 +317,8 @@ function renderHistoryBookings(bookings) {
             if (b.paymentId != null) invoice.href = 'checkout.html?paymentId='+b.paymentId;
             const status = textNode('span',({Confirmed:'Đã đặt',CheckedIn:'Đang ở',CheckedOut:'Đã trả phòng',Cancelled:'Đã hủy'}[b.status] || b.status),
                 'badge '+({Confirmed:'badge-booked',CheckedIn:'badge-occupied',CheckedOut:'badge-success',Cancelled:'badge-neutral'}[b.status] || 'badge-neutral'));
-            appendTableRow(body,['BK'+b.bookingId,(b.roomCode || '')+' — '+(b.roomName || ''),formatDate(b.checkinDate),formatDate(b.checkoutDate),b.nights,status,
+            const duration=b.billingUnit==='Hour' ? b.billedHours+' giờ (làm tròn)' : b.nights+' đêm';
+            appendTableRow(body,['BK'+b.bookingId,(b.roomCode || '')+' — '+(b.roomName || ''),bookingTime(b,'checkin'),bookingTime(b,'checkout'),duration,status,
                 b.paymentId == null ? 'Chưa thanh toán' : formatMoney(b.paidTotal),b.paymentMethod || '--',invoice]);
         });
 }

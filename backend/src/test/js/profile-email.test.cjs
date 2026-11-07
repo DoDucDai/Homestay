@@ -1,0 +1,21 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const {env,root}=require('./frontend-test-env.cjs');
+(async()=>{
+    const e=env('profile');e.context.URL=URL;e.context.window.location={origin:'https://homestay.test',href:'https://homestay.test/pages/account.html',pathname:'/pages/account.html',search:'?next='+encodeURIComponent('/pages/bookings.html?roomId=7&checkinAt=2031-01-15T10:00')};
+    vm.runInContext(fs.readFileSync(path.join(root,'profile-email.js'),'utf8'),e.context);e.events.DOMContentLoaded();
+    const member={userId:7,username:'member7',fullName:'Member',role:'customer',email:'member@example.org',emailVerified:false};e.context.renderAccountProfile(member);
+    assert.equal(e.el('profile-role').textContent,'Khách hàng');assert.equal(e.el('verification-state').textContent,'Chưa xác thực');assert.equal(e.el('verification-form').hidden,false);
+    assert.match(e.el('verification-return').href,/bookings.html\?roomId=7/);
+    let calls=[];e.context.apiPost=async(path,body)=>{calls.push({path,body});return {success:true,message:'Done',retryAfter:60};};
+    await e.el('verification-send').events.click();assert.equal(calls[0].path,'/auth/email-verification/request');assert.equal(e.el('verification-send').disabled,true);
+    e.el('verification-code').value='123';await e.el('verification-form').events.submit({preventDefault(){}});assert.equal(calls.length,1);
+    e.context.checkLogin=async()=>({...member,emailVerified:true});e.el('verification-code').value='123456';await e.el('verification-form').events.submit({preventDefault(){}});
+    assert.equal(calls[1].path,'/auth/email-verification/confirm');assert.equal(e.el('verification-form').hidden,true);assert.equal(e.el('verification-state').textContent,'Đã xác thực');
+    e.context.renderAccountProfile({...member,emailVerificationEnabled:false});
+    assert.equal(e.el('verification-state').textContent,'Chưa xác thực');
+    assert.equal(e.el('verification-form').hidden,true);assert.equal(e.el('verification-send').hidden,true);
+    assert.equal(e.el('verification-send').disabled,true);assert.match(e.el('verification-description').textContent,/tạm tắt/);
+    await e.el('verification-send').events.click();assert.equal(calls.length,2);
+    e.context.window.location.search='?next=https://evil.test/pages/bookings.html';assert.equal(e.context.emailReturnTarget(),'bookings.html');
+    console.log('PASS customer profile identity, saved-email OTP, cooldown, validation, refreshed verification and safe booking return URL');
+})().catch(error=>{console.error(error);process.exitCode=1;});

@@ -1,5 +1,5 @@
 function renderAccountProfile(user){
-    const role=user.role==='admin'?'Quản trị viên':'Nhân viên';
+    const role=user.role==='admin'?'Quản trị viên':'Khách hàng';
     const name=user.fullName || user.username;
     document.getElementById('profile-name').textContent=name;
     document.getElementById('profile-avatar').textContent=name.trim().split(/\s+/).slice(-2).map(part=>part[0]).join('').toLocaleUpperCase('vi');
@@ -8,13 +8,15 @@ function renderAccountProfile(user){
     document.getElementById('profile-username').textContent=user.username;
     document.getElementById('profile-role-detail').textContent=role;
     document.getElementById('profile-id').textContent='TK'+user.userId;
-    document.getElementById('profile-description').textContent=user.role==='admin'?'Quản lý hệ thống và theo dõi hoạt động lưu trú.':'Thực hiện đặt phòng, tiếp nhận khách và theo dõi lượt lưu trú.';
+    document.getElementById('profile-description').textContent=user.role==='admin'?'Quản lý hệ thống và theo dõi hoạt động lưu trú.':'Quản lý thông tin cá nhân, đặt phòng, dịch vụ và thanh toán.';
+    if(typeof renderEmailVerification==='function')renderEmailVerification(user);
 }
 document.addEventListener('DOMContentLoaded',async()=>{
     const user=await checkLogin();if(!user)return;
     renderAccountProfile(user);
     document.getElementById('profile-password-button').addEventListener('click',()=>document.getElementById('account-change-btn').click());
 });
+window.addEventListener('pageshow',event=>{if(event.persisted)window.location.reload();});
 
 document.addEventListener('DOMContentLoaded',async()=>{
     const form=document.getElementById('profile-edit-form');
@@ -30,7 +32,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
         event.preventDefault();if(button.disabled || !form.reportValidity())return;
         const body=Object.fromEntries(keys.map(key=>[key,document.getElementById('edit-'+key).value.trim()]));
         if(!validAccountPhone(body.phone)) { status.textContent='Số điện thoại cần đúng 10 chữ số, bắt đầu bằng 0.';document.getElementById('edit-phone').focus();return; }
-        if(!validAccountEmail(body.email)) { status.textContent='Email phải đúng dạng ten@gmail.com.';document.getElementById('edit-email').focus();return; }
+        if(!validAccountEmail(body.email)) { status.textContent='Nhập email hợp lệ.';document.getElementById('edit-email').focus();return; }
         button.disabled=true;status.textContent='Đang lưu...';
         try {const result=await apiPut('/auth/profile',body);fill(result.user);renderAccountProfile(result.user);addAccountControls(result.user);status.textContent='Đã cập nhật thông tin tài khoản.';}
         catch(error){status.textContent=error.message||'Không thể lưu thông tin.';}

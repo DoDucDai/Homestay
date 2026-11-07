@@ -45,6 +45,9 @@ Kiểm thử backend tích hợp dùng SQL Server và database kiểm thử riê
 Các script trong `backend/scripts` quản lý những nhóm kiểm thử tương ứng.
 
 Hướng dẫn triển khai: [DEPLOY.md](DEPLOY.md).
+Đăng ký khách hàng, xác thực email và khôi phục mật khẩu: [cấu hình Brevo](EMAIL_SETUP.md).
 Thông tin chạy Mochi: [ai-rag/README.md](ai-rag/README.md).
 
 Không commit `.env`, khóa API, mật khẩu, SQLite hoặc bản sao dữ liệu cá nhân.
+
+Website chỉ có hai quyền: `admin` và `customer` (khách hàng). Khách hàng dùng chung các chức năng trước đây của nhân viên: đặt phòng, hồ sơ khách lưu trú, nhận/trả phòng, dịch vụ và thanh toán. Quản lý phòng, thống kê, xóa hồ sơ khách và quản trị AI dành cho admin. Khi backend khởi động, migration 009 chuyển tài khoản `staff`/`member` cũ sang `customer`, giữ nguyên mật khẩu và dữ liệu, đồng thời yêu cầu đăng nhập lại cho tài khoản đã đổi quyền. Không còn trang đặt phòng riêng cho member.

@@ -19,5 +19,5 @@ public record AppUser(int userId, String username, String password, String fullN
     @Override public boolean isAccountNonExpired() { return true; }
     @Override public boolean isAccountNonLocked() { return true; }
     @Override public boolean isCredentialsNonExpired() { return true; }
-    @Override public boolean isEnabled() { return Set.of("admin","staff").contains(role); }
+    @Override public boolean isEnabled() { return Set.of("admin","customer").contains(role); }
 }

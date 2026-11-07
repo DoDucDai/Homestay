@@ -22,7 +22,7 @@ CREATE TABLE Users (
     password_scheme NVARCHAR(32) NOT NULL DEFAULT 'pbkdf2-v58',
     auth_version INT NOT NULL DEFAULT 0,
     full_name  NVARCHAR(100) NOT NULL,
-    role       NVARCHAR(20)  NOT NULL DEFAULT 'staff', -- admin / staff
+    role       NVARCHAR(20)  NOT NULL DEFAULT 'customer' CONSTRAINT CK_Users_Role CHECK(role IN('admin','customer')), -- admin / customer
     created_at DATETIME      DEFAULT GETDATE()
 );
 

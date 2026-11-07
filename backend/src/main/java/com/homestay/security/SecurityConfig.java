@@ -81,35 +81,39 @@ public class SecurityConfig {
                 boolean authenticated=SecurityContextHolder.getContext().getAuthentication()!=null
                         && !(SecurityContextHolder.getContext().getAuthentication() instanceof AnonymousAuthenticationToken);
                 boolean csrfError=error instanceof CsrfException;
-                boolean publicLogin="/api/auth/login".equals(request.getServletPath());
+                boolean publicLogin=java.util.Set.of("/api/auth/login","/api/auth/register","/api/auth/forgot-password","/api/auth/reset-password").contains(request.getServletPath());
                 if (!authenticated && !publicLogin) SecurityJson.error(response,401,"UNAUTHENTICATED","Vui lòng đăng nhập lại!");
                 else SecurityJson.error(response,403,csrfError?"CSRF_INVALID":"FORBIDDEN",
                         csrfError?"Phiên xác nhận không hợp lệ. Vui lòng tải lại trang!":"Bạn không có quyền thực hiện thao tác này!");
             }))
             .authorizeHttpRequests(c -> c
+                .requestMatchers("/api/me/**","/pages/member-bookings.html").denyAll()
                 .requestMatchers(HttpMethod.GET,"/api/health").permitAll()
                 .requestMatchers("/","/pages/landing.html","/pages/explore.html","/pages/login.html","/pages/policies.html","/pages/support.html","/pages/assistant.html","/css/**","/js/**","/ai/**","/favicon.ico","/error").permitAll()
                 .requestMatchers("/api/assistant/documents","/api/assistant/support/reply").hasRole("ADMIN")
-                .requestMatchers("/api/assistant/**").hasAnyRole("ADMIN","STAFF")
+                .requestMatchers("/api/assistant/**").hasAnyRole("ADMIN","CUSTOMER")
                 .requestMatchers(HttpMethod.GET,"/api/public/rooms","/api/public/rooms/*","/api/public/properties").permitAll()
                 .requestMatchers(HttpMethod.GET,"/api/auth/csrf").permitAll()
-                .requestMatchers(HttpMethod.POST,"/api/auth/login").permitAll()
-                .requestMatchers("/api/auth/profile","/api/auth/me","/api/auth/logout","/api/auth/change-password").hasAnyRole("ADMIN","STAFF")
+                .requestMatchers(HttpMethod.POST,"/api/auth/login","/api/auth/register","/api/auth/forgot-password","/api/auth/reset-password").permitAll()
+                .requestMatchers("/api/auth/profile","/api/auth/me","/api/auth/logout","/api/auth/change-password","/api/auth/email-verification/**").hasAnyRole("ADMIN","CUSTOMER")
+                .requestMatchers("/pages/account.html","/pages/services.html").hasAnyRole("ADMIN","CUSTOMER")
+                .requestMatchers(HttpMethod.GET,"/api/services","/api/services/*").hasAnyRole("ADMIN","CUSTOMER")
+                .requestMatchers(HttpMethod.GET,"/api/bookings/available-rooms").hasAnyRole("ADMIN","CUSTOMER")
                 .requestMatchers("/api/statistics/**","/pages/statistics.html","/pages/rooms.html").hasRole("ADMIN")
                 .requestMatchers(request -> "/pages/customers.html".equals(request.getServletPath())
                         && "admin".equals(request.getParameter("workspace"))).hasRole("ADMIN")
-                .requestMatchers(HttpMethod.POST,"/api/services").hasAnyRole("ADMIN","STAFF")
-                .requestMatchers(HttpMethod.PUT,"/api/services/*").hasAnyRole("ADMIN","STAFF")
-                .requestMatchers(HttpMethod.DELETE,"/api/services/*").hasAnyRole("ADMIN","STAFF")
+                .requestMatchers(HttpMethod.POST,"/api/services").hasAnyRole("ADMIN","CUSTOMER")
+                .requestMatchers(HttpMethod.PUT,"/api/services/*").hasAnyRole("ADMIN","CUSTOMER")
+                .requestMatchers(HttpMethod.DELETE,"/api/services/*").hasAnyRole("ADMIN","CUSTOMER")
                 .requestMatchers(HttpMethod.POST,"/api/rooms").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,"/api/rooms/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE,"/api/rooms/**","/api/customers/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET,"/api/rooms","/api/rooms/**","/api/services","/api/services/**","/api/customers","/api/customers/**",
-                    "/api/bookings","/api/bookings/**","/api/checkout/preview/**","/api/payments","/api/payments/**").hasAnyRole("ADMIN","STAFF")
-                .requestMatchers(HttpMethod.POST,"/api/customers","/api/bookings","/api/bookings/*/services","/api/checkout/*").hasAnyRole("ADMIN","STAFF")
-                .requestMatchers(HttpMethod.PUT,"/api/customers/*","/api/bookings/*/cancel","/api/checkin/*").hasAnyRole("ADMIN","STAFF")
-                .requestMatchers(HttpMethod.DELETE,"/api/bookings/services/*").hasAnyRole("ADMIN","STAFF")
-                .requestMatchers("/pages/**").hasAnyRole("ADMIN","STAFF").anyRequest().denyAll());
+                    "/api/bookings","/api/bookings/**","/api/checkout/preview/**","/api/payments","/api/payments/**").hasAnyRole("ADMIN","CUSTOMER")
+                .requestMatchers(HttpMethod.POST,"/api/customers","/api/bookings","/api/bookings/*/services","/api/checkout/*").hasAnyRole("ADMIN","CUSTOMER")
+                .requestMatchers(HttpMethod.PUT,"/api/customers/*","/api/bookings/*/cancel","/api/checkin/*").hasAnyRole("ADMIN","CUSTOMER")
+                .requestMatchers(HttpMethod.DELETE,"/api/bookings/services/*").hasAnyRole("ADMIN","CUSTOMER")
+                .requestMatchers("/pages/**").hasAnyRole("ADMIN","CUSTOMER").anyRequest().denyAll());
         http.addFilterAfter(new OncePerRequestFilter() {
             @Override protected void doFilterInternal(HttpServletRequest request,HttpServletResponse response,FilterChain chain)
                     throws ServletException,IOException {

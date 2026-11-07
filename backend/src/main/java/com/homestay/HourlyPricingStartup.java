@@ -14,6 +14,8 @@ public class HourlyPricingStartup implements ApplicationRunner {
             RoomCatalogMigration.migrate(connection);
             RoomPropertiesMigration.migrate(connection);
             RoomExpansionMigration.migrate(connection);
+            AccountRegistrationMigration.migrate(connection);
+            TwoRoleMigration.migrate(connection);
         }
         System.out.println("Hourly package pricing schema ready; existing booking prices preserved.");
     }

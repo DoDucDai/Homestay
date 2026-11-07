@@ -64,8 +64,8 @@ public class CustomerController {
                 java.math.BigDecimal total=java.math.BigDecimal.ZERO;
                 // Payments is unique per booking. Never join service lines into this query.
                 try(PreparedStatement stmt=conn.prepareStatement("""
-                    SELECT b.booking_id,b.checkin_date,b.checkout_date,b.status,b.note,
-                           DATEDIFF(day,b.checkin_date,b.checkout_date) AS nights,r.room_code,r.room_name,
+                    SELECT b.booking_id,b.checkin_date,b.checkout_date,b.billing_unit,b.checkin_at,b.checkout_at,b.status,b.note,
+                           DATEDIFF(day,b.checkin_date,b.checkout_date) AS nights,r.room_id,r.room_code,r.room_name,
                            p.payment_id,p.grand_total,p.payment_method,p.paid_at
                     FROM Bookings b JOIN Rooms r ON r.room_id=b.room_id
                     LEFT JOIN Payments p ON p.booking_id=b.booking_id AND p.payment_status=N'Đã thanh toán'
@@ -76,9 +76,18 @@ public class CustomerController {
                         while(rs.next()) {
                             Map<String,Object> booking=new LinkedHashMap<>();
                             booking.put("bookingId",rs.getInt("booking_id"));
+                            booking.put("roomId",rs.getInt("room_id"));
                             booking.put("roomCode",rs.getString("room_code"));booking.put("roomName",rs.getString("room_name"));
                             booking.put("checkinDate",rs.getDate("checkin_date").toString());booking.put("checkoutDate",rs.getDate("checkout_date").toString());
-                            booking.put("nights",rs.getInt("nights"));booking.put("status",rs.getString("status"));booking.put("note",rs.getString("note"));
+                            String unit=rs.getString("billing_unit");
+                            Timestamp start=rs.getTimestamp("checkin_at"),end=rs.getTimestamp("checkout_at");
+                            boolean hourly="Hour".equals(unit);
+                            booking.put("billingUnit",unit);
+                            booking.put("checkinAt",start==null ? null : start.toLocalDateTime().toString());
+                            booking.put("checkoutAt",end==null ? null : end.toLocalDateTime().toString());
+                            booking.put("nights",hourly ? null : rs.getInt("nights"));
+                            booking.put("billedHours",hourly ? HourlyStay.billedHours(start.toLocalDateTime(),end.toLocalDateTime()) : null);
+                            booking.put("status",rs.getString("status"));booking.put("note",rs.getString("note"));
                             int paymentId=rs.getInt("payment_id");boolean paid=!rs.wasNull();
                             java.math.BigDecimal amount=paid ? BookingInvoiceSnapshot.money(rs.getBigDecimal("grand_total")) : java.math.BigDecimal.ZERO;
                             booking.put("paymentId",paid ? paymentId : null);booking.put("paidTotal",amount);

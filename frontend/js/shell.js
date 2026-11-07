@@ -64,7 +64,7 @@ function setShellMenu(open, restoreFocus = true) {
 }
 function closeShellMenu() { if (shellMenuOpen) setShellMenu(false, false); }
 function initializeShell(user) {
-    if (!user || !['admin', 'staff'].includes(user.role)) return;
+    if (!user || !['admin', 'customer'].includes(user.role)) return;
     const sidebar = document.getElementById('app-sidebar'), main = document.getElementById('main-content');
     if (!sidebar || !main) return;
     if (!shellInitialized) {
@@ -92,7 +92,7 @@ function initializeShell(user) {
             icon.setAttribute('class','ui-icon'); icon.setAttribute('aria-hidden','true');
             const use = document.createElementNS('http://www.w3.org/2000/svg','use');
             const routePage=route.split('?')[0];
-            use.setAttribute('href','../css/icons.svg#'+({'account.html':'users','landing.html':'house','rag-documents.html':'print','statistics.html':'chart','bookings.html':'calendar','rooms.html':'bed','customers.html':'users','services.html':'bell','checkin.html':'arrow-right','checkout.html':'print'}[routePage]));
+            use.setAttribute('href','../css/icons.svg#'+({'account.html':'users','landing.html':'house','rag-documents.html':'print','statistics.html':'chart','bookings.html':'calendar','rooms.html':'bed','customers.html':'users','services.html':'bell','checkin.html':'arrow-right','checkout.html':'print'}[routePage]||'house'));
             icon.append(use); link.append(icon,textNode('span', label));
             if (admin) { link.setAttribute('data-admin-only', ''); link.hidden = user.role !== 'admin'; }
             if (routePage === currentPage) { link.className = 'active'; link.setAttribute('aria-current', 'page'); }

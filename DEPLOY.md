@@ -19,6 +19,7 @@ SQL Server được cấu hình riêng; Dockerfile không tự tạo database ng
   `OPENROUTER_API_KEY` trong biến môi trường của dịch vụ.
 - Giữ các cấu hình TLS, cookie và profile `prod` theo `render.yaml`.
 - Health check: `/api/health`.
+- Tài khoản khách hàng dùng Brevo HTTPS API; khai báo các biến email theo [EMAIL_SETUP.md](EMAIL_SETUP.md) trước khi kiểm tra gửi mã/khôi phục mật khẩu thật.
 - `docker/start.py` khởi động Java và Python, nạp `ai-rag/knowledge/published.json`.
 - Nếu dùng filesystem tạm, thay đổi SQLite không được giữ sau khi tạo lại container.
   Cần lưu bền vững hoặc sao lưu nếu muốn giữ chỉnh sửa tài liệu và yêu cầu Support.

@@ -5,6 +5,7 @@ COPY backend/pom.xml backend/pom.xml
 COPY backend/src backend/src
 COPY frontend frontend
 COPY ai-rag/web ai-rag/web
+COPY database/migrations database/migrations
 RUN mvn -B -f backend/pom.xml -DskipTests package
 
 FROM eclipse-temurin:17-jre-jammy AS runtime

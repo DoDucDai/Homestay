@@ -96,7 +96,7 @@ function paid() { return {...preview(),paymentId:7,paymentMethod:'Tiền mặt',
     pass('room filters combine in encoded server query and old requests cannot overwrite newer results');
 
     const room={roomId:1,roomCode:payload,roomName:payload,roomType:'Single',price:300000,status:'Trống'};
-    vm.runInContext("currentUser={role:'staff'}",e.context);e.context.renderTable([room]);
+    vm.runInContext("currentUser={role:'customer'}",e.context);e.context.renderTable([room]);
     assert.equal(e.el('rooms-tbody').children[0].children.at(-1).children.length,0);await e.context.changeRoomStatus(room);assert.equal(e.writes.length,0);
     vm.runInContext("currentUser={role:'admin'}",e.context);e.context.apiGet=async () => [room];
     pending=deferred();e.context.apiPut=(url,body) => {e.writes.push({url,body});return pending.promise;};

@@ -15,7 +15,7 @@ GO
 -- Demo password is 123456. Hashes are PBKDF2 with independent salts, not plaintext.
 INSERT INTO Users (username, password, full_name, role, password_scheme) VALUES
 ('admin',    '{pbkdf2-v58}83ef42160e1dee58d2691b8c2972f4c745ee3ebcb0ca81021fcc8c92dca67ca55bb4e604b64764043171f92b3f31908b', N'Nguyễn Văn Admin',  'admin','pbkdf2-v58'),
-('nhanvien', '{pbkdf2-v58}bcc86e907fe1526471578147bc10964535f958791ddf8272130563e192067b17a660f4940ac16f50a2fece1b8c29d2c6', N'Trần Thị Nhân Viên', 'staff','pbkdf2-v58');
+('nhanvien', '{pbkdf2-v58}bcc86e907fe1526471578147bc10964535f958791ddf8272130563e192067b17a660f4940ac16f50a2fece1b8c29d2c6', N'Trần Thị Khách Hàng', 'customer','pbkdf2-v58');
 
 -- ============================================
 -- DU LIEU: ROOMS (Phong)

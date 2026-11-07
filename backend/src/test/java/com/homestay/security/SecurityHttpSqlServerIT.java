@@ -171,8 +171,8 @@ public class SecurityHttpSqlServerIT {
     }
     private static void runChecks() throws Exception {
         try(var conn=DBConnection.getConnection();var stmt=conn.prepareStatement(
-                "INSERT INTO Users(username,password,full_name,role) VALUES(?,?,N'Admin test','admin'),(?,?,N'Staff test','staff')")) {
-            stmt.setString(1,"admin");stmt.setString(2,ADMIN_PASSWORD);stmt.setString(3,"staff");stmt.setString(4,STAFF_PASSWORD);stmt.executeUpdate();
+                "INSERT INTO Users(username,password,full_name,role) VALUES(?,?,N'Admin test','admin'),(?,?,N'Staff test','customer')")) {
+            stmt.setString(1,"admin");stmt.setString(2,ADMIN_PASSWORD);stmt.setString(3,"customer");stmt.setString(4,STAFF_PASSWORD);stmt.executeUpdate();
         }
         String migration=Files.readString(Path.of("../database/migrations/004_account_password_metadata.sql"));
         sql(migration);sql(migration);
@@ -183,7 +183,7 @@ public class SecurityHttpSqlServerIT {
         require(blocked,"Startup accepted unconverted plaintext");
         pass("SQL 004 repeatable and startup guard rejects unconverted accounts");
 
-        sql("INSERT INTO Users(username,password,password_scheme,full_name,role) VALUES('bad','not-a-hash','unknown',N'Bad','staff')");
+        sql("INSERT INTO Users(username,password,password_scheme,full_name,role) VALUES('bad','not-a-hash','unknown',N'Bad','customer')");
         boolean rollback=false;
         try(Connection conn=DBConnection.getConnection()) { PasswordMigration.migrate(conn); }
         catch(SQLException expected) { rollback=true; }
@@ -266,8 +266,8 @@ public class SecurityHttpSqlServerIT {
             status(limited,429);require(limited.headers().firstValue("Retry-After").isPresent(),"Missing throttle hint");
             pass("generic credential errors and bounded login attempt limit enforced over HTTP");
 
-            Client staff=new Client();var staffLogin=staff.login("staff",STAFF_PASSWORD);status(staffLogin,200);
-            require("staff".equals(user(staffLogin).get("role")),"Forged login role trusted");
+            Client staff=new Client();var staffLogin=staff.login("customer",STAFF_PASSWORD);status(staffLogin,200);
+            require("customer".equals(user(staffLogin).get("role")),"Forged login role trusted");
             status(staff.get("/api/rooms"),200);status(staff.get("/api/services"),200);status(staff.get("/api/customers"),200);
             status(staff.get("/api/statistics/overview"),403);
             status(staff.get("/pages/statistics.html"),403);
@@ -318,7 +318,7 @@ public class SecurityHttpSqlServerIT {
             status(cors.send("OPTIONS","/api/rooms",null,Map.of("Origin","https://evil.example","Access-Control-Request-Method","GET")),403);
             pass("explicit credentialed dev CORS allowed and unknown/wildcard origins rejected");
 
-            Client expires=new Client();status(expires.login("staff",STAFF_PASSWORD),200);expire(context,expires);
+            Client expires=new Client();status(expires.login("customer",STAFF_PASSWORD),200);expire(context,expires);
             status(expires.get("/api/auth/me"),401);
             Client forged=new Client();status(forged.send("GET","/api/rooms",null,Map.of("Cookie","HOMESTAY_SESSION=fake-session")),401);
             String oldCookie=staff.session();status(staff.write("POST","/api/auth/logout",null),200);
@@ -332,15 +332,15 @@ public class SecurityHttpSqlServerIT {
             String newPassword="  New Admin Secret 123!  ";
             status(admin.write("PUT","/api/auth/change-password",Map.of("oldPassword",ADMIN_PASSWORD,"newPassword",newPassword,"userId",2)),200);
             status(admin.get("/api/auth/me"),401);status(peer.get("/api/rooms"),401);
-            require(PasswordHashing.encoder().matches(STAFF_PASSWORD,value("SELECT password FROM Users WHERE username='staff'")),"Password changed for client-supplied userId");
+            require(PasswordHashing.encoder().matches(STAFF_PASSWORD,value("SELECT password FROM Users WHERE username='customer'")),"Password changed for client-supplied userId");
             Client loginNew=new Client();status(loginNew.login("admin",ADMIN_PASSWORD),401);
             status(loginNew.login("admin",newPassword.trim()),401);status(loginNew.login("admin",newPassword),200);
             require(PasswordHashing.encoder().matches(newPassword,value("SELECT password FROM Users WHERE username='admin'")),"New password not hashed");
             pass("password policy/old password checked, userId ignored, spaces preserved, old/all current sessions revoked");
 
-            Client changedRole=new Client();status(changedRole.login("staff",STAFF_PASSWORD),200);
-            sql("UPDATE Users SET role='admin' WHERE username='staff'");status(changedRole.get("/api/rooms"),401);
-            sql("UPDATE Users SET role='staff' WHERE username='staff'");
+            Client changedRole=new Client();status(changedRole.login("customer",STAFF_PASSWORD),200);
+            sql("UPDATE Users SET role='admin' WHERE username='customer'");status(changedRole.get("/api/rooms"),401);
+            sql("UPDATE Users SET role='customer' WHERE username='customer'");
             pass("server role changes invalidate existing authority snapshots");
         }
         System.out.println("SQL Server + HTTP SEC-01: "+passed+" groups passed.");

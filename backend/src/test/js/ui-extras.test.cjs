@@ -51,7 +51,7 @@ const defer=()=>{let resolve;const promise=new Promise(r=>{resolve=r;});return {
  assert.equal(e.el('yearly-total').textContent,'--');assert.equal(e.el('yearly-chart').children.length,0);assert.match(e.el('yearly-status').textContent,/Năm đã thay đổi/);
  pass('changing report filters clears old totals/CSV/charts and invalidates pending responses before the next load');
 
- e=env('statistics');e.context.checkLogin=async()=>({role:'staff'});let statisticsReads=0;e.context.apiGet=async()=>{statisticsReads++;return [];};
+ e=env('statistics');e.context.checkLogin=async()=>({role:'customer'});let statisticsReads=0;e.context.apiGet=async()=>{statisticsReads++;return [];};
  e.el('statistics-content').hidden=true;e.el('statistics-denied').hidden=true;await e.events.DOMContentLoaded();
  assert.equal(statisticsReads,0);assert.equal(e.el('statistics-content').hidden,true);assert.equal(e.el('statistics-denied').hidden,false);
  pass('staff direct navigation shows an explicit denial without requesting statistics or exposing report controls');

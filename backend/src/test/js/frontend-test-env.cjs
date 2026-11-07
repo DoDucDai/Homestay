@@ -17,6 +17,16 @@ class Element {
     append(...children) { children.forEach(child => this.appendChild(child)); }
     replaceChildren(...children) { this._text = ''; this.children = []; this.append(...children); }
     addEventListener(type, fn) { this.events[type] = fn; }
+    querySelector(selector) {
+        const matches=node=>selector.startsWith('.') ? node.className.split(/\s+/).includes(selector.slice(1)) : node.tagName===selector.toUpperCase();
+        for(const child of this.children) { if(matches(child))return child;const nested=child.querySelector(selector);if(nested)return nested; }
+        return null;
+    }
+    querySelectorAll(selector) {
+        const selectors=selector.split(',').map(value=>value.trim());
+        const matches=node=>selectors.some(value=>value.startsWith('.') ? node.className.split(/\s+/).includes(value.slice(1)) : node.tagName===value.toUpperCase());
+        return this.children.flatMap(child=>[...(matches(child)?[child]:[]),...child.querySelectorAll(selector)]);
+    }
     getAttribute(name) { return name === 'data-price' ? this.dataset.price : this.attributes[name] ?? null; }
     setAttribute(name, value) { this.attributes[name] = value; }
     removeAttribute(name) { delete this.attributes[name]; }

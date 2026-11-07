@@ -6,7 +6,8 @@ public final class AccountPolicy {
     private AccountPolicy() {}
     public static boolean phone(String value) { return value!=null && value.matches("0[0-9]{9}"); }
     public static boolean email(String value) {
-        return value!=null && value.length()<=254 && value.matches("(?i)[a-z0-9]+(?:\\.[a-z0-9]+)*@gmail\\.com");
+        return value!=null && value.length()<=254 && value.matches("(?i)[a-z0-9](?:[a-z0-9._%+!-]*[a-z0-9])?@[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+")
+            && !value.substring(0,value.indexOf('@')).contains("..");
     }
     public static boolean password(String value) {
         return value!=null && value.length()>=6 && value.length()<=128
