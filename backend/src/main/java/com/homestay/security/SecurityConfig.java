@@ -48,18 +48,60 @@ public class SecurityConfig {
     // NOTE BACKEND: Kiểm tra tài khoản đã dùng chuỗi băm được hỗ trợ; khi prod, từ chối mật khẩu demo trước khi cho hệ thống hoạt động.
     @Bean public ApplicationRunner checkAccountMigration(org.springframework.core.env.Environment environment) {
         return _ -> {
-            try(Connection conn=DBConnection.getConnection();PreparedStatement stmt=conn.prepareStatement(
-                    "SELECT password,password_scheme FROM Users");ResultSet rs=stmt.executeQuery()) {
-                while(rs.next()) {
-                    if (!PasswordHashing.SCHEME.equals(rs.getString("password_scheme")) || !PasswordHashing.validHash(rs.getString("password"))) {
-                        throw new IllegalStateException("Account password migration required. Stop writes and run scripts/migrate-passwords.ps1 after SQL migration 004.");
+            AccountSettings settings=new AccountSettings(environment);
+            boolean demoEnabled="true".equalsIgnoreCase(settings.value("DEMO_ACCOUNTS_ENABLED","false"));
+            String demoPassword=demoEnabled?settings.value("DEMO_ACCOUNT_PASSWORD",""):"";
+            if(demoEnabled && !"123456".equals(demoPassword) && !AccountPolicy.password(demoPassword)) {
+                throw new IllegalStateException("DEMO_ACCOUNT_PASSWORD must be configured before enabling demo accounts.");
+            }
+            try(Connection conn=DBConnection.getConnection()) {
+                boolean autoCommit=conn.getAutoCommit();conn.setAutoCommit(false);
+                try {
+                    if(demoEnabled)createDemoAccounts(conn,demoPassword);
+                    try(PreparedStatement stmt=conn.prepareStatement("SELECT username,role,password,password_scheme FROM Users");ResultSet rs=stmt.executeQuery()) {
+                        while(rs.next()) {
+                            String hash=rs.getString("password");
+                            if (!PasswordHashing.SCHEME.equals(rs.getString("password_scheme")) || !PasswordHashing.validHash(hash)) {
+                                throw new IllegalStateException("Account password migration required. Stop writes and run scripts/migrate-passwords.ps1 after SQL migration 004.");
+                            }
+                            boolean allowedDemo=demoEnabled && demoRole(rs.getString("username")).equals(rs.getString("role"))
+                                && PasswordHashing.encoder().matches(demoPassword,hash);
+                            if(environment.acceptsProfiles(org.springframework.core.env.Profiles.of("prod"))
+                                    && PasswordHashing.encoder().matches("123456",hash) && !allowedDemo) {
+                                throw new IllegalStateException("Production contains unapproved demo credentials. Only explicitly enabled named demo accounts may use the demo password.");
+                            }
+                        }
                     }
-                    if(environment.acceptsProfiles(org.springframework.core.env.Profiles.of("prod")) && PasswordHashing.encoder().matches("123456",rs.getString("password"))) {
-                        throw new IllegalStateException("Production contains demo credentials. Change demo passwords in a private dev setup before enabling prod.");
+                    conn.commit();
+                } catch(Exception error) { conn.rollback();throw error; }
+                finally {conn.setAutoCommit(autoCommit);}
+            }
+        };
+    }
+    private static String demoRole(String username) {
+        if("admindemo".equalsIgnoreCase(username))return "admin";
+        if("khachdemo".equalsIgnoreCase(username))return "customer";
+        return "";
+    }
+    // Explicitly opted-in demo accounts only. Never reset, elevate or relink an existing account.
+    private static void createDemoAccounts(Connection connection,String password) throws SQLException {
+        for(String username:List.of("admindemo","khachdemo")) {
+            try(var query=connection.prepareStatement("SELECT role FROM Users WITH(UPDLOCK,HOLDLOCK) WHERE username=?")) {
+                query.setString(1,username);
+                try(var rows=query.executeQuery()) {
+                    if(rows.next()) {
+                        if(!demoRole(username).equalsIgnoreCase(rows.getString("role")))
+                            throw new SQLException("Demo account name already belongs to a different role; no account was changed.");
+                        continue;
                     }
                 }
             }
-        };
+            try(var insert=connection.prepareStatement("INSERT Users(username,password,password_scheme,full_name,role) VALUES(?,?,?,?,?)")) {
+                insert.setString(1,username);insert.setString(2,PasswordHashing.encoder().encode(password));
+                insert.setString(3,PasswordHashing.SCHEME);insert.setString(4,username.equals("admindemo")?"Quản trị demo":"Khách demo");
+                insert.setString(5,demoRole(username));insert.executeUpdate();
+            }
+        }
     }
     // NOTE BACKEND: Chỉ chấp nhận danh sách origin cụ thể khi dùng cookie xuyên origin; không cho ký tự đại diện *.
     @Bean public CorsConfigurationSource corsConfiguration(@Value("${auth.allowed-origins:}") String origins) {
