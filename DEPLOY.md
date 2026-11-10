@@ -1,5 +1,15 @@
 # Triển khai Homestay và Mochi
 
+## Tài khoản demo tùy chọn
+
+Mặc định không tạo tài khoản demo. Khi được phép chạy bản demo, đặt `DEMO_ACCOUNTS_ENABLED=true` và `DEMO_ACCOUNT_PASSWORD` trong Environment của Render (hoặc biến môi trường của tiến trình local). Hai biến này không được nạp từ file `.env` local.
+
+Ứng dụng tạo `khachdemo` với vai trò `customer` và `admindemo` với vai trò `admin` nếu chưa tồn tại. Mật khẩu được băm PBKDF2; khởi động lại không đổi mật khẩu, quyền hay thông tin của tài khoản có sẵn. Nếu tên đã thuộc vai trò khác, khởi động thất bại và giao dịch được hoàn tác.
+
+Bản demo theo yêu cầu cho phép mật khẩu `123456` riêng cho hai tên này khi bật cờ. Trước khi tắt cờ, đổi mật khẩu cả hai tài khoản sang mật khẩu mạnh theo quy tắc ứng dụng; nếu còn mật khẩu `123456`, kiểm tra bảo vệ production sẽ từ chối khởi động. Đăng ký công khai vẫn giữ quy tắc mật khẩu hiện tại.
+
+Kiểm thử `DemoAccountsSqlServerIT` dùng database tạm, kiểm tra tạo đúng hai tài khoản, đăng nhập bằng Spring, giữ nguyên tài khoản cũ và từ chối xung đột vai trò; không chạy kiểm thử trên database live.
+
 ## Docker local
 
 1. Tạo `.env.docker` theo `.env.docker.example`, điền SQL Server và cấu hình AI.

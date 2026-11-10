@@ -11,8 +11,8 @@
   },
   {
     "path": ".env.example",
-    "bytes": 1724,
-    "sha256": "fa7dc134a08cf7fbc44632ac629f852594629c1e8801f598d9a546e5e485a3ba"
+    "bytes": 1941,
+    "sha256": "ede24e1c12deaaf831393cb411c18251c99a8813352894e4e73f59bf0aa1b39b"
   },
   {
     "path": ".gitattributes",
@@ -26,8 +26,8 @@
   },
   {
     "path": "DEPLOY.md",
-    "bytes": 2595,
-    "sha256": "162455adb84b6e9e982e15c88ba18a8f1cc192cec2cad18cf814c09587af225e"
+    "bytes": 3936,
+    "sha256": "d62855a01c5371e6606a6ad9ac25add43a80359aab46e667c04cc7eccec0a2dc"
   },
   {
     "path": "Dockerfile",
@@ -521,8 +521,8 @@
   },
   {
     "path": "backend/src/main/java/com/homestay/security/SecurityConfig.java",
-    "bytes": 11870,
-    "sha256": "4f52f23a7b15b53c9850c824975993935d811f10d54d14c966293f0d797dad90"
+    "bytes": 14696,
+    "sha256": "5cdbf1a449e6a7f95940ff55cb384a81e2b481cb0ac856841516349a84ee7d21"
   },
   {
     "path": "backend/src/main/java/com/homestay/security/SecurityJson.java",
@@ -628,6 +628,11 @@
     "path": "backend/src/test/java/com/homestay/security/CustomerAccountsHttpSqlServerIT.java",
     "bytes": 22739,
     "sha256": "b36e1c73203048a51655adfbf4c0322aa358671dddd597974048f5f83fb4de4b"
+  },
+  {
+    "path": "backend/src/test/java/com/homestay/security/DemoAccountsSqlServerIT.java",
+    "bytes": 7127,
+    "sha256": "2f7d56d99eef1d57bb8c9bf6ba8ae5c5dd6ae296cb393b384ea1cf9fffb5a31e"
   },
   {
     "path": "backend/src/test/java/com/homestay/security/EmailDeliveryChecks.java",
