@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Đặt phòng - Homestay</title><link rel="icon" href="../css/images/homestay-logo.svg"><link rel="stylesheet" href="../css/style.css"><link rel="stylesheet" href="../css/room-photos.css"><link rel="stylesheet" href="../css/customer.css"><link rel="stylesheet" href="../ai/assistant.css"></head>
+<body class="session-pending customer-page">
+<a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
+<div id="session-status" class="session-status" role="status"><span id="session-message">Đang kiểm tra phiên đăng nhập…</span><button id="session-retry" class="btn btn-secondary" hidden>Thử lại</button></div>
+<div class="wrapper"><nav id="app-sidebar" class="sidebar" aria-label="Điều hướng chính"></nav>
+<main id="main-content" class="main-content" tabindex="-1">
+<header class="customer-heading"><div><p class="customer-eyebrow">KHOẢNG NGHỈ CỦA BẠN</p><h1>Đặt phòng</h1><p>Chọn phòng để xem ảnh trước, sau đó chọn thời gian và kiểm tra chi phí.</p></div><a class="btn btn-secondary" href="my-bookings.html">Đặt phòng của tôi ↗</a></header>
+<div id="alert-message" class="alert" role="status" style="display:none"></div>
+<p id="reserve-message" role="status" aria-live="polite"></p>
+<form id="reserve-form" novalidate>
+<div class="customer-reserve-grid">
+<section class="card reserve-time"><h2>1. Chọn phòng</h2>
+<div class="form-group"><label for="stay-room">Phòng bạn muốn đặt</label><select id="stay-room" required aria-describedby="rooms-message"><option value="">Đang tải danh sách phòng…</option></select></div>
+<p id="rooms-message" role="status" aria-live="polite">Bạn có thể chọn phòng và xem ảnh trước khi kiểm tra thời gian.</p><button id="reload-rooms" type="button" class="btn btn-secondary" hidden>Tải lại danh sách phòng</button>
+<h2>2. Thời gian lưu trú</h2>
+<div class="form-group"><label for="stay-unit">Cách tính tiền</label><select id="stay-unit"><option value="Night">Theo đêm</option><option value="Hour">Theo giờ</option></select></div>
+<div class="customer-form-grid"><div class="form-group"><label for="stay-start-date">Ngày nhận (ngày/tháng/năm)</label><input id="stay-start-date" type="text" inputmode="numeric" placeholder="10/11/2026" maxlength="10" autocomplete="off" required aria-describedby="stay-help stay-error"></div><div class="form-group"><label for="stay-end-date">Ngày trả (ngày/tháng/năm)</label><input id="stay-end-date" type="text" inputmode="numeric" placeholder="11/11/2026" maxlength="10" autocomplete="off" required aria-describedby="stay-help stay-error"></div></div>
+<div id="hour-fields" class="customer-form-grid" hidden><div class="form-group"><label for="stay-start-time">Giờ nhận (24h)</label><input id="stay-start-time" type="text" inputmode="numeric" placeholder="12:00" maxlength="5" autocomplete="off" aria-describedby="stay-help stay-error" disabled></div><div class="form-group"><label for="stay-end-time">Giờ trả (24h)</label><input id="stay-end-time" type="text" inputmode="numeric" placeholder="13:54" maxlength="5" autocomplete="off" aria-describedby="stay-help stay-error" disabled></div></div>
+<p id="stay-help" class="form-help">Nhập ngày theo dd/mm/yyyy. Ngày trả không tính thêm đêm. Thời gian theo giờ Việt Nam.</p>
+<p id="stay-error" class="form-error" role="alert" hidden></p><p id="stay-summary" class="form-help" role="status" aria-live="polite"></p>
+<button id="find-rooms" type="button" class="btn btn-secondary">Kiểm tra phòng theo thời gian</button></section>
+<aside id="selected-room" class="card customer-room-preview" aria-label="Ảnh và thông tin phòng đã chọn"><div id="room-photo" class="customer-photo-empty">Chọn phòng để xem hình ảnh</div><div id="room-copy"></div></aside>
+<section class="card reserve-profile"><h2>3. Thông tin người đặt</h2><p>Họ tên, số điện thoại và giấy tờ là thông tin bắt buộc. Địa chỉ không bắt buộc. Đơn phòng thuộc tài khoản đang đăng nhập; email lấy từ tài khoản của bạn.</p>
+<div class="customer-form-grid"><div class="form-group"><label for="guest-name">Họ và tên</label><input id="guest-name" maxlength="100" autocomplete="name" required></div><div class="form-group"><label for="guest-phone">Số điện thoại</label><input id="guest-phone" type="tel" pattern="0[0-9]{9}" maxlength="10" autocomplete="tel" required></div><div class="form-group"><label for="guest-document-type">Loại giấy tờ</label><select id="guest-document-type"><option value="CCCD">Căn cước công dân</option><option value="PASSPORT">Hộ chiếu</option></select></div><div class="form-group"><label for="guest-document">Số giấy tờ</label><input id="guest-document" maxlength="20" required></div></div>
+<div class="form-group"><label for="guest-address">Địa chỉ</label><input id="guest-address" maxlength="200" autocomplete="street-address"></div><p id="guest-email" class="form-help"></p></section>
+<section class="card reserve-services"><h2>4. Dịch vụ đi kèm</h2><p>Dịch vụ không bắt buộc. Số lượng tính cho toàn bộ lượt đặt; bỏ chọn để không sử dụng.</p><div id="reserve-services" role="group" aria-label="Chọn dịch vụ">Đang tải dịch vụ…</div><button id="reload-services" type="button" class="btn btn-secondary" hidden>Tải lại dịch vụ</button></section>
+<section class="card reserve-summary"><h2>5. Xác nhận và thanh toán</h2>
+<section id="reserve-price-panel" class="reserve-price-panel" aria-labelledby="reserve-price-title"><h3 id="reserve-price-title">Chi phí đặt phòng</h3>
+<p id="reserve-price-rate" class="reserve-price-rate">Chọn phòng để xem đơn giá theo giờ và theo đêm.</p>
+<dl class="customer-totals"><div><dt>Tiền phòng</dt><dd id="reserve-room-amount">Chưa tính</dd></div><div><dt>Tiền dịch vụ</dt><dd id="reserve-service-amount">0 VNĐ</dd></div><div class="customer-total"><dt>Tổng cần thanh toán</dt><dd id="reserve-total-amount">Chưa tính</dd></div></dl>
+<p id="reserve-price-state" class="form-help" role="status" aria-live="polite">Chọn phòng và thời gian để tính tổng tiền.</p></section>
+<div id="reserve-summary" aria-live="polite">Chọn phòng để xem chi tiết lượt đặt.</div>
+<div class="form-group"><label for="payment-method">Phương thức thanh toán</label><select id="payment-method"><option value="Tiền mặt">Thanh toán tại quầy</option><option value="Chuyển khoản">Chuyển khoản</option></select><p id="payment-help" class="form-help">Đơn được xác nhận, chưa thanh toán. Nhân viên xác nhận thu tiền tại quầy.</p></div>
+<div class="form-group"><label for="reserve-note">Ghi chú (không bắt buộc)</label><textarea id="reserve-note" maxlength="500" rows="2"></textarea></div>
+<div id="reserve-error" class="reserve-error-summary" role="alert" tabindex="-1" hidden></div>
+<p id="reserve-submit-help" class="form-help" role="status" aria-live="polite">Bấm xác nhận để kiểm tra thông tin còn thiếu trước khi đặt phòng.</p>
+<div class="customer-actions"><button id="reserve-submit" type="submit" class="btn btn-primary" aria-describedby="reserve-submit-help">Xác nhận đặt phòng</button><button id="reserve-requote" type="button" class="btn btn-secondary" hidden>Tải lại báo giá</button></div>
+</section></div></form>
+<section id="reserve-success" class="card" tabindex="-1" hidden><h2>Đặt phòng thành công</h2><p id="reserve-result"></p><div id="reserve-result-totals"></div><a id="reserve-result-link" class="btn btn-primary" href="my-bookings.html">Xem đơn và thanh toán</a></section>
+</main></div>
+<script src="../js/api.js"></script><script src="../js/shell.js"></script><script src="../js/account.js"></script><script src="../js/room-photos.js"></script><script src="../js/customer-common.js"></script><script src="../js/reserve.js"></script><script src="../ai/widget.js"></script>
+</body></html>

@@ -7,7 +7,9 @@ import java.sql.*;
 import java.util.Locale;
 
 @Service
+// NOTE BACKEND: Đọc tài khoản từ SQL cho Spring Security và kiểm tra phiên đang giữ có còn hợp lệ so với database hay không.
 public class UserAccounts implements UserDetailsService {
+    // NOTE BACKEND: Tìm tài khoản bằng tên đăng nhập, từ chối chuỗi mật khẩu chưa chuyển đúng định dạng rồi tạo AppUser để Spring xác thực.
     @Override public AppUser loadUserByUsername(String username) {
         try (Connection conn=DBConnection.getConnection(); PreparedStatement stmt=conn.prepareStatement(
                 "SELECT user_id,username,password,full_name,role,auth_version,password_scheme FROM Users WHERE username=?")) {
@@ -23,6 +25,7 @@ public class UserAccounts implements UserDetailsService {
         } catch(SQLException e) { throw new org.springframework.security.authentication.InternalAuthenticationServiceException("Account store unavailable",e); }
     }
 
+    // NOTE BACKEND: So sánh auth_version, role và thuật toán mật khẩu; đổi quyền/đổi mật khẩu làm phiên cũ không còn hợp lệ.
     public boolean sessionCurrent(AppUser user) throws SQLException {
         try(Connection conn=DBConnection.getConnection();PreparedStatement stmt=conn.prepareStatement(
                 "SELECT auth_version,role,password_scheme FROM Users WHERE user_id=?")) {

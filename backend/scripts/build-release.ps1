@@ -1,3 +1,5 @@
+# NOTE BACKEND: Build sạch bằng Maven, gom JAR, tài liệu, cấu hình mẫu, SQL và script khởi động vào target/release; tạo checksum và file ZIP để phát hành.
+# Đường dẫn được tính từ vị trí script; MavenRepository cho phép dùng bộ thư viện đã tải trong workspace.
 param([string]$MavenRepository = '')
 $ErrorActionPreference = 'Stop'
 $backendRoot = Split-Path $PSScriptRoot -Parent
@@ -9,7 +11,7 @@ try {
     $releaseDirectory = Join-Path $backendRoot 'target/release'
     New-Item -ItemType Directory -Force -Path $releaseDirectory | Out-Null
     Copy-Item -LiteralPath (Join-Path $backendRoot 'target/homestay-backend-1.0.0.jar') -Destination (Join-Path $releaseDirectory 'homestay.jar')
-    Copy-Item -LiteralPath (Join-Path $backendRoot '../DOCS.md') -Destination $releaseDirectory
+    Copy-Item -LiteralPath (Join-Path $backendRoot '../README.md') -Destination $releaseDirectory
     Copy-Item -LiteralPath (Join-Path $backendRoot '../.env.example') -Destination $releaseDirectory
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'start-release.ps1') -Destination $releaseDirectory
     Copy-Item -LiteralPath (Join-Path $backendRoot '../database') -Destination $releaseDirectory -Recurse

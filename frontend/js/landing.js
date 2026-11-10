@@ -1,8 +1,13 @@
+// NOTE FRONTEND: Trang giới thiệu và phần tài khoản/số liệu theo phiên; thống kê tải từ dữ liệu phòng hiện tại.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
 let landingLoading=false,landingReady=false,landingRefreshTimer=null;
+// NOTE FRONTEND: Đặt tài khoản đã xác thực hoặc nút đăng nhập lên header, dùng bộ dựng menu chung.
 function renderLandingAccount(user) {
     renderPublicAccount(document.getElementById('landing-account'),user);
 }
+// NOTE FRONTEND: Làm mới số liệu định kỳ và tránh gửi khi trang đang ẩn.
 function startLandingRefresh(){clearInterval(landingRefreshTimer);landingRefreshTimer=setInterval(()=>{if(!document.hidden)loadLandingRooms();},30000);}
+// NOTE FRONTEND: Tải phòng, đếm tổng/phòng trống/loại; nếu làm mới thất bại thì giữ lần tải trước với cảnh báo số liệu cũ.
 async function loadLandingRooms(){
     if(landingLoading)return;landingLoading=true;
     try{
@@ -29,7 +34,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
         ['Single','Double','VIP','Family'].forEach(type=>roomType.append(selectOption(type,type)));
         document.querySelectorAll('a[href]').forEach(link=>{
             const target=new URL(link.href,window.location.href);
-            if(target.origin===window.location.origin && target.pathname.startsWith('/pages/') && !['/pages/landing.html','/pages/explore.html','/pages/login.html','/pages/policies.html'].includes(target.pathname))
+            if(target.origin===window.location.origin && target.pathname.startsWith('/pages/') && !['/pages/landing.html','/pages/explore.html','/pages/login.html','/pages/policies.html','/pages/support.html','/pages/assistant.html'].includes(target.pathname))
                 link.href='login.html?next='+encodeURIComponent(target.pathname+target.search+target.hash);
         });
     } else {
@@ -42,10 +47,23 @@ document.addEventListener('DOMContentLoaded',async()=>{
         event.preventDefault();const date=document.getElementById('landing-date').value,time=document.getElementById('landing-time').value,error=document.getElementById('landing-search-error');
         if(!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time) || date+'T'+time<vietnamNow().slice(0,16)){error.textContent='Chọn ngày và giờ hiện tại hoặc tương lai để xem lịch.';error.hidden=false;return;}
         error.hidden=true;const params=new URLSearchParams({date,hour:time.slice(0,2),mode:'hours'});const type=document.getElementById('landing-room-type').value;if(type)params.set('type',type);
-        const target='bookings.html?'+params;
+        const target=(user?.role==='admin'?'bookings.html':'reserve.html')+'?'+params;
         window.location.href=user?target:'login.html?next='+encodeURIComponent('/pages/'+target);
     });
-    if(user) { loadLandingRooms(); startLandingRefresh(); }
+    if(user?.role==='admin') { loadLandingRooms(); startLandingRefresh(); }
+    else {
+        document.querySelector('.stay-live-stats').hidden=true;
+        document.querySelector('.stay-workspace').hidden=true;
+        const types=document.getElementById('landing-room-type');if(user)['Single','Double','VIP','Family'].forEach(type=>types.append(selectOption(type,type)));
+        const benefits=document.querySelectorAll('.stay-benefit');
+        const copy=[['Chọn theo thời gian của bạn','Chọn giờ hoặc ngày nhận và trả. Tìm phòng phù hợp cho một vài giờ nghỉ hoặc nhiều đêm lưu trú.'],['Kiểm tra phòng phù hợp','Danh sách chỉ gồm những phòng có thể đặt trong khoảng thời gian bạn đã chọn.'],['Mọi chi tiết, trong cùng một nơi','Chọn dịch vụ, kiểm tra tổng tiền và theo dõi đơn của chính bạn. Hóa đơn có sau khi nhân viên xác nhận thu tiền.']];
+        benefits.forEach((item,index)=>{if(copy[index]){item.querySelector('h3').textContent=copy[index][0];item.querySelector('p').textContent=copy[index][1];}});
+        document.querySelector('.stay-text-link').textContent='Tìm và đặt phòng ↗';
+        const steps=document.querySelectorAll('.stay-steps article');
+        steps[0].querySelector('p').textContent='Xem ảnh, thông tin và giá phòng trước khi chọn thời gian lưu trú.';
+        steps[1].querySelector('h3').textContent='Chọn thời gian và phòng';steps[1].querySelector('a').textContent='Đặt phòng ↗';
+        steps[2].querySelector('p').textContent='Theo dõi đơn, thanh toán và hóa đơn của bạn. Nhân viên hỗ trợ nhận và trả phòng.';steps[2].querySelector('a').textContent='Hóa đơn của tôi ↗';
+    }
     window.addEventListener('pagehide',()=>clearInterval(landingRefreshTimer));
     window.addEventListener('pageshow',event=>{if(event.persisted)window.location.reload();});
 });

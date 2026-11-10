@@ -1,3 +1,5 @@
+// NOTE KIỂM THỬ: Môi trường DOM/API giả dùng chung cho kiểm thử JavaScript: tạo phần tử, sự kiện, ngữ cảnh VM và ghi lại yêu cầu.
+// Code chạy bằng Node trong môi trường giả để kiểm tra frontend; các assert so kết quả thực tế với kết quả mong đợi.
 const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
@@ -5,7 +7,7 @@ const assert = require('node:assert/strict');
 const root = path.resolve(__dirname, '../../../../frontend/js');
 const payload = `O'Neil <img src=x onerror="globalThis.pwned=1"><script>globalThis.pwned=1</script>`;
 class Element {
-    constructor(tag = 'div') { this.tagName = tag.toUpperCase(); this.children = []; this.style = {}; this.dataset = {}; this.events = {}; this.attributes = {}; this.value = ''; this._text = ''; this.className = ''; this.disabled = false; this.selectedIndex = 0; this.classList = { add() {}, remove() {} }; }
+    constructor(tag = 'div') { this.tagName = tag.toUpperCase(); this.children = []; this.style = {}; this.dataset = {}; this.events = {}; this.attributes = {}; this.value = ''; this._text = ''; this.className = ''; this.disabled = false; this.hidden = false; this.selectedIndex = 0; this.classList = { add() {}, remove() {} }; }
     set textContent(value) { this._text = String(value); this.children = []; }
     get textContent() { return this._text + this.children.map(child => child.textContent).join(''); }
     set innerHTML(value) { throw new Error('Unsafe innerHTML reached: ' + value); }
@@ -17,6 +19,16 @@ class Element {
     append(...children) { children.forEach(child => this.appendChild(child)); }
     replaceChildren(...children) { this._text = ''; this.children = []; this.append(...children); }
     addEventListener(type, fn) { this.events[type] = fn; }
+    querySelector(selector) {
+        const matches=node=>selector.startsWith('.') ? node.className.split(/\s+/).includes(selector.slice(1)) : node.tagName===selector.toUpperCase();
+        for(const child of this.children) { if(matches(child))return child;const nested=child.querySelector(selector);if(nested)return nested; }
+        return null;
+    }
+    querySelectorAll(selector) {
+        const selectors=selector.split(',').map(value=>value.trim());
+        const matches=node=>selectors.some(value=>value.startsWith('.') ? node.className.split(/\s+/).includes(value.slice(1)) : node.tagName===value.toUpperCase());
+        return this.children.flatMap(child=>[...(matches(child)?[child]:[]),...child.querySelectorAll(selector)]);
+    }
     getAttribute(name) { return name === 'data-price' ? this.dataset.price : this.attributes[name] ?? null; }
     setAttribute(name, value) { this.attributes[name] = value; }
     removeAttribute(name) { delete this.attributes[name]; }
@@ -33,6 +45,11 @@ function env(module, options = {}) {
         confirm: message => { confirmations.push(message); return false; }, console
     });
     vm.runInContext(fs.readFileSync(path.join(root, 'api.js'), 'utf8'), context);
+    if(module==='checkout'||module==='rooms') {
+        vm.runInContext(fs.readFileSync(path.join(root,'vendor/qrcode.js'),'utf8'),context);
+        vm.runInContext(fs.readFileSync(path.join(root,'payment-demo.js'),'utf8'),context);
+    }
+    if(module==='rooms'||module==='explore')vm.runInContext(fs.readFileSync(path.join(root,'room-photos.js'),'utf8'),context);
     if(module === 'rooms') vm.runInContext(fs.readFileSync(path.join(root, 'room-stay.js'), 'utf8'), context);
     vm.runInContext(fs.readFileSync(path.join(root, module + '.js'), 'utf8'), context);
     if (!options.realConfirmation) context.askConfirmation = async message => context.confirm(message);

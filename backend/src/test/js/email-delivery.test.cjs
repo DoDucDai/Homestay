@@ -1,0 +1,41 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const {env,root}=require('./frontend-test-env.cjs');
+(async()=>{
+    const e=env('profile');
+    e.context.URL=URL;e.context.clearInterval=()=>{};
+    e.context.window.location={origin:'https://homestay.test',href:'https://homestay.test/pages/account.html',pathname:'/pages/account.html',search:''};
+    vm.runInContext(fs.readFileSync(path.join(root,'profile-email.js'),'utf8'),e.context);
+    e.events.DOMContentLoaded();
+    const user={userId:7,username:'member7',fullName:'Member',role:'customer',email:'member@example.org',emailVerified:false,emailVerificationEnabled:true};
+    e.context.renderAccountProfile(user);
+    let requests=0;
+    e.context.apiPost=async()=>{requests++;throw new Error('Chức năng email tạm chưa sẵn sàng.');};
+    await e.el('verification-send').events.click();
+    assert.equal(e.el('verification-status').textContent,'Chức năng email tạm chưa sẵn sàng.');
+    assert.equal(e.el('verification-send').disabled,false);
+    assert.equal(e.el('verification-state').textContent,'Chưa xác thực');
+    e.context.apiPost=async(endpoint,body)=>{
+        requests++;assert.equal(endpoint,'/auth/email-verification/request');assert.equal(Object.keys(body).length,0);
+        return {success:true,message:'Đã gửi mã xác thực.',retryAfter:60};
+    };
+    await e.el('verification-send').events.click();
+    assert.equal(e.el('verification-status').textContent,'Đã gửi mã xác thực.');
+    assert.equal(e.el('verification-send').disabled,true);
+    e.el('verification-code').value='123456';
+    e.context.apiPost=async()=>{requests++;throw new Error('Mã không đúng, đã dùng hoặc hết hạn.');};
+    await e.el('verification-form').events.submit({preventDefault(){}});
+    assert.equal(e.el('verification-state').textContent,'Chưa xác thực');
+    assert.equal(e.el('verification-status').textContent,'Mã không đúng, đã dùng hoặc hết hạn.');
+    e.context.apiPost=async(endpoint,body)=>{
+        requests++;assert.equal(endpoint,'/auth/email-verification/confirm');assert.equal(body.code,'123456');
+        return {success:true,message:'Email đã được xác thực.'};
+    };
+    e.context.checkLogin=async()=>({...user,emailVerified:true});
+    await e.el('verification-form').events.submit({preventDefault(){}});
+    assert.equal(e.el('verification-state').textContent,'Đã xác thực');
+    assert.equal(e.el('verification-form').hidden,true);
+    e.context.renderAccountProfile({...user,emailVerificationEnabled:false});
+    const before=requests;await e.el('verification-send').events.click();
+    assert.equal(requests,before);assert.equal(e.el('verification-form').hidden,true);
+    console.log('PASS email UI: failed send stays unverified, accepted send starts cooldown, confirmation needs server success, disabled feature sends nothing');
+})().catch(error=>{console.error(error);process.exitCode=1;});

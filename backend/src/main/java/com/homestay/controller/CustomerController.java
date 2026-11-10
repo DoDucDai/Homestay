@@ -6,14 +6,19 @@ import org.springframework.web.bind.annotation.*;
 import java.sql.*;
 import java.util.*;
 
+// NOTE API: Quản lý hồ sơ khách lưu trú trong Customers; đây là hồ sơ nghiệp vụ, không phải tài khoản Users.
+// @...Mapping xác định phương thức HTTP và đường dẫn; @RequestBody đọc JSON,
+// @PathVariable đọc ID trong URL, @RequestParam đọc tham số sau dấu ?. Quyền truy cập nằm trong SecurityConfig.
 @RestController
 @RequestMapping("/api/customers")
 public class CustomerController {
     private static final String SELECT="SELECT customer_id,full_name,document_type,cccd,phone,email,address,created_at FROM Customers";
+    // NOTE BACKEND: Giữ nguyên dữ liệu cũ nếu client không sửa; nếu đổi thì đọc chuỗi theo giới hạn của trường.
     private String retainedText(Map<String,Object> body,String key,int max,String previous) {
         if(body!=null && previous.equals(body.get(key))) return previous;
         return Input.text(body,key,max,false,previous);
     }
+    // NOTE BACKEND: Chuyển dòng Customers thành JSON và thêm cảnh báo giấy tờ/điện thoại/email cũ chưa đạt quy tắc hiện tại.
     private Map<String,Object> row(ResultSet rs) throws SQLException {
         Map<String,Object> result=new LinkedHashMap<>();
         result.put("customerId",rs.getInt("customer_id"));result.put("fullName",rs.getString("full_name"));
@@ -30,6 +35,8 @@ public class CustomerController {
     public List<Map<String,Object>> getAllCustomers() {
         return getAllCustomers(null);
     }
+    // NOTE API: GET /api/customers lấy hồ sơ khách; query search tìm theo tên, giấy tờ hoặc điện thoại.
+    // Trả danh sách kèm validationWarnings để nhận biết dữ liệu cũ cần chuẩn hóa.
     @GetMapping
     public List<Map<String,Object>> getAllCustomers(@RequestParam(required=false) String search) {
         String keyword=search==null ? "" : search.trim();
@@ -42,11 +49,15 @@ public class CustomerController {
         } catch(SQLException e) { throw ApiErrors.databaseFailure(e); }
         return result;
     }
+    // NOTE API: GET /api/customers/{id}/bookings trả danh sách lượt đặt của hồ sơ khách có ID tương ứng.
+    // Dùng chung cách đọc lịch sử bên dưới, nhưng chỉ lấy phần bookings để frontend dễ dựng bảng.
     @GetMapping("/{id}/bookings")
     public Object getCustomerBookings(@PathVariable int id) {
         Map<String,Object> history=getHistory(id);
         return Boolean.TRUE.equals(history.get("success")) ? history.get("bookings") : history;
     }
+    // NOTE API: GET /api/customers/{id}/history trả hồ sơ, các lượt đặt và tổng tiền đã thanh toán.
+    // Dữ liệu gắn theo customer_id; chỉ cộng hóa đơn đã thanh toán và tránh cộng lặp khi có nhiều dịch vụ.
     @GetMapping("/{id}/history")
     public Map<String,Object> getHistory(@PathVariable int id) {
         return ApiErrors.guard(() -> {
@@ -64,8 +75,8 @@ public class CustomerController {
                 java.math.BigDecimal total=java.math.BigDecimal.ZERO;
                 // Payments is unique per booking. Never join service lines into this query.
                 try(PreparedStatement stmt=conn.prepareStatement("""
-                    SELECT b.booking_id,b.checkin_date,b.checkout_date,b.status,b.note,
-                           DATEDIFF(day,b.checkin_date,b.checkout_date) AS nights,r.room_code,r.room_name,
+                    SELECT b.booking_id,b.checkin_date,b.checkout_date,b.billing_unit,b.checkin_at,b.checkout_at,b.status,b.note,
+                           DATEDIFF(day,b.checkin_date,b.checkout_date) AS nights,r.room_id,r.room_code,r.room_name,
                            p.payment_id,p.grand_total,p.payment_method,p.paid_at
                     FROM Bookings b JOIN Rooms r ON r.room_id=b.room_id
                     LEFT JOIN Payments p ON p.booking_id=b.booking_id AND p.payment_status=N'Đã thanh toán'
@@ -76,9 +87,25 @@ public class CustomerController {
                         while(rs.next()) {
                             Map<String,Object> booking=new LinkedHashMap<>();
                             booking.put("bookingId",rs.getInt("booking_id"));
+                            booking.put("roomId",rs.getInt("room_id"));
                             booking.put("roomCode",rs.getString("room_code"));booking.put("roomName",rs.getString("room_name"));
                             booking.put("checkinDate",rs.getDate("checkin_date").toString());booking.put("checkoutDate",rs.getDate("checkout_date").toString());
-                            booking.put("nights",rs.getInt("nights"));booking.put("status",rs.getString("status"));booking.put("note",rs.getString("note"));
+                            String unit=rs.getString("billing_unit");
+                            Timestamp start=rs.getTimestamp("checkin_at"),end=rs.getTimestamp("checkout_at");
+                            boolean hourly="Hour".equals(unit);
+                            booking.put("billingUnit",unit);
+                            booking.put("checkinAt",start==null ? null : start.toLocalDateTime().toString());
+                            booking.put("checkoutAt",end==null ? null : end.toLocalDateTime().toString());
+                            booking.put("nights",hourly ? null : rs.getInt("nights"));
+                            if(hourly) {
+                                if(start==null || end==null) {
+                                    throw new ApiProblem(409,"DATA_INCONSISTENT","Thiếu thời gian nhận hoặc trả phòng của booking theo giờ!");
+                                }
+                                booking.put("billedHours",HourlyStay.billedHours(start.toLocalDateTime(),end.toLocalDateTime()));
+                            } else {
+                                booking.put("billedHours",null);
+                            }
+                            booking.put("status",rs.getString("status"));booking.put("note",rs.getString("note"));
                             int paymentId=rs.getInt("payment_id");boolean paid=!rs.wasNull();
                             java.math.BigDecimal amount=paid ? BookingInvoiceSnapshot.money(rs.getBigDecimal("grand_total")) : java.math.BigDecimal.ZERO;
                             booking.put("paymentId",paid ? paymentId : null);booking.put("paidTotal",amount);
@@ -94,6 +121,8 @@ public class CustomerController {
             } catch(SQLException e) { return ApiErrors.database(e); }
         });
     }
+    // NOTE API: GET /api/customers/{id} lấy một hồ sơ khách lưu trú theo ID.
+    // Trả thông tin và cảnh báo dữ liệu cũ; trả lỗi 404 nếu hồ sơ không tồn tại.
     @GetMapping("/{id}")
     public Map<String,Object> getCustomerById(@PathVariable int id) {
         return ApiErrors.guard(() -> {
@@ -107,6 +136,8 @@ public class CustomerController {
 
         });
     }
+    // NOTE API: POST /api/customers tạo hồ sơ từ fullName, documentType, cccd, phone, email, address.
+    // Kiểm tra CCCD/hộ chiếu và thông tin liên hệ; thao tác này không tạo tài khoản đăng nhập.
     @PostMapping
     public Map<String,Object> createCustomer(@RequestBody Map<String,Object> body) {
         return ApiErrors.guard(() -> {
@@ -125,6 +156,8 @@ public class CustomerController {
 
         });
     }
+    // NOTE API: PUT /api/customers/{id} sửa hồ sơ khách trong giao dịch có khóa bản ghi.
+    // Giữ được giá trị cũ chưa chuẩn hóa nếu không đổi; trường được sửa phải đạt kiểm tra dữ liệu hiện tại.
     @PutMapping("/{id}")
     public Map<String,Object> updateCustomer(@PathVariable int id,@RequestBody Map<String,Object> body) {
         return ApiErrors.guard(() -> {
@@ -158,6 +191,8 @@ public class CustomerController {
 
         });
     }
+    // NOTE API: DELETE /api/customers/{id} dành cho admin, xóa hồ sơ chưa có lịch sử đặt phòng.
+    // Nếu hồ sơ đã được dùng cho booking thì trả lỗi xung đột, giữ lại lịch sử lưu trú và hóa đơn.
     @DeleteMapping("/{id}")
     public Map<String,Object> deleteCustomer(@PathVariable int id) {
         return ApiErrors.guard(() -> {

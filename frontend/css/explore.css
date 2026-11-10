@@ -11,7 +11,7 @@
 .explore-eyebrow { color:#977647; font-size:10px; letter-spacing:1.8px; font-weight:600; margin-bottom:14px; }
 .explore-intro h1 { font-size:clamp(30px,4vw,48px); letter-spacing:-1.4px; line-height:1.2; margin-bottom:18px; }
 .explore-intro>p:last-child { color:#687269; line-height:1.9; font-size:14px; }
-.explore-filters { display:grid; grid-template-columns:2fr 1fr 1fr; gap:18px; padding:22px; border:1px solid #e3e6dd; border-radius:12px; background:white; }
+.explore-filters { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:18px; padding:22px; border:1px solid #e3e6dd; border-radius:12px; background:white; }
 .explore-filters .form-group { margin:0; min-width:0; }
 .explore-filters label { font-size:12px; }
 .explore-result { color:#687269; font-size:13px; margin:24px 0; }
@@ -25,6 +25,7 @@
 .explore-room-copy h2 a { color:inherit; text-decoration:none; }
 .explore-room-copy .explore-description { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:48px; }
 .explore-description { color:#6b756b; font-size:13px; line-height:1.9; white-space:pre-wrap; overflow-wrap:anywhere; }
+.explore-property-address { color:#52694f; font-size:12px; line-height:1.7; margin:10px 0 14px; overflow-wrap:anywhere; }
 .explore-room-price { font-size:16px; font-weight:600; margin:22px 0 7px; }
 .explore-hourly { font-size:12px; color:#6b756b; min-height:20px; }
 .explore-room-link { display:flex; justify-content:space-between; border-top:1px solid #e3e6dd; padding-top:17px; margin-top:19px; color:#293e32; font-size:13px; text-decoration:none; }
@@ -34,10 +35,38 @@
 .explore-detail-photo .explore-photo { aspect-ratio:4/3; border-radius:14px; }
 .explore-detail-copy h1 { font-size:36px; line-height:1.2; margin-bottom:12px; overflow-wrap:anywhere; }
 .explore-detail-copy h2 { font-size:17px; margin:28px 0 13px; }
-.explore-prices { display:grid; grid-template-columns:1fr 1fr; gap:16px; border-block:1px solid #dfe4d9; padding:22px 0; margin:26px 0; }
-.explore-prices dt { font-size:12px; color:#6b756b; margin-bottom:8px; }
-.explore-prices dd { margin:0; font-size:18px; font-weight:600; }
-.explore-booking-note { color:#6b756b; font-size:12px; line-height:1.9; margin-bottom:20px; }
+.explore-detail-copy { min-width:0; }
+.explore-rate-panel { margin-top:28px; padding:25px; border:1px solid #e2e3d9; border-radius:20px; background:#fffefb; box-shadow:0 10px 32px #293e3206; }
+.explore-rate-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:23px; }
+.explore-detail-copy .explore-rate-heading h2 { margin:0; font-size:21px; font-weight:600; letter-spacing:-.5px; }
+.explore-rate-heading>span { border:1px solid #e6e5dc; border-radius:6px; padding:4px 7px; color:#7d8376; font-size:9px; font-weight:600; letter-spacing:1px; }
+.explore-rate-section h3 { display:flex; align-items:center; gap:9px; margin:0 0 13px; color:#475348; font-size:12px; font-weight:600; }
+.explore-rate-section h3 svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.4; }
+.explore-night-rates,.explore-hour-rates { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:0; }
+.explore-rate-card { min-width:0; padding:16px 14px; border:1px solid #e6e7df; border-radius:12px; background:#fffefb; }
+.explore-rate-weekday { background:#edf1e9; border-color:#e1e8db; }
+.explore-rate-weekend { background:#faf3e8; border-color:#eee0ca; }
+.explore-rate-label { color:#6b7566; font-size:11px; margin:0 0 9px; }
+.explore-rate-value { margin:0; font-variant-numeric:tabular-nums; }
+.explore-rate-value strong { display:block; color:#293e32; font-size:25px; font-weight:600; line-height:1.2; letter-spacing:-.8px; overflow-wrap:anywhere; }
+.explore-rate-unit { display:block; color:#7b8376; font-size:10px; margin-top:5px; }
+.explore-rate-caption { display:block; color:#6e7668; font-size:11px; line-height:1.6; margin-top:13px; }
+.explore-hour-section { margin-top:22px; padding-top:21px; border-top:1px solid #ebece4; }
+.explore-hour-rates { grid-template-columns:repeat(3,minmax(0,1fr)); color:#7b8376; font-size:12px; }
+.explore-hour-rates .explore-rate-card { padding:14px 11px; }
+.explore-hour-rates .explore-rate-label { font-size:12px; font-weight:600; color:#475348; }
+.explore-hour-rates .explore-rate-value strong { font-size:19px; letter-spacing:-.5px; }
+.explore-extra-hour { display:flex; justify-content:space-between; flex-wrap:wrap; gap:5px 10px; margin:12px 0 0; padding:11px 0; border-bottom:1px dashed #e6e7df; font-size:11px; color:#7b8376; }
+.explore-extra-hour strong { color:#475348; font-weight:500; }
+.explore-rate-rule { color:#6f796b; font-size:11px; line-height:1.8; margin:10px 0 0; }
+.explore-book-button { display:flex; width:100%; justify-content:space-between; margin-top:22px; border-radius:10px; padding:17px 18px; font-size:12px; }
+.explore-booking-note { color:#6f796b; font-size:11px; line-height:1.8; margin:12px 0 0; text-align:center; }
+.explore-card-pricing { margin-top:19px; padding-top:15px; border-top:1px solid #eceee6; }
+.explore-card-rate { display:flex; justify-content:space-between; flex-wrap:wrap; gap:5px 12px; margin:0 0 8px; color:#7b8376; font-size:11px; }
+.explore-card-rate strong { color:#293e32; font-size:16px; font-weight:600; font-variant-numeric:tabular-nums; }
+.explore-card-hour { margin:12px 0 0; color:#8d7959; font-size:11px; }
+@media(min-width:768px) and (max-width:1000px) { .explore-rate-panel { padding:19px; }.explore-rate-card { padding:14px 11px; }.explore-rate-value strong { font-size:21px; }.explore-hour-rates .explore-rate-card { padding:12px 7px; }.explore-hour-rates .explore-rate-value strong { font-size:16px; } }
+@media(max-width:420px) { .explore-rate-panel { padding:19px 16px; border-radius:16px; }.explore-rate-value strong { font-size:23px; }.explore-hour-rates { gap:7px; }.explore-hour-rates .explore-rate-card { padding:12px 8px; }.explore-hour-rates .explore-rate-value strong { font-size:17px; } }
 .explore-empty { padding:40px 24px; background:white; border:1px solid #e3e6dd; border-radius:12px; text-align:center; grid-column:1/-1; }
 .explore-empty p { margin:14px 0 20px; color:#6b756b; }
 .explore-empty>a { display:inline-block; margin-left:20px; }

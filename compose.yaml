@@ -1,0 +1,25 @@
+# NOTE TRIỂN KHAI: Cấu hình chạy local từ image/container; SQL Server vẫn nằm ngoài service này.
+services:
+  homestay:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: homestay-mochi:local
+    init: true
+    restart: unless-stopped
+    # NOTE TRIỂN KHAI: Đọc cấu hình từ .env.docker ở máy chạy; file chứa secret không được đóng gói vào image.
+    env_file: .env.docker
+    environment:
+      SERVER_ADDRESS: 0.0.0.0
+      SERVER_PORT: "8080"
+      AI_RAG_DB_PATH: /var/lib/homestay/assistant.sqlite3
+    # NOTE TRIỂN KHAI: Chỉ mở cổng web trên loopback của máy host; RAG 8091 được Java gọi nội bộ.
+    ports:
+      - "127.0.0.1:8080:8080"
+    # NOTE TRIỂN KHAI: Giữ SQLite trong named volume để dữ liệu RAG/Support còn lại khi thay container local.
+    volumes:
+      - rag-data:/var/lib/homestay
+    stop_grace_period: 30s
+
+volumes:
+  rag-data:

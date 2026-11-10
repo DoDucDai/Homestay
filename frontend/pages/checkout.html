@@ -104,21 +104,21 @@
         </article>
         <button id="add-service-btn" class="btn btn-secondary" onclick="openServiceModal()">Thêm dịch vụ</button>
         <div class="form-group" id="payment-controls">
-            <h4>Ghi nhận thanh toán và trả phòng</h4>
-            <p class="form-help">Chỉ xác nhận sau khi đã thu đủ tiền. Phương thức dùng để ghi nhận; hệ thống chưa xác minh tiền về hoặc kết nối cổng thanh toán. Tiền phòng tính theo khung giờ hoặc số đêm đã đặt; phần giờ được làm tròn lên.</p>
-            <label for="payment-method">Phương thức thanh toán</label>
-            <select id="payment-method">
+            <h4>Xác nhận thu tiền trước khi trả phòng</h4>
+            <p class="form-help">Kiểm tra và xác nhận tiền thực nhận trong mục Xác nhận thu tiền. Thao tác trả phòng sử dụng lại hóa đơn đã lưu.</p>
+            <label for="payment-method" hidden>Phương thức thanh toán</label>
+            <select id="payment-method" hidden>
                 <option value="Tiền mặt">Tiền mặt</option>
                 <option value="Chuyển khoản">Chuyển khoản</option>
-                <option value="Thẻ ngân hàng">Thẻ ngân hàng</option>
             </select>
+            <div id="payment-instructions" hidden></div>
         </div>
 
         <div class="modal-footer">
             <button data-modal-close id="checkout-cancel-btn" class="btn btn-secondary" onclick="closeCheckoutModal()">Đóng</button>
             <button id="invoice-print-btn" class="btn btn-primary" onclick="printInvoice()" disabled>In hóa đơn</button>
             <button id="invoice-preview-btn" class="btn btn-secondary" onclick="previewInvoicePrint()" disabled>Xem bản in</button>
-            <button id="checkout-confirm-btn" class="btn btn-primary" aria-busy="false" onclick="confirmCheckout()" disabled>Xác nhận đã thu tiền & Check-out</button>
+            <button id="checkout-confirm-btn" class="btn btn-primary" aria-busy="false" onclick="confirmCheckout()" disabled>Xác nhận trả phòng</button>
         </div>
     </div>
 </div>
@@ -139,6 +139,7 @@
 <script src="../js/shell.js"></script>
 <script src="../js/account.js"></script>
 <!-- JS xu ly -->
+<script src="../js/vendor/qrcode.js"></script>
 <script src="../js/checkout.js"></script>
 
 <script src="../ai/widget.js"></script>

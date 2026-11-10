@@ -1,3 +1,5 @@
+// NOTE FRONTEND: Dựng footer cố định, cập nhật năm hiện tại và nút lên đầu trang; không có thao tác tài khoản/booking.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
 /* Footer for the public homestay pages. No account or booking operations here. */
 (()=>{
  const footer=document.querySelector('[data-site-footer]');if(!footer)return;
@@ -18,4 +20,5 @@
  </div>`;
  footer.querySelector('#landing-year').textContent=new Date().getFullYear();
  footer.querySelector('.footer-top').onclick=()=>window.scrollTo({top:0,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
+ if(typeof routeCustomerLinks==='function' && currentUser)routeCustomerLinks(currentUser);
 })();

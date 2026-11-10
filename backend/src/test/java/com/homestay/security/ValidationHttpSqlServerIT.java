@@ -6,13 +6,15 @@ import java.nio.file.Path;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.function.Supplier;
 
 /** Real SQL Server checks in a disposable database, never the configured database. */
+// NOTE KIỂM THỬ: Kiểm tra API từ chối dữ liệu sai, trả đúng lỗi HTTP, lọc lịch sử khách và đối chiếu doanh thu thống kê.
+// File này thuộc src/test, không phải endpoint và không nằm trong mã nghiệp vụ chạy phục vụ người dùng.
 public class ValidationHttpSqlServerIT {
 
     private static int passed;
 
+    // NOTE KIỂM THỬ: Điểm chạy nhóm kiểm tra; dùng AssertionError/kết thúc khác 0 để báo điều kiện không đạt.
     public static void main(String[] args) throws Exception {
         if (args.length == 1 && "--isolated-child".equals(args[0])) {
             String database = System.getenv("DB_NAME");
@@ -89,30 +91,10 @@ public class ValidationHttpSqlServerIT {
         if (!condition) throw new AssertionError(message);
     }
 
-    private static boolean success(Map<String, Object> response) {
-        return Boolean.TRUE.equals(response.get("success"));
-    }
-
     private static void pass(String name) {
         passed++;
         System.out.println("PASS " + name);
     }
-
-    private static List<Map<String, Object>> concurrent(Supplier<Map<String, Object>> a,
-                                                       Supplier<Map<String, Object>> b) throws Exception {
-        ExecutorService executor = Executors.newFixedThreadPool(2);
-        CountDownLatch start = new CountDownLatch(1);
-        try {
-            Future<Map<String, Object>> one = executor.submit(() -> { start.await(); return a.get(); });
-            Future<Map<String, Object>> two = executor.submit(() -> { start.await(); return b.get(); });
-            start.countDown();
-            return List.of(one.get(20, TimeUnit.SECONDS), two.get(20, TimeUnit.SECONDS));
-        } finally {
-            executor.shutdownNow();
-        }
-    }
-
-
 
     private static final com.fasterxml.jackson.databind.ObjectMapper JSON=new com.fasterxml.jackson.databind.ObjectMapper();
     private static String base;
@@ -145,7 +127,7 @@ public class ValidationHttpSqlServerIT {
         }
         String session() {
             return cookies.getCookieStore().getCookies().stream().filter(c -> "HOMESTAY_SESSION".equals(c.getName()))
-                    .map(java.net.HttpCookie::getValue).findFirst().orElse(null);
+                    .map(cookie -> cookie.getValue()).findFirst().orElse(null);
         }
     }
     @SuppressWarnings("unchecked")
@@ -169,10 +151,11 @@ public class ValidationHttpSqlServerIT {
         }
         throw new AssertionError("Cannot locate test session");
     }
+    // NOTE KIỂM THỬ: Tạo tình huống, gọi code cần kiểm tra rồi đối chiếu kết quả/trạng thái dữ liệu với giá trị mong đợi.
     private static void runChecks() throws Exception {
         try(var conn=DBConnection.getConnection();var stmt=conn.prepareStatement(
-                "INSERT INTO Users(username,password,full_name,role) VALUES(?,?,N'Admin test','admin'),(?,?,N'Staff test','staff')")) {
-            stmt.setString(1,"admin");stmt.setString(2,ADMIN_PASSWORD);stmt.setString(3,"staff");stmt.setString(4,STAFF_PASSWORD);stmt.executeUpdate();
+                "INSERT INTO Users(username,password,full_name,role) VALUES(?,?,N'Admin test','admin'),(?,?,N'Staff test','customer')")) {
+            stmt.setString(1,"admin");stmt.setString(2,ADMIN_PASSWORD);stmt.setString(3,"customer");stmt.setString(4,STAFF_PASSWORD);stmt.executeUpdate();
         }
         String migration=Files.readString(Path.of("../database/migrations/004_account_password_metadata.sql"));
         sql(migration);sql(migration);
@@ -183,7 +166,7 @@ public class ValidationHttpSqlServerIT {
         require(blocked,"Startup accepted unconverted plaintext");
         pass("SQL 004 repeatable and startup guard rejects unconverted accounts");
 
-        sql("INSERT INTO Users(username,password,password_scheme,full_name,role) VALUES('bad','not-a-hash','unknown',N'Bad','staff')");
+        sql("INSERT INTO Users(username,password,password_scheme,full_name,role) VALUES('bad','not-a-hash','unknown',N'Bad','customer')");
         boolean rollback=false;
         try(Connection conn=DBConnection.getConnection()) { PasswordMigration.migrate(conn); }
         catch(SQLException expected) { rollback=true; }
@@ -267,15 +250,22 @@ public class ValidationHttpSqlServerIT {
             status(limited,429);require(limited.headers().firstValue("Retry-After").isPresent(),"Missing throttle hint");
             pass("generic credential errors and bounded login attempt limit enforced over HTTP");
 
-            Client staff=new Client();var staffLogin=staff.login("staff",STAFF_PASSWORD);status(staffLogin,200);
-            require("staff".equals(user(staffLogin).get("role")),"Forged login role trusted");
+            Client staff=new Client();var staffLogin=staff.login("customer",STAFF_PASSWORD);status(staffLogin,200);
+            require("customer".equals(user(staffLogin).get("role")),"Forged login role trusted");
             status(staff.get("/api/rooms"),200);status(staff.get("/api/services"),200);status(staff.get("/api/customers"),200);
             status(staff.get("/api/statistics/overview"),403);
-            for(String path:List.of("/api/rooms","/api/services")) status(staff.write("POST",path,Map.of()),403);
-            for(String path:List.of("/api/rooms/1","/api/services/1")) status(staff.write("PUT",path,Map.of()),403);
-            for(String path:List.of("/api/rooms/1","/api/services/1","/api/customers/1")) status(staff.write("DELETE",path,null),403);
+            status(staff.write("POST","/api/rooms",Map.of()),403);
+            status(staff.write("PUT","/api/rooms/1",Map.of()),403);
+            for(String path:List.of("/api/rooms/1","/api/customers/1")) status(staff.write("DELETE",path,null),403);
+            var staffService=staff.write("POST","/api/services",Map.of("serviceName","Staff catalog check","unitPrice",10000,"status","Hoạt động"));
+            status(staffService,200);require(Boolean.TRUE.equals(data(staffService).get("success")),"Staff service create failed");
+            int editableServiceId=Integer.parseInt(value("SELECT MAX(service_id) FROM Services"));
+            status(staff.write("PUT","/api/services/"+editableServiceId,Map.of("serviceName","Staff catalog updated","unitPrice",12000,"status","Ngừng")),200);
+            require("12000".equals(value("SELECT unit_price FROM Services WHERE service_id="+editableServiceId)),"Staff service edit not persisted");
+            status(staff.write("DELETE","/api/services/"+editableServiceId,null),200);
+            require("0".equals(value("SELECT COUNT(*) FROM Services WHERE service_id="+editableServiceId)),"Staff service delete not persisted");
             status(staff.send("PUT","/api/rooms/1",Map.of("role","admin","userId",1),Map.of("X-CSRF-TOKEN",staff.token,"X-Role","admin")),403);
-            pass("staff reads allowed but admin statistics/catalog writes/customer deletion and forged role are denied");
+            pass("staff service catalog writes persist; room writes, statistics, customer deletion and forged role are denied");
 
             var customer=staff.write("POST","/api/customers",Map.of("fullName","Test guest","cccd","000000000001","phone","0900000000"));
             status(customer,200);require(Boolean.TRUE.equals(data(customer).get("success")),"Staff customer create failed");
@@ -305,7 +295,7 @@ public class ValidationHttpSqlServerIT {
             status(cors.send("OPTIONS","/api/rooms",null,Map.of("Origin","https://evil.example","Access-Control-Request-Method","GET")),403);
             pass("explicit credentialed dev CORS allowed and unknown/wildcard origins rejected");
 
-            Client expires=new Client();status(expires.login("staff",STAFF_PASSWORD),200);expire(context,expires);
+            Client expires=new Client();status(expires.login("customer",STAFF_PASSWORD),200);expire(context,expires);
             status(expires.get("/api/auth/me"),401);
             Client forged=new Client();status(forged.send("GET","/api/rooms",null,Map.of("Cookie","HOMESTAY_SESSION=fake-session")),401);
             String oldCookie=staff.session();status(staff.write("POST","/api/auth/logout",null),200);
@@ -319,15 +309,15 @@ public class ValidationHttpSqlServerIT {
             String newPassword="  New Admin Secret 123!  ";
             status(admin.write("PUT","/api/auth/change-password",Map.of("oldPassword",ADMIN_PASSWORD,"newPassword",newPassword,"userId",2)),200);
             status(admin.get("/api/auth/me"),401);status(peer.get("/api/rooms"),401);
-            require(PasswordHashing.encoder().matches(STAFF_PASSWORD,value("SELECT password FROM Users WHERE username='staff'")),"Password changed for client-supplied userId");
+            require(PasswordHashing.encoder().matches(STAFF_PASSWORD,value("SELECT password FROM Users WHERE username='customer'")),"Password changed for client-supplied userId");
             Client loginNew=new Client();status(loginNew.login("admin",ADMIN_PASSWORD),401);
             status(loginNew.login("admin",newPassword.trim()),401);status(loginNew.login("admin",newPassword),200);
             require(PasswordHashing.encoder().matches(newPassword,value("SELECT password FROM Users WHERE username='admin'")),"New password not hashed");
             pass("password policy/old password checked, userId ignored, spaces preserved, old/all current sessions revoked");
 
-            Client changedRole=new Client();status(changedRole.login("staff",STAFF_PASSWORD),200);
-            sql("UPDATE Users SET role='admin' WHERE username='staff'");status(changedRole.get("/api/rooms"),401);
-            sql("UPDATE Users SET role='staff' WHERE username='staff'");
+            Client changedRole=new Client();status(changedRole.login("customer",STAFF_PASSWORD),200);
+            sql("UPDATE Users SET role='admin' WHERE username='customer'");status(changedRole.get("/api/rooms"),401);
+            sql("UPDATE Users SET role='customer' WHERE username='customer'");
             pass("server role changes invalidate existing authority snapshots");
             runValidationChecks(loginNew);
             runCustomerHistoryChecks(loginNew);
@@ -338,7 +328,7 @@ public class ValidationHttpSqlServerIT {
 
     @SuppressWarnings("unchecked")
     private static void runCustomerHistoryChecks(Client admin) throws Exception {
-        Client staff=new Client();status(staff.login("staff",STAFF_PASSWORD),200);
+        Client staff=new Client();status(staff.login("customer",STAFF_PASSWORD),200);
         status(staff.write("POST","/api/customers",Map.of("fullName","History O'Neil","documentType","PASSPORT","cccd","HX123456","phone","0987654321")),200);
         int fresh=Integer.parseInt(value("SELECT MAX(customer_id) FROM Customers"));
         for(String term:List.of("History O'Neil","HX123456","0987654321")) {
@@ -408,7 +398,7 @@ public class ValidationHttpSqlServerIT {
         var yearly=admin.get("/api/statistics/yearly?year=2031");status(yearly,200);
         List<Number> months=JSON.readValue(yearly.body(),List.class);
         require(months.size()==12 && months.get(0).intValue()==100 && months.get(1).intValue()==200,"Yearly data has wrong month/status/year");
-        require(months.stream().mapToLong(Number::longValue).sum()==300,"Yearly total mismatch");
+        require(months.stream().mapToLong(number -> number.longValue()).sum()==300,"Yearly total mismatch");
         var empty=admin.get("/api/statistics/yearly?year=2040");status(empty,200);
         require(((List<Number>)JSON.readValue(empty.body(),List.class)).stream().allMatch(n->n.intValue()==0),"Empty year is not zero filled");
         pass("REPORT-01 yearly returns exactly 12 months, excludes unpaid/other-year amounts and zero-fills empty months");
@@ -433,7 +423,7 @@ public class ValidationHttpSqlServerIT {
         require(((Number)stats.get("totalRooms")).intValue()==((Number)stats.get("availableRooms")).intValue()+((Number)stats.get("bookedRooms")).intValue()+((Number)stats.get("occupiedRooms")).intValue()+((Number)stats.get("maintenanceRooms")).intValue(),"Room KPI sum mismatch");
         pass("REPORT-01 snapshot names stay frozen and room KPI totals reconcile");
         for(String year:List.of("0","10000","1.5","x")) error(admin.get("/api/statistics/yearly?year="+year),400);
-        Client staff=new Client();status(staff.login("staff",STAFF_PASSWORD),200);error(staff.get("/api/statistics/yearly?year=2031"),403);
+        Client staff=new Client();status(staff.login("customer",STAFF_PASSWORD),200);error(staff.get("/api/statistics/yearly?year=2031"),403);
         sql("EXEC sp_rename 'dbo.Payments','Payments_ReportOffline'");
         try {error(admin.get("/api/statistics/yearly?year=2031"),503);}
         finally {sql("EXEC sp_rename 'dbo.Payments_ReportOffline','Payments'");}

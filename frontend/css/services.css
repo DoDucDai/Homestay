@@ -16,3 +16,4 @@
     .services-heading { flex-direction: column; align-items: stretch; gap: var(--space-4); margin-bottom: var(--space-6); }
     .services-list .card-header { flex-direction: column; align-items: stretch; }
 }
+.customer-services #services-table tr>:nth-child(5){display:none}

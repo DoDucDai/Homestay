@@ -4,6 +4,8 @@ from collections import Counter, defaultdict
 from datetime import date, datetime
 import csv, json, re, sys
 
+# NOTE BACKEND: Đọc manifest và các CSV đóng góp, kiểm tra cột, mã tham chiếu, ngày, giá và tổng doanh thu trước khi tạo dữ liệu nhập.
+# Hàm chỉ kiểm tra file và trả dữ liệu đã kiểm tra; không mở kết nối SQL Server.
 def validate(root):
     root=Path(root); manifest=json.loads((root/'demo-manifest.json').read_text(encoding='utf-8-sig'))
     cutoff=date.fromisoformat(manifest['cutoff']); data={}
@@ -79,6 +81,7 @@ def validate(root):
     require(set(monthly)==expected_months and len(set(monthly.values()))==12,'Twelve distinct monthly totals required')
     return {'manifest':manifest,'data':data,'monthlyTotals':dict(sorted(monthly.items())),'totalRevenue':sum(monthly.values())}
 
+# NOTE BACKEND: Điểm chạy dòng lệnh; nhận thư mục dữ liệu và đường dẫn JSON kết quả cho công cụ nhập Java.
 if __name__=='__main__':
     sys.stdout.reconfigure(encoding='utf-8')
     result=validate(sys.argv[1]);text=json.dumps(result,ensure_ascii=False,indent=2)

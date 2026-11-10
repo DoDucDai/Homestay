@@ -1,0 +1,19 @@
+.demo-payment-card { margin-top: var(--space-4); padding: var(--space-5); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+.demo-payment-badge { display: inline-block; padding: 5px 9px; border-radius: 6px; background: var(--color-primary-soft); color: var(--color-primary); font-size: 10px; line-height: 1.5; font-weight: 700; letter-spacing: .06em; }
+.demo-payment-title { margin: var(--space-3) 0 var(--space-4); font-size: var(--font-lg); }
+.demo-payment-content { display: flex; align-items: flex-start; gap: var(--space-6); }
+.demo-payment-qr { flex: 0 0 224px; max-width: 100%; text-align: center; }
+.demo-payment-qr img { display: block; width: 224px; height: 224px; max-width: 100%; object-fit: contain; background: #fff; image-rendering: pixelated; border: 1px solid var(--color-border); border-radius: 8px; }
+.demo-payment-qr > span { display: block; margin-top: var(--space-2); color: var(--color-text-muted); font-size: 9px; letter-spacing: .03em; }
+.demo-payment-info { flex: 1; min-width: 0; }
+.demo-payment-info dl { display: grid; gap: var(--space-3); margin: 0; }
+.demo-payment-info dl > div { min-width: 0; }
+.demo-payment-info dt { color: var(--color-text-muted); font-size: var(--font-xs); }
+.demo-payment-info dd { margin: 3px 0 0; font-weight: 600; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.demo-payment-help { margin-top: var(--space-4); font-size: var(--font-xs); line-height: 1.7; color: var(--color-text-muted); }
+@media(max-width:600px) {
+    .demo-payment-card { padding: var(--space-4); }
+    .demo-payment-content { flex-direction: column; gap: var(--space-4); }
+    .demo-payment-qr { flex-basis: auto; align-self: center; }
+    .demo-payment-info { width: 100%; }
+}

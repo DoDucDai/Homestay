@@ -1,3 +1,5 @@
+// NOTE KIỂM THỬ: Kiểm tra menu/modal bằng bàn phím, cô lập focus, phím Escape và trả focus mà không vượt khóa thao tác nghiệp vụ.
+// Code chạy bằng Node trong môi trường giả để kiểm tra frontend; các assert so kết quả thực tế với kết quả mong đợi.
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');

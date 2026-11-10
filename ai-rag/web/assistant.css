@@ -11,3 +11,11 @@
 @keyframes ai-patrol { 0%,15%,100% { transform:translateX(0); } 45%,60% { transform:translateX(calc(-1 * var(--patrol-distance))); } }
 @media(max-width:650px) { .ai-mascot-wrap { --patrol-distance:55px; bottom:8px; right:10px; }.ai-mascot { width:70px;height:84px; }.ai-quick-panel { bottom:104px; } }
 @media(prefers-reduced-motion:reduce) { .ai-mascot-wrap { animation:none; } }
+.ai-quick-panel { height:min(560px,calc(100dvh - 140px));display:flex;flex-direction:column; }
+.ai-quick-panel[hidden] { display:none; }
+.ai-quick-panel>.ai-chat-heading { flex-shrink:0; }
+.ai-quick-panel>.ai-chat-root { flex:1;min-height:0; }
+.ai-quick-panel .ai-thread { flex:1;min-height:0;max-height:none; }
+.ai-quick-panel .ai-composer,.ai-quick-panel .ai-prompts,.ai-quick-panel .ai-chat-status,.ai-quick-panel .ai-quick-dates { flex-shrink:0; }
+
+.ai-composer textarea { box-sizing:border-box; overflow-y:hidden; max-height:none; }

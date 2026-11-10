@@ -1,3 +1,5 @@
+// NOTE KIỂM THỬ: Kiểm tra client chỉ tin phiên từ server, gửi cookie/CSRF đúng, xử lý hết phiên và không lấy quyền từ storage giả.
+// Code chạy bằng Node trong môi trường giả để kiểm tra frontend; các assert so kết quả thực tế với kết quả mong đợi.
 const fs = require('node:fs');
 const vm = require('node:vm');
 const assert = require('node:assert/strict');
@@ -6,7 +8,7 @@ const frontend = path.resolve(__dirname, '../../../../frontend/js');
 const apiCode = fs.readFileSync(path.join(frontend, 'api.js'), 'utf8');
 const response = (status, data) => ({ ok: status >= 200 && status < 300, status, json: async () => data });
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
-const user = { userId: 2, fullName: 'Staff', role: 'staff' };
+const user = { userId: 2, fullName: 'Staff', role: 'customer' };
 let passed = 0;
 function environment(handler, login = false) {
     const calls = [], redirects = [], events = {}, elements = new Map(), windowEvents = {}, timers = [];
@@ -41,6 +43,13 @@ function pass(name) { passed++; console.log('PASS ' + name); }
     assert.equal(env.redirects.length,0);
     assert.equal(env.calls.length,1);
     pass('anonymous visitors remain on the public landing page without requesting protected data');
+
+    env=environment(async()=>response(401,{message:'Anonymous'}));
+    env.context.window.location.pathname='/pages/assistant.html';
+    assert.equal(await env.context.checkLogin(),null);
+    assert.equal(env.redirects.length,0);
+    assert.equal(env.calls.length,1);
+    pass('anonymous visitors can view the assistant header without being redirected or requesting chat data');
 
     env=environment(async()=>response(401,{message:'Anonymous'}),true);
     Object.assign(env.context.window.location,{href:'http://localhost:8080/pages/login.html',origin:'http://localhost:8080',search:'?next='+encodeURIComponent('/pages/bookings.html?date=2026-11-02&mode=hours')});
@@ -119,7 +128,7 @@ function pass(name) { passed++; console.log('PASS ' + name); }
     }, true);
     vm.runInContext(fs.readFileSync(path.join(frontend, 'auth.js'), 'utf8'), env.context);
     await env.events.DOMContentLoaded();
-    env.elements.get('username').value = ' staff ';
+    env.elements.get('username').value = ' customer ';
     env.elements.get('password').value = '  keep password spaces  ';
     const submitEvent = { preventDefault() {} };
     const first = env.formEvents.submit(submitEvent);
@@ -128,7 +137,7 @@ function pass(name) { passed++; console.log('PASS ' + name); }
     assert.equal(writes, 1);
     const loginCall = env.calls.find(call => call.url.endsWith('/auth/login'));
     assert.equal(JSON.parse(loginCall.options.body).password, '  keep password spaces  ');
-    assert.equal(JSON.parse(loginCall.options.body).username, 'staff');
+    assert.equal(JSON.parse(loginCall.options.body).username, 'customer');
     loginPending.resolve(response(200, { success: true, user })); await first;
     assert.equal(env.elements.get('password').value, ''); assert.equal(env.redirects[0], 'landing.html');
     pass('login preserves password spaces, prevents double submit and does not store auth in browser storage');
@@ -143,7 +152,7 @@ function pass(name) { passed++; console.log('PASS ' + name); }
     const oldRequest=env.context.apiGet('/rooms');await new Promise(resolve=>setImmediate(resolve));
     await env.context.checkLogin(true);oldResponse.resolve(response(401,{message:'Old session expired'}));
     await assert.rejects(oldRequest,/Phiên đã thay đổi/);assert.equal(env.redirects.length,0);
-    assert.equal(vm.runInContext('currentUser.role',env.context),'staff');
+    assert.equal(vm.runInContext('currentUser.role',env.context),'customer');
     pass('late 401 from an older request cannot invalidate a newly verified server session');
 
     const oldToken=deferred();

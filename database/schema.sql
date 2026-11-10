@@ -22,7 +22,7 @@ CREATE TABLE Users (
     password_scheme NVARCHAR(32) NOT NULL DEFAULT 'pbkdf2-v58',
     auth_version INT NOT NULL DEFAULT 0,
     full_name  NVARCHAR(100) NOT NULL,
-    role       NVARCHAR(20)  NOT NULL DEFAULT 'staff', -- admin / staff
+    role       NVARCHAR(20)  NOT NULL DEFAULT 'customer' CONSTRAINT CK_Users_Role CHECK(role IN('admin','customer')), -- admin / customer
     created_at DATETIME      DEFAULT GETDATE()
 );
 
@@ -30,9 +30,19 @@ CREATE TABLE Users (
 -- BANG 2: ROOMS (Phong)
 -- NGUOI LAM: LONG
 -- ============================================
+CREATE TABLE Properties (
+    property_id INT PRIMARY KEY,
+    property_name NVARCHAR(100) NOT NULL,
+    address NVARCHAR(250) NOT NULL
+);
+INSERT INTO Properties(property_id,property_name,address)
+VALUES(1,N'Cơ sở 1',N'123 Đường Hoa Mai, TP. Hồ Chí Minh');
+
 CREATE TABLE Rooms (
     room_id     INT IDENTITY(1,1) PRIMARY KEY,
-    room_code   NVARCHAR(20)  NOT NULL UNIQUE,   -- VD: P101, P102
+    room_code   NVARCHAR(20)  NOT NULL UNIQUE,   -- VD: Room 101, Room 102
+    property_id INT NOT NULL CONSTRAINT DF_Rooms_Property DEFAULT 1
+        CONSTRAINT FK_Rooms_Property REFERENCES Properties(property_id),
     room_name   NVARCHAR(100) NOT NULL,
     room_type   NVARCHAR(50)  NOT NULL,           -- Single, Double, VIP, Family
     price       DECIMAL(12,0) NOT NULL,           -- Gia / dem
@@ -70,6 +80,15 @@ CREATE TABLE Bookings (
     note          NVARCHAR(500),
     price_per_night DECIMAL(18,6) NOT NULL CHECK (price_per_night >= 0),
     snapshot_estimated BIT NOT NULL DEFAULT 0,
+    selected_payment_method NVARCHAR(50) NULL CONSTRAINT CK_Bookings_SelectedPayment
+        CHECK (selected_payment_method IS NULL OR selected_payment_method IN(N'Tiền mặt',N'Chuyển khoản')),
+    reservation_expires_at DATETIME2(0) NULL,
+    payment_review_status VARCHAR(12) NOT NULL CONSTRAINT DF_Bookings_PaymentReview DEFAULT 'None'
+        CONSTRAINT CK_Bookings_PaymentReview CHECK(payment_review_status IN('None','Pending','Rejected','Confirmed')),
+    transfer_reported_at DATETIME2(0) NULL,
+    payment_reviewed_at DATETIME2(0) NULL,
+    payment_reviewed_by INT NULL CONSTRAINT FK_Bookings_PaymentReviewer REFERENCES Users(user_id),
+    cancellation_reason VARCHAR(20) NULL,
     created_at    DATETIME      DEFAULT GETDATE(),
     CONSTRAINT CHK_Dates CHECK (checkout_date > checkin_date)
 );
@@ -81,6 +100,7 @@ CREATE TABLE Bookings (
 CREATE TABLE Services (
     service_id   INT IDENTITY(1,1) PRIMARY KEY,
     service_name NVARCHAR(100) NOT NULL UNIQUE,
+    unit         NVARCHAR(20) NOT NULL DEFAULT N'lượt',
     unit_price   DECIMAL(12,0) NOT NULL CHECK (unit_price >= 0),
     status       NVARCHAR(20)  NOT NULL DEFAULT N'Hoạt động' -- Hoạt động / Ngừng
 );
@@ -95,6 +115,7 @@ CREATE TABLE Booking_Services (
     service_id  INT           NOT NULL REFERENCES Services(service_id),
     quantity    INT           NOT NULL DEFAULT 1 CHECK (quantity > 0),
     service_name_snapshot NVARCHAR(100) NOT NULL,
+    unit_snapshot NVARCHAR(20) NULL,
     unit_price_snapshot DECIMAL(18,6) NOT NULL CHECK (unit_price_snapshot >= 0),
     snapshot_estimated BIT NOT NULL DEFAULT 0,
     total_price DECIMAL(12,0) NOT NULL  -- = unit_price * quantity

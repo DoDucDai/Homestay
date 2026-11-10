@@ -1,3 +1,5 @@
+// NOTE FRONTEND: Màn hình nhận phòng: phân nhóm lượt đặt và chỉ xác nhận khi trạng thái/thời điểm cho phép.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
 checkLogin();
 let pendingCheckins = new Map();
 let checkinListVersion = 0;
@@ -5,6 +7,7 @@ let currentCheckin = null;
 let checkinSubmitting = false;
 let checkinNeedsReload = false;
 const checkinBusy = new Set();
+// NOTE FRONTEND: Phân booking vào nhóm ngày nhận để tạo các thẻ lọc nhanh trên trang.
 function checkinGroup(booking) {
     const reason=checkinReason(booking);
     if(!reason)return 'ready';
@@ -12,6 +15,7 @@ function checkinGroup(booking) {
     const now=booking.billingUnit==='Hour'?vietnamNow():vietnamToday();
     return start && now<start?'upcoming':'attention';
 }
+// NOTE FRONTEND: Kết hợp từ khóa và nhóm ngày/trạng thái trên danh sách cần nhận.
 function filterPendingCheckins(bookings,search,group) {
     const query=search.trim().toLocaleLowerCase('vi');
     const rank={ready:0,upcoming:1,attention:2};
@@ -19,8 +23,10 @@ function filterPendingCheckins(bookings,search,group) {
         (!query || ['BK'+b.bookingId,b.customerName||'',b.phone||'',b.roomCode||''].some(value=>value.toLocaleLowerCase('vi').includes(query))))
         .sort((a,b)=>rank[checkinGroup(a)]-rank[checkinGroup(b)] || String(a.checkinAt||a.checkinDate).localeCompare(String(b.checkinAt||b.checkinDate)));
 }
+// NOTE FRONTEND: Dựng lại bảng từ Map booking đang có sau khi bộ lọc thay đổi.
 function refreshCheckinView() { renderTable([...pendingCheckins.values()]); }
 
+// NOTE FRONTEND: Trả lý do không thể nhận phòng, gồm trạng thái, bảo trì hoặc ngoài khung thời gian đã đặt.
 function checkinReason(booking) {
     const today = vietnamToday();
     if (booking.status !== 'Confirmed') return 'Booking không còn ở trạng thái chờ nhận phòng.';
@@ -35,6 +41,7 @@ function checkinReason(booking) {
     if (today >= booking.checkoutDate.slice(0, 10)) return 'Đã hết kỳ lưu trú dự kiến. Cần xử lý booking trước khi nhận phòng.';
     return '';
 }
+// NOTE FRONTEND: Tải dữ liệu booking cần xử lý, bỏ phản hồi cũ và cập nhật các nhóm trên màn hình.
 async function loadPendingBookings() {
     const version = ++checkinListVersion;
     tableState('checkin-tbody', 6, 'Đang tải booking chờ nhận phòng...');
@@ -52,6 +59,7 @@ async function loadPendingBookings() {
         showRequestError(err, 'Không tải được danh sách chờ check-in.');
     }
 }
+// NOTE FRONTEND: Dựng các lượt cần nhận và nút thao tác; nút không hợp lệ được vô hiệu kèm lý do.
 function renderTable(bookings) {
     pendingCheckins = new Map(bookings.map(b => [b.bookingId, b]));
     const body = document.getElementById('checkin-tbody'); if (!body) return;
@@ -82,12 +90,14 @@ function renderTable(bookings) {
         Array.from(row.children).forEach((cell,i)=>cell.setAttribute('data-label',['Booking','Khách hàng','Phòng','Thời gian','Tình trạng','Thao tác'][i]));
     });
 }
+// NOTE FRONTEND: Khóa/đổi nhãn nút xác nhận, hủy và trạng thái modal khi đang gửi nhận phòng.
 function updateCheckinControls() {
     document.getElementById('checkin-confirm-btn').disabled = checkinSubmitting || checkinNeedsReload || !currentCheckin || !!checkinReason(currentCheckin);
     document.getElementById('checkin-confirm-btn').textContent = checkinSubmitting ? 'Đang nhận phòng...' : 'Xác nhận nhận phòng';
     document.getElementById('checkin-confirm-btn').setAttribute('aria-busy',String(checkinSubmitting));
     document.getElementById('checkin-close-btn').disabled = checkinSubmitting;
 }
+// NOTE FRONTEND: Mở bước xác nhận với đúng bookingId, mã phòng và tên khách đã chọn.
 function doCheckin(bookingId, roomCode, customerName) {
     if (checkinSubmitting || checkinBusy.has(bookingId)) return;
     const booking = pendingCheckins.get(bookingId);
@@ -104,12 +114,14 @@ function doCheckin(bookingId, roomCode, customerName) {
     document.getElementById('checkin-status').textContent = '';
     updateCheckinControls(); openModal('checkin-modal');
 }
+// NOTE FRONTEND: Không cho đóng khi server đang ghi để tránh gửi trùng hoặc mất dấu kết quả.
 function closeCheckinModal() {
     if (checkinSubmitting) return;
     currentCheckin = null; checkinNeedsReload = false; updateCheckinControls();
     document.getElementById('checkin-info').replaceChildren();
     document.getElementById('checkin-modal').classList.remove('show');
 }
+// NOTE FRONTEND: Gửi PUT /checkin/{id}, nhận kết quả và tải lại dữ liệu; quyền và điều kiện cuối cùng do backend kiểm tra.
 async function confirmCheckin() {
     if (!currentCheckin || checkinSubmitting || checkinNeedsReload) return;
     const reason = checkinReason(currentCheckin);

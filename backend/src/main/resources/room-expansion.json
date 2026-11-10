@@ -1,0 +1,468 @@
+{
+  "schema": 1,
+  "properties": [
+    {
+      "propertyId": 2,
+      "propertyName": "Cơ sở 2",
+      "propertyAddress": "456 Đường Ánh Dương, TP. Hồ Chí Minh"
+    },
+    {
+      "propertyId": 3,
+      "propertyName": "Cơ sở 3",
+      "propertyAddress": "789 Đường Bình Minh, TP. Hồ Chí Minh"
+    }
+  ],
+  "price": 400000,
+  "weekendPrice": 450000,
+  "weekendDays": "6,7",
+  "hourlyPrice": 80000,
+  "twoHours": 250000,
+  "fourHours": 350000,
+  "eightHours": 550000,
+  "rooms": [
+    {
+      "number": 104,
+      "propertyId": 2,
+      "name": "Suite Japandi Walnut · Gỗ óc chó",
+      "description": "Giường gỗ óc chó, vách nan dọc, đèn giấy và ban công bonsai. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 105,
+      "propertyId": 2,
+      "name": "Suite Santorini · Xanh & trắng",
+      "description": "Tường trắng, cửa vòm, chăn ga xanh và ban công hoa giấy. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 106,
+      "propertyId": 2,
+      "name": "Suite New York Loft · Gạch & da",
+      "description": "Tường gạch mộc, cửa sổ khung đen, ghế da và nội thất gỗ tối. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 107,
+      "propertyId": 2,
+      "name": "Suite Matcha Latte · Xanh pastel",
+      "description": "Giường tông kem, vách xanh matcha và góc ngồi hồng pastel. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 108,
+      "propertyId": 2,
+      "name": "Suite Italian Marble · Đá & nhung",
+      "description": "Vách đá marble, giường bọc nệm và ghế da tông be. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 109,
+      "propertyId": 2,
+      "name": "Suite Boho Chic · Xích đu mây",
+      "description": "Giường có đầu mây đan, xích đu macrame và đèn dây ánh vàng. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 110,
+      "propertyId": 2,
+      "name": "Suite Wine Velvet · Nhung đỏ",
+      "description": "Giường nhung đỏ rượu, đèn ánh ấm và cửa sổ nhìn thành phố về đêm. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 203,
+      "propertyId": 2,
+      "name": "Suite Scandinavian Hygge",
+      "description": "Nội thất gỗ sáng, giường trắng và cửa sổ lớn đón ánh sáng. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 204,
+      "propertyId": 2,
+      "name": "Suite Retro Sunset 70s",
+      "description": "Mảng tường họa tiết gợn sóng, tông cam ấm và ghế đọc sách hoài cổ. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 205,
+      "propertyId": 2,
+      "name": "Suite Hà Nội Phố Cổ",
+      "description": "Giường gỗ, cửa chớp, tông vàng và ban công hoa giấy. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 206,
+      "propertyId": 2,
+      "name": "Suite Duplex · Gác lửng",
+      "description": "Không gian trần cao, cầu thang lên gác lửng và cửa kính lớn. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 207,
+      "propertyId": 2,
+      "name": "Suite Cloud Pastel Blue",
+      "description": "Đầu giường hình mây, tông xanh pastel và đèn thả hình mây. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 208,
+      "propertyId": 2,
+      "name": "Suite Desert Adobe",
+      "description": "Tường vòm tông đất cát, hốc trang trí và trần có dầm gỗ. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 209,
+      "propertyId": 2,
+      "name": "Suite Black & Gold Penthouse",
+      "description": "Vách đá đen vân vàng, đèn vòng kim loại và nội thất tông tối. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 210,
+      "propertyId": 2,
+      "name": "Suite Library Café Suite",
+      "description": "Kệ sách cao sát trần, giường họa tiết kẻ và góc cà phê. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 303,
+      "propertyId": 2,
+      "name": "Suite Hội An · Đèn lồng",
+      "description": "Tường vàng, đèn lồng nhiều màu và ban công hoa rực rỡ. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 304,
+      "propertyId": 2,
+      "name": "Suite Arch & Terrazzo",
+      "description": "Vách cong mềm, bề mặt terrazzo và nội thất tông hồng xanh nhẹ. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 305,
+      "propertyId": 2,
+      "name": "Suite Starlight · Giường tròn",
+      "description": "Giường tròn tông tối, đèn viền và trần ánh sao. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 306,
+      "propertyId": 2,
+      "name": "Suite British Heritage Olive",
+      "description": "Vách xanh olive, nội thất gỗ tối và ghế đọc sách kiểu cổ điển. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 307,
+      "propertyId": 2,
+      "name": "Suite Sand Dune Travertine",
+      "description": "Vách đá travertine, chăn ga màu cát và ánh sáng dịu. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 308,
+      "propertyId": 2,
+      "name": "Suite Caramel & Birch",
+      "description": "Giường bọc da caramel, gỗ sáng và ghế đọc sách da. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 309,
+      "propertyId": 2,
+      "name": "Suite Sapa Indigo Timber",
+      "description": "Gỗ mộc, đèn đan và họa tiết thổ cẩm xanh chàm. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 310,
+      "propertyId": 2,
+      "name": "Suite Art Gallery 3D",
+      "description": "Nội thất trắng kem tối giản, phù điêu tường và góc trưng bày nghệ thuật. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 414,
+      "propertyId": 2,
+      "name": "Suite Modern Cinema LED",
+      "description": "Giường tông tối, đèn LED xanh cam và màn chiếu lớn. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 415,
+      "propertyId": 2,
+      "name": "Suite Moroccan Boho Terracotta",
+      "description": "Tông đất nung, cửa vòm, thảm họa tiết và góc ngồi boho. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 416,
+      "propertyId": 2,
+      "name": "Suite Nordic Sage Green",
+      "description": "Vách xanh sage, gỗ sáng và giường tông kem. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 417,
+      "propertyId": 2,
+      "name": "Suite Japanese Ryokan Tatami",
+      "description": "Giường bệ thấp, góc trà và các chi tiết gỗ kiểu Nhật. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 418,
+      "propertyId": 2,
+      "name": "Suite Art Deco Emerald Gold",
+      "description": "Đầu giường nhung xanh ngọc, vách hình học và chi tiết ánh kim. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 419,
+      "propertyId": 2,
+      "name": "Suite Coastal Hamptons",
+      "description": "Nội thất gỗ trắng, chăn ga sọc xanh và ánh sáng tự nhiên. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 420,
+      "propertyId": 2,
+      "name": "Suite Rustic Chalet Pine",
+      "description": "Vách và trần gỗ thông, chăn ga tông nâu cùng ánh sáng ấm. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 421,
+      "propertyId": 2,
+      "name": "Suite Romantic Dusty Rose",
+      "description": "Giường hồng phấn, vách hồng nhẹ và ghế thư giãn đồng tông. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 422,
+      "propertyId": 2,
+      "name": "Suite Bauhaus Retro Pop",
+      "description": "Tranh hình học, điểm nhấn xanh đỏ vàng và nội thất tông sáng. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 423,
+      "propertyId": 2,
+      "name": "Suite Quiet Luxury Espresso",
+      "description": "Giường tông tối, vách nan gỗ espresso và bề mặt đá travertine. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 424,
+      "propertyId": 2,
+      "name": "Suite Botanical Glasshouse",
+      "description": "Vách kính, cây xanh và góc ngồi phong cách khu vườn trong nhà. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 425,
+      "propertyId": 2,
+      "name": "Suite Minimalist Concrete",
+      "description": "Vách bê tông tông xám, giường thấp và đèn tối giản. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 426,
+      "propertyId": 2,
+      "name": "Suite Vintage Provence Lavender",
+      "description": "Giường gỗ sơn sáng, họa tiết hoa và chăn ga màu lavender. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 427,
+      "propertyId": 2,
+      "name": "Suite Luxury Spa · Bồn tắm",
+      "description": "Bồn tắm tròn cạnh cửa kính, giường bệ sáng đèn và ghế thư giãn. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 501,
+      "propertyId": 3,
+      "name": "Suite Champagne Silk Luxury",
+      "description": "Giường tông kem champagne, vách bọc nệm và đèn thả ánh kim. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 502,
+      "propertyId": 3,
+      "name": "Suite Attic Skylight Roof",
+      "description": "Trần mái dốc có cửa kính, nội thất gỗ và góc ngồi tầng áp mái. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 503,
+      "propertyId": 3,
+      "name": "Suite Peacock Teal & Copper",
+      "description": "Giường và ghế tông xanh teal, vách nan cùng điểm nhấn màu đồng. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 504,
+      "propertyId": 3,
+      "name": "Suite Muji Minimalist Oak",
+      "description": "Giường gỗ sồi sáng, chăn ga kem và nội thất tối giản. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 505,
+      "propertyId": 3,
+      "name": "Suite Tropical Havana Mint",
+      "description": "Giường cột gỗ, sắc xanh mint và chi tiết mây tre. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 506,
+      "propertyId": 3,
+      "name": "Suite Amber Glass Bronze",
+      "description": "Vách kính màu hổ phách, giường tông nâu và ánh sáng ấm. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 507,
+      "propertyId": 3,
+      "name": "Suite Zen Window Tea Nook",
+      "description": "Giường bệ thấp, góc trà sát cửa sổ và nội thất gỗ sáng. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 508,
+      "propertyId": 3,
+      "name": "Suite Butter Yellow Gingham",
+      "description": "Chăn ga kẻ vàng bơ, ghế thư giãn màu vàng và nội thất kem. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 509,
+      "propertyId": 3,
+      "name": "Suite Midnight Royal Blue",
+      "description": "Vách xanh navy, giường bọc nhung và chi tiết viền ánh kim. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 510,
+      "propertyId": 3,
+      "name": "Suite Eco Bamboo Resort",
+      "description": "Đầu giường đan, trần và vách tre, cây xanh cùng ghế mây. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 601,
+      "propertyId": 3,
+      "name": "Suite Milanese Modern",
+      "description": "Vách xám phối cam đất, giường tông tối và ghế đọc sách da. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 602,
+      "propertyId": 3,
+      "name": "Suite Princess Canopy Fairy",
+      "description": "Giường có màn khung, đèn dây và nội thất tông kem nhẹ. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 603,
+      "propertyId": 3,
+      "name": "Suite Malibu Coastal",
+      "description": "Chăn ga xanh biển, nội thất gỗ sáng và góc ngồi ven cửa sổ. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 604,
+      "propertyId": 3,
+      "name": "Suite Cố Đô Huế Heritage",
+      "description": "Nội thất gỗ sẫm, sắc tím điểm nhấn và họa tiết trang trí cung đình. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 605,
+      "propertyId": 3,
+      "name": "Suite Futuristic Halo",
+      "description": "Giường bệ thấp, vòm sáng Halo và nội thất trắng tối giản. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 606,
+      "propertyId": 3,
+      "name": "Suite Pistachio Walnut",
+      "description": "Vách xanh pistachio, giường gỗ óc chó và góc ngồi sáng màu. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 607,
+      "propertyId": 3,
+      "name": "Suite Winter Fireplace Lounge",
+      "description": "Lò sưởi, vách gỗ tối, chăn ga ấm và góc đọc sách. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 608,
+      "propertyId": 3,
+      "name": "Suite Vinyl Music Lounge",
+      "description": "Góc đĩa than, tranh âm nhạc, vách gỗ và giường tông nâu ấm. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 609,
+      "propertyId": 3,
+      "name": "Suite Pastel Lilac Chrome",
+      "description": "Giường và ghế tím lilac, nội thất kem và phụ kiện ánh kim. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 610,
+      "propertyId": 3,
+      "name": "Suite Sài Gòn Retro",
+      "description": "Gạch bông, giường và tủ gỗ teak cùng màu sắc hoài cổ. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 701,
+      "propertyId": 3,
+      "name": "Suite Sunset Lamp & Jacuzzi",
+      "description": "Đèn chiếu hiệu ứng hoàng hôn, bồn sục tròn và nội thất tông tối. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 702,
+      "propertyId": 3,
+      "name": "Suite Tuscan Olive Villa",
+      "description": "Tường vòm sáng màu, nội thất gỗ và sắc xanh olive nhẹ. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 703,
+      "propertyId": 3,
+      "name": "Suite Black Oak & Bouclé",
+      "description": "Gỗ sồi đen, giường thấp và ghế vải bouclé tông kem. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 704,
+      "propertyId": 3,
+      "name": "Suite Tropical Peach Palm",
+      "description": "Họa tiết lá cọ, chăn ga màu đào và ghế mây thư giãn. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 705,
+      "propertyId": 3,
+      "name": "Suite Gentleman's Club Leather",
+      "description": "Giường bọc da cognac, gỗ sồi hun khói và ánh sáng trầm. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 706,
+      "propertyId": 3,
+      "name": "Suite Kyoto Bamboo Garden",
+      "description": "Cây trúc trong không gian phòng, giường thấp và góc trà kiểu Nhật. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 707,
+      "propertyId": 3,
+      "name": "Suite Celadon Paris Mint",
+      "description": "Vách phào chỉ xanh ngọc, đầu giường bọc nệm và ban công hoa. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 708,
+      "propertyId": 3,
+      "name": "Suite Mocha Mousse Corduroy",
+      "description": "Giường màu mocha, đầu giường vải nhung tăm và tông kem ấm. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 709,
+      "propertyId": 3,
+      "name": "Suite Glasshouse Glamping",
+      "description": "Mái và vách kính, giường có màn cùng cây xanh trang trí. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 710,
+      "propertyId": 3,
+      "name": "Suite Blush Navy Art Deco",
+      "description": "Vách vòm hồng, giường xanh navy và chi tiết ánh kim. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 801,
+      "propertyId": 3,
+      "name": "Suite Sky Penthouse Marble Tub",
+      "description": "Bồn tắm đá cạnh kính lớn, giường tông tối và tầm nhìn thành phố. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 802,
+      "propertyId": 3,
+      "name": "Suite Đà Lạt Pine Veranda",
+      "description": "Trần và vách gỗ thông, chăn ga tông kem cùng hiên có hoa. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 803,
+      "propertyId": 3,
+      "name": "Suite Seoul Line Art Cream",
+      "description": "Giường tông kem, tranh nét đen và nội thất tối giản. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 804,
+      "propertyId": 3,
+      "name": "Suite Marrakesh Riad Arch",
+      "description": "Đầu giường kiểu vòm, đèn kim loại chạm khắc và sắc xanh ngọc. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 805,
+      "propertyId": 3,
+      "name": "Suite Nordic Fjord Blue",
+      "description": "Đầu giường xanh nhạt, nội thất gỗ sáng và ghế đọc sách tông xám. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 806,
+      "propertyId": 3,
+      "name": "Suite Hollywood Regency Glam",
+      "description": "Giường bọc nệm, đèn chùm pha lê và phụ kiện ánh kim. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    },
+    {
+      "number": 807,
+      "propertyId": 3,
+      "name": "Suite Mallorca Clay Arch",
+      "description": "Tường vòm đất nung, nội thất gỗ mộc và góc ngồi mây. Có khu bếp, góc thư giãn, máy chiếu màn lớn, Wi-Fi và điều hòa như tiện nghi trên ảnh."
+    }
+  ]
+}

@@ -11,6 +11,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 /** Builds invoices from captured prices; reprints read only the stored JSON. */
+// NOTE BACKEND: Tạo hóa đơn từ giá đã giữ trong booking/dịch vụ và lưu toàn bộ nội dung để các lần in lại giữ nguyên.
 final class BookingInvoiceSnapshot {
     private static final ObjectMapper JSON = new ObjectMapper()
             .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
@@ -18,6 +19,7 @@ final class BookingInvoiceSnapshot {
 
     private BookingInvoiceSnapshot() {}
 
+    // NOTE BACKEND: Kiểm tra tiền VND phải nguyên, không âm và nằm trong giới hạn cột database; không âm thầm làm tròn số lẻ.
     static BigDecimal money(BigDecimal value) throws SQLException {
         if (value == null) throw new ApiProblem(409,"DATA_INCONSISTENT","Dữ liệu giá đã lưu chưa đầy đủ. Vui lòng liên hệ người quản lý!");
         try {
@@ -31,13 +33,15 @@ final class BookingInvoiceSnapshot {
         }
     }
 
+    // NOTE BACKEND: Đọc thời gian ở, giá phòng đã chụp và từng dòng dịch vụ; tính tiền phòng, dịch vụ, tổng và cảnh báo đối soát.
     static Map<String, Object> build(Connection conn, int bookingId) throws SQLException {
         Map<String, Object> invoice = new LinkedHashMap<>();
         BigDecimal price;
         long nights;
         boolean estimated;
+        BigDecimal roomTotal;
         String query = """
-                SELECT b.checkin_date,b.checkout_date,b.price_per_night,b.snapshot_estimated,b.billing_unit,b.checkin_at,b.checkout_at,b.price_per_hour,
+                SELECT b.checkin_date,b.checkout_date,b.price_per_night,b.snapshot_estimated,b.billing_unit,b.checkin_at,b.checkout_at,b.price_per_hour,b.hourly_packages_snapshot,b.nightly_pricing_snapshot,
                        c.full_name,c.cccd,c.phone,c.address,r.room_code,r.room_name
                 FROM Bookings b JOIN Customers c ON c.customer_id=b.customer_id
                 JOIN Rooms r ON r.room_id=b.room_id WHERE b.booking_id=?
@@ -56,8 +60,16 @@ final class BookingInvoiceSnapshot {
                     nights=HourlyStay.billedHours(start,end);
                     price=money(rs.getBigDecimal("price_per_hour"));
                     invoice.put("billingUnit","Hour");invoice.put("billedHours",nights);invoice.put("pricePerHour",price);
+                    var packages=HourlyPricing.decode(rs.getString("hourly_packages_snapshot"));
+                    invoice.put("hourlyPackages",packages);
+                    roomTotal=HourlyPricing.quote(price,packages,nights).total();
                     invoice.put("checkinAt",start.toString());invoice.put("checkoutAt",end.toString());
-                } else invoice.put("billingUnit","Night");
+                } else {
+                    invoice.put("billingUnit","Night");
+                    var nightly=NightlyPricing.decode(rs.getString("nightly_pricing_snapshot"));
+                    invoice.put("nightlyPricing",nightly);
+                    roomTotal=NightlyPricing.quote(price,nightly,rs.getDate("checkin_date").toLocalDate(),rs.getDate("checkout_date").toLocalDate()).total();
+                }
                 estimated = rs.getBoolean("snapshot_estimated");
                 invoice.put("bookingId", bookingId);
                 invoice.put("customerName", rs.getString("full_name"));
@@ -74,7 +86,7 @@ final class BookingInvoiceSnapshot {
         BigDecimal serviceTotal = BigDecimal.ZERO;
         boolean reconciled = true;
         try (PreparedStatement stmt = conn.prepareStatement("""
-                SELECT id,service_name_snapshot,unit_price_snapshot,quantity,total_price,snapshot_estimated
+                SELECT id,service_name_snapshot,unit_price_snapshot,quantity,total_price,snapshot_estimated,unit_snapshot
                 FROM Booking_Services WHERE booking_id=? ORDER BY id
                 """)) {
             stmt.setInt(1, bookingId);
@@ -92,6 +104,7 @@ final class BookingInvoiceSnapshot {
                     Map<String, Object> service = new LinkedHashMap<>();
                     service.put("bookingServiceId", rs.getInt("id"));
                     service.put("serviceName", rs.getString("service_name_snapshot"));
+                    service.put("unit", rs.getString("unit_snapshot"));
                     service.put("quantity", quantity);
                     service.put("unitPrice", unitPrice.stripTrailingZeros());
                     service.put("totalPrice", total);
@@ -101,7 +114,6 @@ final class BookingInvoiceSnapshot {
                 }
             }
         }
-        BigDecimal roomTotal = money(price.multiply(BigDecimal.valueOf(nights)));
         invoice.put("nights", "Hour".equals(invoice.get("billingUnit")) ? 0 : nights);
         invoice.put("pricePerNight", "Hour".equals(invoice.get("billingUnit")) ? BigDecimal.ZERO : price);
         invoice.put("roomTotal", roomTotal);
@@ -114,11 +126,13 @@ final class BookingInvoiceSnapshot {
         return invoice;
     }
 
+    // NOTE BACKEND: Ghi bản thanh toán và JSON hóa đơn, có thể nhận thời điểm thanh toán khi nhập dữ liệu; dùng giao dịch do bên gọi quản lý.
     static int store(Connection conn, Map<String, Object> invoice, String paymentMethod) throws SQLException {
         return store(conn, invoice, paymentMethod, null);
     }
 
     // Manual imports can preserve paid_at; normal checkout keeps the SQL server timestamp.
+    // NOTE BACKEND: Ghi bản thanh toán và JSON hóa đơn, có thể nhận thời điểm thanh toán khi nhập dữ liệu; dùng giao dịch do bên gọi quản lý.
     static int store(Connection conn, Map<String, Object> invoice, String paymentMethod, java.time.LocalDateTime paidAt) throws SQLException {
         int paymentId;
         String insert = """
@@ -163,6 +177,7 @@ final class BookingInvoiceSnapshot {
         return paymentId;
     }
 
+    // NOTE BACKEND: Đọc đúng JSON hóa đơn đã lưu theo paymentId; không dựng lại từ danh mục phòng, khách và dịch vụ hiện tại.
     static Map<String, Object> read(Connection conn, int paymentId) throws SQLException {
         try (PreparedStatement stmt = conn.prepareStatement("SELECT invoice_snapshot FROM Payments WHERE payment_id=?")) {
             stmt.setInt(1, paymentId);

@@ -4,10 +4,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- NOTE BUILD: Kế thừa phiên bản thư viện và cấu hình plugin từ Spring Boot để các thành phần dùng phiên bản tương thích. -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.0</version>
+        <version>3.5.16</version>
     </parent>
 
     <groupId>com.homestay</groupId>
@@ -15,10 +16,13 @@
     <version>1.0.0</version>
     <name>Homestay Management Backend</name>
 
+    <!-- NOTE BUILD: Chọn Java 25 và thư mục build; homestay.build.directory có thể đổi khi cần tạo bản build kiểm tra riêng. -->
     <properties>
-        <java.version>17</java.version>
+        <java.version>25</java.version>
+        <homestay.build.directory>target</homestay.build.directory>
     </properties>
 
+    <!-- NOTE BUILD: Khai báo thư viện cho bảo mật, HTTP, đọc .env, JDBC SQL Server và xử lý Excel; Maven tự tải các phụ thuộc cần thiết. -->
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -29,6 +33,12 @@
             <groupId>me.paulschwarz</groupId>
             <artifactId>spring-dotenv</artifactId>
             <version>4.0.0</version>
+        </dependency>
+        <!-- Reuse the existing runtime parser for email config when launched from backend/. -->
+        <dependency>
+            <groupId>io.github.cdimascio</groupId>
+            <artifactId>dotenv-java</artifactId>
+            <version>3.0.0</version>
         </dependency>
 
         <!-- Spring Boot Web -->
@@ -53,12 +63,45 @@
     </dependencies>
 
     <build>
+        <directory>${homestay.build.directory}</directory>
+        <!-- NOTE BUILD: Đóng gói migration tài khoản/quyền, giao diện AI, cấu hình và frontend vào classpath/JAR cùng backend. -->
         <resources>
-            <resource><directory>../ai-rag/web</directory><targetPath>static/ai</targetPath><filtering>false</filtering></resource>
             <resource><directory>src/main/resources</directory><filtering>false</filtering></resource>
-            <resource><directory>../frontend</directory><targetPath>static</targetPath><filtering>false</filtering></resource>
         </resources>
+        <!-- NOTE BUILD: Plugin Spring Boot tạo JAR thực thi chứa ứng dụng và các thư viện phụ thuộc. -->
         <plugins>
+            <!-- Copy shared assets without m2e's resource scanner, which only supports paths inside backend. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-shared-assets</id>
+                        <?m2e execute onConfiguration,onIncremental?>
+                        <phase>process-resources</phase>
+                        <goals><goal>run</goal></goals>
+                        <configuration>
+                            <target>
+                                <copy todir="${project.build.outputDirectory}/db" includeEmptyDirs="false">
+                                    <fileset dir="${project.basedir}/../database/migrations" erroronmissingdir="false">
+                                        <include name="008_account_registration.sql"/>
+                                        <include name="009_two_roles.sql"/>
+                                        <include name="010_customer_booking_access.sql"/>
+                                        <include name="011_service_units.sql"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${project.build.outputDirectory}/static/ai" includeEmptyDirs="false">
+                                    <fileset dir="${project.basedir}/../ai-rag/web" erroronmissingdir="false"/>
+                                </copy>
+                                <copy todir="${project.build.outputDirectory}/static" includeEmptyDirs="false">
+                                    <fileset dir="${project.basedir}/../frontend" erroronmissingdir="false"/>
+                                </copy>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

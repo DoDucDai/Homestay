@@ -9,10 +9,16 @@ import java.time.Duration;
 import java.util.Map;
 
 /** Transport only. All AI, retrieval and support logic lives in ai-rag/. */
+// NOTE API: Cầu nối HTTP từ /api/assistant sang dịch vụ Python chạy tại cổng 8091; không xử lý mô hình AI tại Java.
+// @...Mapping xác định phương thức HTTP và đường dẫn; @RequestBody đọc JSON,
+// @PathVariable đọc ID trong URL, @RequestParam đọc tham số sau dấu ?. Quyền truy cập nằm trong SecurityConfig.
 @RestController
 @RequestMapping("/api/assistant")
 public class AssistantBridgeController {
     private final HttpClient client=HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3)).build();
+    // NOTE API: Chuyển tiếp GET/POST cho /chat, /support, /support/reply và /documents.
+    // Giữ phương thức, nội dung JSON, cookie và mã CSRF; trả mã HTTP/nội dung từ dịch vụ Python.
+    // Giới hạn nội dung và thời gian chờ; trả 503 nếu dịch vụ chưa sẵn sàng. Quyền được chặn tại SecurityConfig.
     @RequestMapping(value={"/chat","/support","/support/reply","/documents"},method={RequestMethod.GET,RequestMethod.POST})
     public ResponseEntity<?> forward(HttpServletRequest request,@RequestBody(required=false) String body) {
         if(body!=null && body.length()>40000) return ResponseEntity.badRequest().body(Map.of("success",false,"message","Yêu cầu quá lớn."));

@@ -1,14 +1,19 @@
+// NOTE FRONTEND: Khung điều hướng, bộ chọn cơ sở và trợ năng cho menu/modal; hiển thị admin khác với áp quyền ở server.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
 // Shared authenticated shell. Page modules continue to own all business actions.
 const shellNavigation = [
     ['landing.html', 'Trang chủ'],
     ['bookings.html', 'Đặt phòng'], ['customers.html', 'Khách hàng'],
     ['services.html', 'Dịch vụ'], ['checkin.html', 'Nhận phòng'],
-    ['checkout.html', 'Hóa đơn & trả phòng']
+    ['payment-review.html','Xác nhận thu tiền'], ['checkout.html', 'Hóa đơn & trả phòng']
 ];
-const adminNavigation=[['account.html','Thông tin tài khoản'],['statistics.html','Thống kê'],['rooms.html','Quản lý phòng'],['customers.html?workspace=admin','Quản lý khách hàng'],['bookings.html','Quay lại vận hành']];
+const adminNavigation=[['account.html','Thông tin tài khoản'],['statistics.html','Thống kê'],['rooms.html','Quản lý phòng'],['customers.html?workspace=admin','Quản lý khách hàng'],['rag-documents.html','Tài liệu RAG'],['bookings.html','Quay lại vận hành']];
+const customerNavigation=[['reserve.html','Đặt phòng'],['services.html','Dịch vụ'],['my-bookings.html','Đặt phòng của tôi'],['my-invoices.html','Hóa đơn của tôi'],['account.html','Tài khoản']];
+// NOTE FRONTEND: Xác định đang ở khu quản trị từ role, trang và query workspace; query đơn lẻ không thể nâng quyền.
 function isAdminWorkspace(user,page,search=''){
-    return user.role==='admin' && (['account.html','statistics.html','rooms.html'].includes(page) || page==='customers.html' && new URLSearchParams(search).get('workspace')==='admin');
+    return user.role==='admin' && (['account.html','statistics.html','rooms.html','rag-documents.html'].includes(page) || page==='customers.html' && new URLSearchParams(search).get('workspace')==='admin');
 }
+// NOTE FRONTEND: Tạo biểu tượng SVG từ bộ icon có sẵn, không chèn dữ liệu người dùng vào HTML.
 function sidebarIcon(symbol){
     const icon=document.createElementNS('http://www.w3.org/2000/svg','svg');
     icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('aria-hidden','true');
@@ -17,12 +22,28 @@ function sidebarIcon(symbol){
 let shellInitialized = false, shellMenuOpen = false, shellMedia = null;
 let modalStack = [];
 const modalOrigins = new Map();
+// NOTE FRONTEND: Lấy cơ sở công khai, khôi phục lựa chọn hợp lệ và cập nhật nhãn/địa chỉ trong khung.
+async function loadShellProperties(select,current,caption){
+    try{
+        const rows=expectList(await apiGet('/public/properties'));
+        select.replaceChildren(selectOption('all','Tất cả cơ sở'));
+        rows.forEach(row=>select.append(selectOption(String(row.propertyId),row.propertyName)));
+        const chosen=rows.find(row=>row.propertyId===selectedPropertyId());
+        if(selectedPropertyId() && !chosen)setSelectedProperty(null);
+        select.value=chosen?String(chosen.propertyId):'all';select.disabled=false;
+        current.textContent=chosen?chosen.propertyName:'Tất cả cơ sở';
+        caption.textContent=chosen?chosen.propertyAddress:rows.length+' cơ sở · Chọn cơ sở để xem phòng và lịch';
+        document.querySelectorAll('[data-property-label]').forEach(el=>{el.textContent=current.textContent;});
+    }catch(_){caption.textContent='Chưa tải được danh sách cơ sở.';}
+}
 
+// NOTE FRONTEND: Lấy những phần tử người dùng thật sự có thể Tab tới trong vùng đang hiển thị.
 function focusableElements(root) {
     return Array.from(root.querySelectorAll('a[href],button,input:not([type="hidden"]),select,textarea,[tabindex]'))
         .filter(el => !el.disabled && !el.hidden && el.tabIndex >= 0 &&
             el.getAttribute('aria-disabled') !== 'true' && !el.closest('[inert]') && el.getClientRects().length);
 }
+// NOTE FRONTEND: Giữ phím Tab/Shift+Tab trong menu hoặc modal đang mở, không để focus đi ra vùng nền.
 function trapShellFocus(root, event) {
     if (event.key !== 'Tab' || event.ctrlKey || event.altKey || event.metaKey) return;
     const items = focusableElements(root), first = items[0], last = items.at(-1);
@@ -31,6 +52,7 @@ function trapShellFocus(root, event) {
         event.preventDefault(); (event.shiftKey ? last : first).focus();
     } else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
 }
+// NOTE FRONTEND: Mở/đóng menu theo kích thước màn hình, cập nhật aria và khóa vùng nền; trả focus khi đóng.
 function setShellMenu(open, restoreFocus = true) {
     const sidebar = document.getElementById('app-sidebar'), toggle = document.getElementById('navigation-toggle');
     if (!sidebar || !toggle) return;
@@ -49,9 +71,11 @@ function setShellMenu(open, restoreFocus = true) {
     if (shellMenuOpen) document.getElementById('navigation-close').focus();
     else if (restoreFocus && shellMedia?.matches) toggle.focus();
 }
+// NOTE FRONTEND: Đóng menu nếu đang mở, dùng khi chuyển trang hoặc mở modal.
 function closeShellMenu() { if (shellMenuOpen) setShellMenu(false, false); }
+// NOTE FRONTEND: Dựng khung một lần theo tài khoản, nối điều hướng/cơ sở và sự kiện bàn phím/modal dùng chung.
 function initializeShell(user) {
-    if (!user || !['admin', 'staff'].includes(user.role)) return;
+    if (!user || !['admin', 'customer'].includes(user.role)) return;
     const sidebar = document.getElementById('app-sidebar'), main = document.getElementById('main-content');
     if (!sidebar || !main) return;
     if (!shellInitialized) {
@@ -60,7 +84,7 @@ function initializeShell(user) {
         const logo = textNode('div','','logo');
         const logoMark=textNode('span','','sidebar-logo-mark');const brandImage=document.createElement('img');brandImage.src='../css/images/homestay-logo.svg';brandImage.alt='';brandImage.width=29;brandImage.height=29;logoMark.append(brandImage);
         logo.append(logoMark,textNode('span','Homestay','sidebar-logo-text'));
-        const subtitle = textNode('p', 'Quản lý lưu trú', 'sidebar-subtitle');
+        const subtitle = textNode('p', user.role==='customer'?'Khoảng nghỉ của bạn':'Quản lý lưu trú', 'sidebar-subtitle');
         const close = actionButton('Đóng menu', 'btn btn-ghost navigation-close', () => setShellMenu(false));
         close.replaceChildren(sidebarIcon('close'));
         close.id = 'navigation-close'; close.setAttribute('aria-label', 'Đóng menu điều hướng');
@@ -72,14 +96,14 @@ function initializeShell(user) {
         const currentPage = window.location.pathname.split('/').pop();
         const adminWorkspace=isAdminWorkspace(user,currentPage,window.location.search);
         document.body.classList.toggle('admin-workspace',adminWorkspace);
-        for (const [route, label, admin] of (adminWorkspace?adminNavigation:shellNavigation)) {
+        for (const [route, label, admin] of (user.role==='customer'?customerNavigation:adminWorkspace?adminNavigation:shellNavigation)) {
             const item = document.createElement('li'), link = document.createElement('a');
             link.href = route;
             const icon = document.createElementNS('http://www.w3.org/2000/svg','svg');
             icon.setAttribute('class','ui-icon'); icon.setAttribute('aria-hidden','true');
             const use = document.createElementNS('http://www.w3.org/2000/svg','use');
             const routePage=route.split('?')[0];
-            use.setAttribute('href','../css/icons.svg#'+({'account.html':'users','landing.html':'house','statistics.html':'chart','bookings.html':'calendar','rooms.html':'bed','customers.html':'users','services.html':'bell','checkin.html':'arrow-right','checkout.html':'print'}[routePage]));
+            use.setAttribute('href','../css/icons.svg#'+({'account.html':'users','landing.html':'house','rag-documents.html':'print','statistics.html':'chart','bookings.html':'calendar','rooms.html':'bed','customers.html':'users','services.html':'bell','checkin.html':'arrow-right','checkout.html':'print'}[routePage]||'house'));
             icon.append(use); link.append(icon,textNode('span', label));
             if (admin) { link.setAttribute('data-admin-only', ''); link.hidden = user.role !== 'admin'; }
             if (routePage === currentPage) { link.className = 'active'; link.setAttribute('aria-current', 'page'); }
@@ -90,26 +114,24 @@ function initializeShell(user) {
         logout.append(textNode('span', 'Đăng xuất')); footer.append(logout);
         const property = document.createElement('details');property.className='property-switcher';
         const propertySummary=document.createElement('summary');propertySummary.className='property-summary';
-        const propertyCurrent=textNode('span','Tất cả cơ sở','property-current');propertyCurrent.id='property-current';
+        const propertyCurrent=textNode('span',selectedPropertyId()?'Cơ sở '+selectedPropertyId():'Tất cả cơ sở','property-current');propertyCurrent.id='property-current';
         const propertyCopy=textNode('span','','property-summary-copy');
         propertyCopy.append(textNode('span','Cơ sở','property-summary-label'),propertyCurrent);
         const propertyIcon=textNode('span','','property-summary-icon');propertyIcon.append(sidebarIcon('house'));
         propertySummary.append(propertyIcon,propertyCopy);
         const propertyLabel = textNode('label','Chọn cơ sở','sidebar-section-label');propertyLabel.htmlFor='property-select';
         const propertySelect = document.createElement('select');propertySelect.id='property-select';
-        // The current database has one room inventory and no branch assignment.
-        propertySelect.append(selectOption('all','Tất cả cơ sở'),selectOption('current','Cơ sở hiện tại'));
-        try { propertySelect.value=localStorage.getItem('homestay-property') || 'all'; } catch (_) {}
-        propertyCurrent.textContent=propertySelect.value==='current'?'Cơ sở hiện tại':'Tất cả cơ sở';
+        propertySelect.disabled=true;
+        const propertyCaption=textNode('p','Đang tải cơ sở…','property-caption');
         propertySelect.addEventListener('change',()=>{
-            propertyCurrent.textContent=propertySelect.value==='current'?'Cơ sở hiện tại':'Tất cả cơ sở';
-            try {localStorage.setItem('homestay-property',propertySelect.value);} catch (_) {}
-            document.querySelectorAll('[data-property-label]').forEach(el=>{el.textContent=propertySelect.value==='current'?'Cơ sở hiện tại':'Tất cả cơ sở';});
-            document.dispatchEvent(new Event('propertychange'));
+            if(document.querySelector('.modal.show')){propertySelect.value=selectedPropertyId()?String(selectedPropertyId()):'all';showAlert('Đóng cửa sổ đang thao tác trước khi đổi cơ sở.','error');return;}
+            setSelectedProperty(propertySelect.value==='all'?null:Number(propertySelect.value));
+            const url=new URL(window.location.href);url.searchParams.set('property',selectedPropertyId() || 'all');url.searchParams.delete('room');url.searchParams.delete('roomId');window.location.href=url.href;
         });
-        property.append(propertySummary,propertyLabel,propertySelect,textNode('p','Một cơ sở · Danh mục phòng hiện tại','property-caption'));
-        sidebar.replaceChildren(brand, property, textNode('p',adminWorkspace?'KHU QUẢN TRỊ':'VẬN HÀNH LƯU TRÚ','sidebar-section-label'), list, footer);
-        document.querySelectorAll('[data-property-label]').forEach(el=>{el.textContent=propertySelect.value==='current'?'Cơ sở hiện tại':'Tất cả cơ sở';});
+        property.append(propertySummary,propertyLabel,propertySelect,propertyCaption);
+        sidebar.replaceChildren(brand, property, textNode('p',user.role==='customer'?'DÀNH CHO BẠN':adminWorkspace?'KHU QUẢN TRỊ':'VẬN HÀNH LƯU TRÚ','sidebar-section-label'), list, footer);
+        document.querySelectorAll('[data-property-label]').forEach(el=>{el.textContent=propertyCurrent.textContent;});
+        loadShellProperties(propertySelect,propertyCurrent,propertyCaption);
         const toggle = actionButton('Menu', 'btn btn-secondary navigation-toggle', () => setShellMenu(!shellMenuOpen));
         toggle.id = 'navigation-toggle'; toggle.setAttribute('aria-label', 'Mở menu');
         toggle.setAttribute('aria-controls', 'app-sidebar');
@@ -147,22 +169,26 @@ function initializeShell(user) {
     sidebar.querySelectorAll('[data-admin-only]').forEach(link => { link.hidden = user.role !== 'admin'; });
 }
 
+// NOTE FRONTEND: Ghi phần tử mở modal để sau này trả focus và đóng menu trước khi mở modal.
 function prepareModalAccessibility(overlay, opener = document.activeElement) {
     if (!shellInitialized) return;
     closeShellMenu();
     if (!modalOrigins.has(overlay)) modalOrigins.set(overlay, {opener});
 }
+// NOTE FRONTEND: Đưa focus vào trường ưu tiên hoặc nút đầu tiên của modal.
 function focusDialog(overlay) {
     const box = overlay.querySelector('.modal-box') || overlay;
     const target = overlay.querySelector('[autofocus]') || focusableElements(overlay)[0] || box;
     target.focus({preventScroll: true});
 }
+// NOTE FRONTEND: Gọi nút đóng của chính trang nếu nút đang được phép dùng; Escape không được vượt khóa đang lưu.
 function requestModalDismissal(overlay) {
     const close = overlay.querySelector('[data-modal-close]');
     if (!close || close.disabled || close.getAttribute('aria-disabled') === 'true') return false;
     close.click(); // The page's own close function retains its submission/business guards.
     return true;
 }
+// NOTE FRONTEND: Theo dõi chồng modal, đánh dấu inert/aria-hidden cho nền và khôi phục focus khi đóng.
 function syncModalAccessibility() {
     if (!shellInitialized) return;
     const pending = document.body.classList.contains('session-pending');

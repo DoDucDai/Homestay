@@ -1,3 +1,5 @@
+// NOTE FRONTEND: FAQ có tìm kiếm không dấu/lọc nhóm, kết nối khu gửi và lịch sử yêu cầu hỗ trợ sau đăng nhập.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
 const helpTopics=[
  {id:'cancel',group:'booking',icon:'↶',title:'Hủy & thay đổi đặt phòng',items:[['Tôi muốn thay đổi hoặc hủy lượt đặt thì làm thế nào?','Gửi yêu cầu hỗ trợ kèm mã đặt phòng và nội dung muốn thay đổi để admin kiểm tra. Hiện chưa có chính sách hủy hoặc hoàn tiền được công bố; không có mức phí hay cam kết hoàn tiền mặc định.']]},
  {id:'payment',group:'booking',icon:'▤',title:'Thanh toán & đặt cọc',items:[['Tôi có phải đặt cọc trước không?','Hiện Homestay chưa công bố quy định đặt cọc. Nếu cần làm rõ thông tin cho lượt đặt cụ thể, hãy gửi yêu cầu cho admin trước khi thanh toán.'],['Giá phòng đã bao gồm các dịch vụ chưa?','Tiền phòng tạm tính chưa bao gồm dịch vụ phát sinh. Kiểm tra thông tin lượt đặt và trao đổi với admin nếu có thắc mắc về khoản thanh toán.']]},
@@ -6,10 +8,12 @@ const helpTopics=[
  {id:'rooms',group:'stay',icon:'⌂',title:'Phòng & tiện nghi',items:[['Tôi tìm phòng và xem tiện nghi ở đâu?','Mở Khám phá phòng để xem danh mục, mô tả và giá. Để kiểm tra phòng trống trong khoảng lưu trú, hãy dùng lịch Đặt phòng hoặc hỏi Mochi. Các yêu cầu đặc biệt cần được admin xác nhận.']]},
  {id:'security',group:'account',icon:'♧',title:'Tài khoản & bảo mật',items:[['Tôi cần làm gì khi gặp vấn đề đăng nhập?','Kiểm tra tên tài khoản và thử đăng nhập lại. Nếu vẫn không được, liên hệ đơn vị vận hành qua kênh bạn đã sử dụng khi đặt phòng. Không gửi mật khẩu hoặc mã xác thực trong tin nhắn.'],['Ai có thể xem yêu cầu hỗ trợ của tôi?','Bạn xem được các yêu cầu do tài khoản của mình gửi. Admin có quyền xem và phản hồi để xử lý hỗ trợ. Không ghi thông tin thẻ hoặc giấy tờ cá nhân trong yêu cầu.']]}
 ];
+// NOTE FRONTEND: Bỏ dấu, viết thường và đổi đ thành d để tìm FAQ nhất quán với từ khóa không dấu.
 function normalizeHelp(value){return value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d');}
 document.addEventListener('DOMContentLoaded',async()=>{
  let filter='all',topic=null;const topics=document.getElementById('help-topics'),questions=document.getElementById('help-questions'),search=document.getElementById('help-search');
  const make=(tag,text,cls)=>{const n=document.createElement(tag);n.textContent=text;if(cls)n.className=cls;return n;};
+ // NOTE FRONTEND: Dựng lại chủ đề/câu hỏi khớp bộ lọc và từ khóa, mở nhóm đang chọn và thông báo khi không có kết quả.
  function render(){topics.replaceChildren();questions.replaceChildren();const term=normalizeHelp(search.value.trim());let count=0;
   for(const entry of helpTopics){if(filter!=='all'&&entry.group!==filter)continue;const matches=entry.items.filter(([q,a])=>!term||normalizeHelp(entry.title+' '+q+' '+a).includes(term));if(!matches.length)continue;
    const button=make('button','','help-topic');button.type='button';button.setAttribute('aria-pressed',String(topic===entry.id));button.append(make('span',entry.icon,'help-topic-icon'),make('span',entry.title),make('span','›','help-topic-arrow'));button.onclick=()=>{topic=topic===entry.id?null:entry.id;render();questions.scrollIntoView({behavior:'smooth',block:'nearest'});};topics.append(button);

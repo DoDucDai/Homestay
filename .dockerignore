@@ -1,0 +1,36 @@
+# NOTE TRIỂN KHAI: Loại metadata Git, secret, build, dữ liệu vận hành và kiểm thử khỏi ngữ cảnh Docker; chỉ mở lại migration cần đóng gói.
+.git
+.env
+.env.*
+**/.env
+**/.env.*
+**/target
+**/target-*
+**/__pycache__
+**/.pytest_cache
+**/*.pyc
+**/*.log
+ai-rag/data
+ai-rag/tests
+backend/src/test
+docker/tests
+contributions
+database
+.idea
+.vscode
+*.zip
+*.tar.gz
+*.bak
+**/*.sqlite*
+**/*.db
+**/*.sql
+
+# Chỉ đưa các migration được pom.xml đóng gói vào ngữ cảnh build.
+!database/
+database/*
+!database/migrations/
+database/migrations/*
+!database/migrations/008_account_registration.sql
+!database/migrations/009_two_roles.sql
+!database/migrations/010_customer_booking_access.sql
+!database/migrations/011_service_units.sql

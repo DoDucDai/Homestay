@@ -12,6 +12,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.jar.JarFile;
 
 /** Builds/migrates/backs up/restores UUID databases, then boots the release JAR from an empty directory. */
+// NOTE KIỂM THỬ: Kiểm tra gói JAR, schema/seed/migration, từ chối cấu hình prod không an toàn và backup/restore trên database thử.
+// File này thuộc src/test, không phải endpoint và không nằm trong mã nghiệp vụ chạy phục vụ người dùng.
 public class ReleaseSqlServerIT {
     private static final ObjectMapper JSON=new ObjectMapper();
     private static int passed;
@@ -22,6 +24,7 @@ public class ReleaseSqlServerIT {
     private static void batches(Statement stmt,String script) throws SQLException {
         for(String batch:script.split("(?im)^\\s*GO\\s*$")) if(!batch.isBlank()) stmt.execute(batch);
     }
+    // NOTE KIỂM THỬ: Điểm chạy nhóm kiểm tra; dùng AssertionError/kết thúc khác 0 để báo điều kiện không đạt.
     public static void main(String[] args) throws Exception {
         String suffix=UUID.randomUUID().toString().replace("-","");
         String source="HomestayReleaseTest_"+suffix,restored="HomestayRestoreTest_"+suffix;
@@ -47,7 +50,7 @@ public class ReleaseSqlServerIT {
                 require("1".equals(scalar(stmt,"SELECT COUNT(*) FROM Payments WHERE ISJSON(invoice_snapshot)=1")),"Migration lost invoice snapshot");
                 pass("RELEASE-01 schema/seed and migrations 001-005 run repeatedly without losing accounts/invoices");
                 var isolatedEnvironment=new org.springframework.core.env.StandardEnvironment();
-                isolatedEnvironment.getPropertySources().addFirst(new org.springframework.core.env.MapPropertySource("release-fixture",Map.of("DB_NAME",source)));
+            isolatedEnvironment.getPropertySources().addFirst(new org.springframework.core.env.MapPropertySource("release-fixture",java.util.Objects.requireNonNull(Map.of("DB_NAME",source))));
                 DBConnection.configure(isolatedEnvironment);
                 var productionEnvironment=new org.springframework.core.env.StandardEnvironment();productionEnvironment.setActiveProfiles("prod");
                 boolean demoRejected=false;
@@ -59,7 +62,7 @@ public class ReleaseSqlServerIT {
                 String backupDirectory=scalar(stmt,"SELECT CONVERT(nvarchar(4000),SERVERPROPERTY('InstanceDefaultBackupPath'))");
                 String dataDirectory=scalar(stmt,"SELECT CONVERT(nvarchar(4000),SERVERPROPERTY('InstanceDefaultDataPath'))");
                 String logDirectory=scalar(stmt,"SELECT CONVERT(nvarchar(4000),SERVERPROPERTY('InstanceDefaultLogPath'))");
-                require(dataDirectory!=null && logDirectory!=null,"SQL Server default data/log paths unavailable");
+                if(dataDirectory==null || logDirectory==null) throw new AssertionError("SQL Server default data/log paths unavailable");
                 if(backupDirectory==null) backupDirectory=dataDirectory;
                 backup=backupDirectory+(backupDirectory.endsWith("\\")||backupDirectory.endsWith("/")?"":"\\")+source+".bak";
                 stmt.execute("BACKUP DATABASE ["+source+"] TO DISK=N'"+quote(backup)+"' WITH COPY_ONLY,CHECKSUM,INIT");

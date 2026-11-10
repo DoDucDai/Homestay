@@ -11,6 +11,7 @@ import java.util.*;
 
 /** Manual, append-only CSV demo import. No endpoints, schema changes or account edits. */
 @SuppressWarnings({"unchecked", "rawtypes"})
+// NOTE BACKEND: Công cụ nhập dữ liệu demo thủ công, có preview/apply/test và bằng chứng trước/sau; không phải API của website.
 public final class DemoDataImport {
  static final ObjectMapper JSON=new ObjectMapper();
  static final String DATASET="DEMO-LH-20261029",PREFIX="["+DATASET+":";
@@ -27,16 +28,19 @@ public final class DemoDataImport {
  static BigDecimal money(String s){BigDecimal n=new BigDecimal(s);require(n.scale()==0&&n.signum()>=0&&n.compareTo(new BigDecimal("999999999999"))<=0,"Invalid VND");return n;}
  static String note(Map<String,String> b){return PREFIX+b.get("booking_code")+"] "+b.get("note");}
  static String idList(Collection<Integer> ids){return String.join(",",ids.stream().map(Object::toString).toList());}
+ // NOTE BACKEND: Chụp số lượng, ID lớn nhất và SHA-256 của dữ liệu có sẵn để chứng minh quá trình nhập không sửa bản ghi cũ.
  static Map<String,Object> baseline(Connection c)throws Exception{
   Map<String,Object> result=new LinkedHashMap<>();for(int i=0;i<TABLES.length;i++){
    int max=Integer.parseInt(scalar(c,"SELECT COALESCE(MAX("+KEYS[i]+"),0) FROM "+TABLES[i]));
    result.put(TABLES[i],Map.of("maxId",max,"count",Integer.parseInt(scalar(c,"SELECT COUNT(*) FROM "+TABLES[i])),"sha256",hash(c,TABLES[i],KEYS[i],max)));
   }return result;
  }
+ // NOTE BACKEND: Băm JSON của các bản ghi trong phạm vi ID có sẵn; chỉ lưu dấu kiểm tra trong bằng chứng đối chiếu.
  static String hash(Connection c,String table,String key,int max)throws Exception{
   StringBuilder text=new StringBuilder();try(Statement s=c.createStatement();ResultSet r=s.executeQuery("SELECT * FROM "+table+" WHERE "+key+"<="+max+" ORDER BY "+key+" FOR JSON PATH,INCLUDE_NULL_VALUES")){while(r.next())text.append(r.getString(1));}
   return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(text.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8)));
  }
+ // NOTE BACKEND: So sánh dấu kiểm tra dữ liệu cũ sau thao tác nhập; khác nhau sẽ dừng thay vì coi là nhập thành công.
  static void unchanged(Connection c,Map<String,Object> before)throws Exception{
   for(int i=0;i<TABLES.length;i++){Map<String,Object> b=(Map<String,Object>)before.get(TABLES[i]);require(b.get("sha256").equals(hash(c,TABLES[i],KEYS[i],((Number)b.get("maxId")).intValue())),"Existing rows changed: "+TABLES[i]);}
  }
@@ -46,6 +50,7 @@ public final class DemoDataImport {
  static Map<String,Integer> bookingIds(Connection c)throws Exception{
   Map<String,Integer> ids=new LinkedHashMap<>();for(var b:data.get("bookings")){int id=find(c,"Bookings","booking_id","note",note(b));if(id!=0)ids.put(b.get("booking_code"),id);}return ids;
  }
+ // NOTE BACKEND: Đối chiếu toàn bộ booking, khách, phòng, dòng dịch vụ, hóa đơn cố định và doanh thu demo với dữ liệu nguồn.
  static Map<String,Object> verify(Connection c)throws Exception{
   var ids=bookingIds(c);require(ids.size()==60,"Incomplete existing demo dataset; no automatic repair performed");
   Map<String,String> names=new HashMap<>();for(var s:data.get("services"))names.put(s.get("service_code"),s.get("service_name"));
@@ -63,6 +68,7 @@ public final class DemoDataImport {
   var expectedMonths=(Map<String,Number>)input.get("monthlyTotals");require(monthly.size()==12,"Expected twelve revenue months");for(var entry:expectedMonths.entrySet())require(((Number)monthly.get(entry.getKey())).longValue()==entry.getValue().longValue(),"Monthly revenue mismatch");
   return Map.of("dataset",DATASET,"bookingIds",ids,"payments",40,"serviceLines",52,"monthlyTotals",monthly,"totalRevenue",input.get("totalRevenue"));
  }
+ // NOTE BACKEND: Nhập trong giao dịch SERIALIZABLE có khóa ứng dụng, tái dùng dữ liệu phù hợp và chỉ thêm mới; lỗi sẽ rollback.
  static Map<String,Object> apply(Connection c,boolean failAfterLines)throws Exception{
   var before=baseline(c);c.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);c.setAutoCommit(false);
   try{
@@ -104,6 +110,7 @@ public final class DemoDataImport {
    var result=new LinkedHashMap<>(verify(c));unchanged(c,before);c.commit();result.put("alreadyImported",false);result.put("existingRowsUnchanged",true);result.put("before",before);result.put("after",baseline(c));return result;
   }catch(Exception error){c.rollback();throw error;}finally{c.setAutoCommit(true);}
  }
+ // NOTE BACKEND: Tạo bản sao lưu SQL trước thao tác nhập theo cấu hình lưu trữ của SQL Server.
  static String backup(Connection c)throws Exception{
   String folder=scalar(c,"SELECT CONVERT(nvarchar(4000),SERVERPROPERTY('InstanceDefaultBackupPath'))");if(folder==null)folder=scalar(c,"SELECT CONVERT(nvarchar(4000),SERVERPROPERTY('InstanceDefaultDataPath'))");require(folder!=null,"No SQL backup directory");
   String db=c.getCatalog(),path=folder+(folder.endsWith("\\")||folder.endsWith("/")?"":"\\")+db+"_before_"+DATASET+"_"+UUID.randomUUID().toString().replace("-","")+".bak";
@@ -114,6 +121,7 @@ public final class DemoDataImport {
   var sets=new ArrayList<List<Map<String,String>>>();boolean found=s.execute(sql);
   while(true){if(found)try(ResultSet rs=s.getResultSet()){var rows=new ArrayList<Map<String,String>>();while(rs.next()){var row=new LinkedHashMap<String,String>();for(int i=1;i<=rs.getMetaData().getColumnCount();i++)row.put(rs.getMetaData().getColumnLabel(i),rs.getString(i));rows.add(row);}sets.add(rows);}else if(s.getUpdateCount()==-1)break;found=s.getMoreResults();}return sets;
  }
+ // NOTE BACKEND: Chạy các tình huống kiểm tra công cụ nhập trong môi trường thử và lưu bằng chứng kết quả.
  static void integration(Connection c,Path evidence)throws Exception{
   String original=c.getCatalog(),db="HomestayDemoImportTest_"+UUID.randomUUID().toString().replace("-","");boolean created=false;
   try(Statement s=c.createStatement()){
@@ -140,6 +148,7 @@ public final class DemoDataImport {
    }finally{c.setAutoCommit(true);s.execute("USE ["+original+"]");if(created){s.execute("ALTER DATABASE ["+db+"] SET SINGLE_USER WITH ROLLBACK IMMEDIATE");s.execute("DROP DATABASE ["+db+"]");System.out.println("Disposed isolated demo-import test database.");}}
   }
  }
+ // NOTE BACKEND: Đọc tham số thao tác/database/file đầu vào, kiểm tra đích kết nối rồi chọn preview, apply hoặc test.
  public static void main(String[] args)throws Exception{
   require(args.length==4,"Usage: DemoDataImport preview|apply|test validated-data.json expected-database evidence-directory");
   input=JSON.readValue(Files.readString(Path.of(args[1])),Map.class);data=(Map<String,List<Map<String,String>>>)input.get("data");

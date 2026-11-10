@@ -1,3 +1,5 @@
+# NOTE BACKEND: Bộ chạy chung: nhận TestMainClass, chuẩn bị classpath và chạy lớp kiểm thử SQL được chọn; lớp mặc định kiểm tra vòng đời booking.
+# Đường dẫn được tính từ vị trí script; MavenRepository cho phép dùng bộ thư viện đã tải trong workspace.
 param(
     [string]$MavenRepository = '',
     [string]$TestMainClass = 'com.homestay.controller.BookingControllerSqlServerIT'

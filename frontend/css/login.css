@@ -41,12 +41,12 @@
 .auth-field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .auth-mail-icon { display: grid; place-items: center; width: 60px; height: 60px; border-radius: 16px; margin-bottom: 24px; color: var(--color-primary); background: var(--color-primary-soft); }
 .auth-mail-icon svg { width: 30px; height: 30px; }
-.member-register-page .login-form-panel { padding-top: 32px; padding-bottom: 32px; }
-.member-register-page .login-shell { max-width: 1080px; }
-.member-register-page .login-form-panel .form-group { margin-bottom: 17px; }
-.member-register-page .login-form-description { margin-bottom: 24px; }
-.member-register-page .login-brand-panel { display: flex; flex-direction: column; }
-.member-register-page .login-intro { position: sticky; top: 80px; }
+.customer-register-page .login-form-panel { padding-top: 32px; padding-bottom: 32px; }
+.customer-register-page .login-shell { max-width: 1080px; }
+.customer-register-page .login-form-panel .form-group { margin-bottom: 17px; }
+.customer-register-page .login-form-description { margin-bottom: 24px; }
+.customer-register-page .login-brand-panel { display: flex; flex-direction: column; }
+.customer-register-page .login-intro { position: sticky; top: 80px; }
 @media (max-width: 499px) { .auth-field-grid { grid-template-columns: 1fr; gap: 0; } }
 @media (max-width: 1023px) {
     .login-page { padding: 28px 20px; }

@@ -29,8 +29,8 @@
 
     <main id="main-content" class="main-content" tabindex="-1">
         <header class="services-heading">
-            <div><p class="services-eyebrow">DANH MỤC HOMESTAY</p><h1>Quản lý dịch vụ</h1>
-                <p class="text-muted">Quản lý tên, đơn giá và trạng thái cung cấp dịch vụ.</p></div>
+            <div><p class="services-eyebrow">DANH MỤC HOMESTAY</p><h1 id="services-view-title">Quản lý dịch vụ</h1>
+                <p id="services-view-description" class="text-muted">Quản lý tên, đơn giá và trạng thái cung cấp dịch vụ.</p></div>
             <button class="btn btn-primary" id="service-add-btn" hidden onclick="openAddModal()">Thêm dịch vụ</button>
         </header>
 
@@ -79,6 +79,10 @@
             <span id="service-name-error" class="form-error" hidden></span>
         </div>
         <div class="form-group">
+            <label for="service-unit">Đơn vị tính *</label>
+            <input id="service-unit" maxlength="20" required value="lượt" placeholder="chai, suất, lượt, kg, ngày…" aria-describedby="service-unit-error">
+            <span id="service-unit-error" class="form-error" hidden></span>
+        </div><div class="form-group">
             <label for="service-price">Đơn giá (VNĐ) *</label>
             <input type="number" id="service-price" placeholder="VD: 100000" min="0" max="999999999999" step="1" required aria-describedby="service-price-help service-price-error">
             <span id="service-price-help" class="form-help">Số nguyên từ 0 đến 999.999.999.999 VNĐ.</span>

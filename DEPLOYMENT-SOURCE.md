@@ -1,11 +1,17 @@
-# Demo deployment source
+# Deployment source
 
-Build exclusively with `Dockerfile.render`. It unpacks the existing base `deployment-source.tar.gz` then overlays `deployment-patch.tar.gz` before compilation. The overlay contains all current text source files; unchanged image/font assets remain in the base. Other unpacked repository directories may be older.
+Build with `Dockerfile.render`, which is identical to `Dockerfile` and compiles the checked-in Java 25 source directly.
+The Render branch and configured Dockerfile path are unchanged.
 
-Base archive SHA-256: `0b40e7d9d0c378df3f5a30c3a62eedd5edd67c1ee6821f88d68610a8b4a730c9` (commit 8819698).
+The source snapshot includes the authorized working tree from `ai-rag` (base commit `dcf31e3`) on 2026-11-10.
+Per-file SHA-256 values are in `deployment-manifest.json`. All 74 existing room posters were compared byte-for-byte.
 
-Overlay SHA-256: `997a377af8b44ba1e9e477036b6f4808d80ab854458e6364aeb0c8a9d028e7e0`.
+Historical `deployment-source.tar.gz`, `deployment-patch.tar.gz` and `room-assets-expansion.tar.gz` are retained for history only.
+They are excluded by `.dockerignore` and are not read by the current Dockerfile. No environment files, database backups,
+SQLite files or customer contribution records were added to this snapshot.
 
-The final file checksums are in `deployment-manifest.json`. No environment files, SQL exports, SQLite databases or customer records are included.
+Local email checks passed, including real HTTP/SQL workflows with captured mail on an isolated database.
+See `KIEM_THU_EMAIL.md`. The completed work plans were removed; test evidence is retained.
 
-Room expansion: `room-assets-expansion.tar.gz` adds 74 reviewed WebP posters after the source overlay. Asset archive SHA-256: `2643680462024faa721843f0fc95f047f63cab603c3750ec232b6d851a7b4472`. Duplicate source numbers 408–413 are excluded.
+Production email still requires the service environment variables documented in `EMAIL_SETUP.md`.
+A successful Git push does not by itself prove a Render deployment is live or that email variables are configured.

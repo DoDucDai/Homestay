@@ -1,7 +1,11 @@
+// NOTE FRONTEND: Menu tài khoản dùng chung, đổi mật khẩu và đăng xuất; các kiểm tra phiên/yêu cầu đi qua api.js.
+// Luồng chung: sự kiện người dùng → kiểm tra dữ liệu/trạng thái → gọi API hoặc dựng giao diện → cập nhật kết quả.
 // Shared account UI. All session checks and requests go through api.js.
 let accountBusy = false;
 let accountOperation = '';
-function hasPublicHeader(){return ['/pages/landing.html','/pages/explore.html','/pages/policies.html','/pages/support.html'].includes(window.location.pathname);}
+// NOTE FRONTEND: Nhận biết các trang công khai để không xử lý header như màn hình nghiệp vụ bắt buộc đăng nhập.
+function hasPublicHeader(){return ['/pages/landing.html','/pages/explore.html','/pages/policies.html','/pages/support.html','/pages/assistant.html'].includes(window.location.pathname);}
+// NOTE FRONTEND: Nối sự kiện mở/đóng menu, nhấn Escape hoặc bấm ngoài; cập nhật aria-expanded và tránh gắn sự kiện lặp.
 function wireAccountMenu(menu) {
     const summary=menu.querySelector('summary'),actions=menu.querySelector('.account-actions');
     if(!summary || menu.dataset.wired)return;
@@ -16,8 +20,10 @@ function wireAccountMenu(menu) {
     document.addEventListener('keydown',event=>{if(event.key==='Escape' && menu.open){menu.open=false;summary.focus();}});
     menu.addEventListener('click',event=>{if(event.target.closest('.account-actions a,.account-actions button'))menu.open=false;});
 }
+// NOTE FRONTEND: Header hiển thị tài khoản đã xác nhận hoặc liên kết đăng nhập kèm URL quay lại khi còn là khách chưa đăng nhập.
 function renderPublicAccount(host,user) {
     if(!host)return;
+    routeCustomerLinks(user);
     if(user){
         addAccountControls(user);
         const account=document.getElementById('account-controls');
@@ -29,10 +35,11 @@ function renderPublicAccount(host,user) {
             menu.append(summary,actions);account.append(menu);wireAccountMenu(menu);
         }
     }else{
-        const link=textNode('a','Đăng nhập','stay-button stay-button-gold');link.href='login.html?next='+encodeURIComponent(window.location.pathname+window.location.search);host.replaceChildren(link);
+        const link=textNode('a','Đăng nhập','stay-button stay-button-gold');link.href='login.html?next='+encodeURIComponent(window.location.pathname+window.location.search+window.location.hash);host.replaceChildren(link);
     }
     host.setAttribute('aria-busy','false');
 }
+// NOTE FRONTEND: Xóa nội dung mật khẩu và thông báo cũ khi mở/đóng form để không giữ dữ liệu nhạy cảm trên giao diện.
 function resetAccountPasswordForm() {
     const form = document.getElementById('account-password-form');
     form?.reset(); form?.setAttribute('aria-busy', 'false');
@@ -45,11 +52,13 @@ function resetAccountPasswordForm() {
     if (error) { error.textContent = ''; error.hidden = true; }
     const status = document.getElementById('account-form-status'); if (status) status.textContent = '';
 }
+// NOTE FRONTEND: Hiện lỗi đổi mật khẩu, đánh dấu và chuyển focus đến ô cần sửa nếu có.
 function accountPasswordError(message, field) {
     const error = document.getElementById('account-password-error');
     error.textContent = message; error.hidden = !message;
     if (field) { document.getElementById(field).setAttribute('aria-invalid','true'); document.getElementById(field).focus(); }
 }
+// NOTE FRONTEND: Đặt trạng thái chờ kiểm tra phiên của trang, giúp khóa/ẩn nội dung bảo vệ trước khi có danh tính từ server.
 function setSessionState(pending, message = '') {
     if (pending && typeof closeShellMenu === 'function') closeShellMenu();
     document.body.classList[pending ? 'add' : 'remove']('session-pending');
@@ -60,15 +69,30 @@ function setSessionState(pending, message = '') {
         document.getElementById('session-retry').hidden = !message;
     }
 }
+// NOTE FRONTEND: Ẩn/hiện phần tử dành cho admin theo user đã xác thực; đây là hiển thị, quyền thật vẫn được backend kiểm tra.
 function applyAccountPermissions(user) {
     document.querySelectorAll('[data-admin-only]').forEach(el => { el.hidden = user.role !== 'admin'; });
+    routeCustomerLinks(user);
 }
+// Public entry points lead to the private customer flow; roles still come from the server.
+function routeCustomerLinks(user) {
+    if(user?.role==='admin')return;
+    const routes={'bookings.html':'reserve.html','checkin.html':'my-bookings.html','checkout.html':'my-invoices.html'};
+    document.querySelectorAll('a[href]').forEach(link=>{
+        const url=new URL(link.href,window.location.href);
+        if(url.origin!==window.location.origin)return;
+        const page=url.pathname.split('/').pop();
+        if(routes[page]){url.pathname='/pages/'+routes[page];link.href=url.pathname+url.search+url.hash;}
+        if(['customers.html','statistics.html','rooms.html','rag-documents.html','payment-review.html'].includes(page))link.hidden=true;
+    });
+}
+// NOTE FRONTEND: Dựng hồ sơ, menu, nút quản trị, đổi mật khẩu và đăng xuất một lần; nối các hành động với yêu cầu API.
 function addAccountControls(user) {
     applyAccountPermissions(user);
     let bar = document.getElementById('account-controls');
     if (bar) {
         document.getElementById('account-name').textContent = user.fullName || user.username || '';
-        document.getElementById('account-role').textContent = user.role === 'admin' ? 'Quản trị viên' : 'Nhân viên';
+        document.getElementById('account-role').textContent = user.role === 'admin' ? 'Quản trị viên' : 'Khách hàng';
         document.getElementById('account-role').className = 'account-role badge ' + (user.role === 'admin' ? 'badge-info' : 'badge-neutral');
         document.getElementById('account-admin-link').hidden=user.role!=='admin';
         return;
@@ -79,7 +103,7 @@ function addAccountControls(user) {
     const profile = textNode('a','','account-profile');profile.id='account-profile-link';profile.href='account.html';profile.setAttribute('aria-label','Xem thông tin tài khoản');
     const identity = textNode('div','','account-identity');
     const name = textNode('strong',user.fullName || user.username || '','account-name-link');name.id = 'account-name';
-    const role = textNode('span',user.role === 'admin' ? 'Quản trị viên' : 'Nhân viên','account-role badge ' + (user.role === 'admin' ? 'badge-info' : 'badge-neutral'));role.id = 'account-role';
+    const role = textNode('span',user.role === 'admin' ? 'Quản trị viên' : 'Khách hàng','account-role badge ' + (user.role === 'admin' ? 'badge-info' : 'badge-neutral'));role.id = 'account-role';
     identity.append(name,role);
     profile.append(identity);
     const actions = textNode('div','','account-actions');
@@ -89,7 +113,7 @@ function addAccountControls(user) {
         document.getElementById('account-old-password').focus();
     });change.id = 'account-change-btn';
     const logout = actionButton('Đăng xuất','btn btn-danger',logoutAccount);logout.id = 'account-logout-btn';
-    const info=textNode('a','Thông tin tài khoản','account-menu-link');info.href='account.html#ho-so';info.id='account-info-link';
+    const info=textNode('a','Thông tin tài khoản','account-menu-link');info.href='account.html#profile-personal';info.id='account-info-link';
     const admin=textNode('a','Khu quản trị','account-menu-link');admin.href='statistics.html';admin.id='account-admin-link';admin.setAttribute('data-admin-only','');admin.hidden=user.role!=='admin';
     [profile,info,admin].forEach(link=>link.addEventListener('click',event=>{
         event.preventDefault();if(!accountBusy)window.location.href=link.href;
@@ -154,6 +178,7 @@ function addAccountControls(user) {
         finally { accountBusy = false;setAccountBusy(false); }
     });
 }
+// NOTE FRONTEND: Khóa nút, trường và liên kết tài khoản trong lúc đổi mật khẩu/đăng xuất để không gửi chồng thao tác.
 function setAccountBusy(busy) {
     ['account-change-btn','account-logout-btn','account-password-cancel','account-password-save','account-old-password','account-new-password','account-confirm-password','account-old-toggle','account-new-toggle','account-confirm-toggle'].forEach(id => {
         const el = document.getElementById(id);if (el) el.disabled = busy;
@@ -166,6 +191,7 @@ function setAccountBusy(busy) {
     const headerLogout = document.getElementById('account-logout-btn');if(headerLogout)headerLogout.textContent=busy && accountOperation==='logout'?'Đang đăng xuất...':'Đăng xuất';
     if (!busy) accountOperation='';
 }
+// NOTE FRONTEND: Gửi yêu cầu kết thúc phiên rồi chuyển trang; nếu lỗi thì báo rõ và khôi phục trạng thái điều khiển.
 async function logoutAccount(event) {
     if (event) event.preventDefault();if (accountBusy) return;
     accountOperation='logout';accountBusy = true;setAccountBusy(true);
@@ -179,6 +205,7 @@ async function logoutAccount(event) {
         showRequestError(error,'Chưa xác nhận được đăng xuất.');
     } finally { accountBusy = false;setAccountBusy(false); }
 }
+// NOTE FRONTEND: Đọc lại danh tính từ server và cập nhật khung, quyền hiển thị cùng các điều khiển tài khoản.
 async function refreshAccountSession() {
     const previous = currentUser;
     setSessionState(true);
@@ -196,7 +223,7 @@ document.addEventListener('DOMContentLoaded',async () => {
     document.getElementById('session-retry')?.addEventListener('click',() => window.location.reload());
     const user = await checkLogin();
     if (!user) {
-        if(window.location.pathname.endsWith('/landing.html')) { setSessionState(false); return; }
+        if(hasPublicHeader()) { setSessionState(false); return; }
         setSessionState(true,'Không xác nhận được phiên đăng nhập. Vui lòng thử lại.');return;
     }
     addAccountControls(user);

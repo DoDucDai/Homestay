@@ -1,3 +1,5 @@
+// NOTE KIỂM THỬ: Kiểm tra tìm kiếm khách, lịch sử lưu trú, liên kết hóa đơn và menu tài khoản/quản trị theo quyền.
+// Code chạy bằng Node trong môi trường giả để kiểm tra frontend; các assert so kết quả thực tế với kết quả mong đợi.
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
@@ -27,7 +29,7 @@ function accountEnv(handler) {
     const response=(status,data)=>({ok:status<400,status,json:async()=>data});
     const user={userId:1,role:'admin',fullName:payload};
     const context=vm.createContext({Node:DomElement,document:{body,createElement:tag=>new DomElement(tag),
-        getElementById:id=>walk(body).find(n=>n.id===id)||null,querySelector:selector=>selector==='.main-content'?main:null,
+        getElementById:id=>walk(body).find(n=>n.id===id)||null,querySelector:selector=>selector.split(',').map(s=>s.trim()).includes('.main-content')?main:null,
         querySelectorAll:selector=>selector==='[data-admin-only]'?[admin]:[],addEventListener:(name,fn)=>{events[name]=fn;}},
         window:{location:{pathname:'/pages/rooms.html',search:'',replace:url=>redirects.push(url),reload:()=>{reloads++;}},addEventListener:(name,fn)=>{windowEvents[name]=fn;}},
         sessionStorage:{removeItem(){}},setTimeout:()=>0,URLSearchParams,console,
@@ -52,6 +54,22 @@ function accountEnv(handler) {
     assert.equal(e.el('history-customer').textContent,'KH1 — '+payload);assert.equal(e.el('history-stays').textContent,'1');
     pass('history renders safe guest/room text, nights/status, paid totals and exact saved-invoice links');
 
+    for(const [start,end,hours] of [
+        ['2026-11-04T02:12:00','2026-11-04T05:42:00',4],
+        ['2026-11-04T23:30:00','2026-11-05T00:31:00',2]
+    ]) {
+        const hourly={...booking(3),billingUnit:'Hour',checkinAt:start,checkoutAt:end,billedHours:hours,nights:null};
+        e.context.apiGet=async()=>({...history(),bookings:[hourly,booking(2,false)]});await e.context.openCustomerHistory(1);
+        const cells=e.el('history-tbody').children[0].children;
+        assert.equal(cells[2].textContent,start.slice(0,16).replace('T',' ')+' (giờ VN)');
+        assert.equal(cells[3].textContent,end.slice(0,16).replace('T',' ')+' (giờ VN)');
+        assert.equal(cells[4].textContent,hours+' giờ (làm tròn)');
+        assert.equal(e.el('history-tbody').children[1].children[4].textContent,'2 đêm');
+        assert.equal(cells[8].children[0].href,'checkout.html?paymentId=7');
+        assert.equal(e.el('history-total').textContent,e.context.formatMoney(620000n));
+    }
+    pass('hourly history keeps actual Vietnam timestamps across midnight, billed hours, nightly units and paid aggregates');
+
     pending=deferred();e.context.apiGet=()=>pending.promise;const loading=e.context.openCustomerHistory(1);
     e.context.apiGet=async()=>({...history(2),bookings:[],totalPaid:'0'});await e.context.openCustomerHistory(2);pending.resolve(history());await loading;
     assert.match(e.el('history-title').textContent,/KH2/);assert.match(e.el('history-tbody').textContent,/chưa có lịch sử/);
@@ -67,9 +85,9 @@ function accountEnv(handler) {
     assert.equal(e.el('history-tbody').children[0].children[8].children[0].href,'checkout.html?paymentId=7');
     pass('history rejects inconsistent aggregates and zero-value paid invoices still retain their link');
 
-    e=env('customers');vm.runInContext("currentUser={role:'staff'}",e.context);e.context.renderTable([{...guest,documentType:'PASSPORT',cccd:'AB123456',phone:'0901234567'}]);
+    e=env('customers');vm.runInContext("currentUser={role:'customer'}",e.context);e.context.renderTable([{...guest,documentType:'PASSPORT',cccd:'AB123456',phone:'0901234567'}]);
     assert.equal(e.el('customers-tbody').children[0].children.at(-1).children.length,2);await e.context.deleteCustomer(1,'Guest');assert.equal(e.writes.length,0);
-    e=env('services');vm.runInContext("currentUser={role:'staff'}",e.context);e.context.renderTable([{serviceId:1,serviceName:'Water',unitPrice:10000,status:'Hoạt động'}]);
+    e=env('services');vm.runInContext("currentUser={role:'customer'}",e.context);e.context.renderTable([{serviceId:1,serviceName:'Water',unitPrice:10000,status:'Hoạt động'}]);
     assert.equal(e.el('services-tbody').children[0].children.at(-1).children.length,2);
     e.context.openEditModal({serviceId:1,serviceName:'Water',unitPrice:10000,status:'Hoạt động'});
     await e.context.saveService();assert.equal(e.writes[0].endpoint,'/services/1');
@@ -104,14 +122,14 @@ function accountEnv(handler) {
 
     let a=accountEnv();await a.events.DOMContentLoaded();
     assert.equal(a.el('account-name').textContent,payload);assert.equal(a.el('account-role').textContent,'Quản trị viên');assert.equal(a.admin.hidden,false);assert.equal(a.body.classes.has('session-pending'),false);
-    a.context.addAccountControls({fullName:'Staff',role:'staff'});assert.equal(a.admin.hidden,true);assert.equal(a.el('account-name').textContent,'Staff');assert.equal(a.main.children.filter(n=>n.id==='account-controls').length,1);
+    a.context.addAccountControls({fullName:'Staff',role:'customer'});assert.equal(a.admin.hidden,true);assert.equal(a.el('account-name').textContent,'Staff');assert.equal(a.main.children.filter(n=>n.id==='account-controls').length,1);
     pass('shared header renders server identity safely, updates role permissions and never duplicates controls');
 
     a=accountEnv();await a.events.DOMContentLoaded();
-    a.el('account-info-link').events.click({preventDefault(){}});assert.equal(a.context.window.location.href,'account.html#ho-so');
+    a.el('account-info-link').events.click({preventDefault(){}});assert.equal(a.context.window.location.href,'account.html#profile-personal');
     a.el('account-admin-link').events.click({preventDefault(){}});assert.equal(a.context.window.location.href,'statistics.html');
     vm.runInContext('accountBusy=true',a.context);a.context.setAccountBusy(true);a.el('account-info-link').events.click({preventDefault(){}});assert.equal(a.context.window.location.href,'statistics.html');
-    vm.runInContext('accountBusy=false',a.context);a.context.setAccountBusy(false);a.context.addAccountControls({fullName:'Staff',role:'staff'});assert.equal(a.el('account-admin-link').hidden,true);
+    vm.runInContext('accountBusy=false',a.context);a.context.setAccountBusy(false);a.context.addAccountControls({fullName:'Staff',role:'customer'});assert.equal(a.el('account-admin-link').hidden,true);
     pass('profile/admin links navigate correctly, block navigation during writes and hide administration for staff');
 
     a=accountEnv();await a.events.DOMContentLoaded();a.el('account-change-btn').events.click();
@@ -135,13 +153,13 @@ function accountEnv(handler) {
     pass('header/sidebar share one logout lock and hide protected content after confirmed logout');
 
     let loggedOut=false;a=accountEnv((url,options,res)=>{
-        if(url.endsWith('/me'))return res(loggedOut?401:200,loggedOut?{message:'Expired'}:{success:true,user:{userId:1,role:'staff',fullName:'Staff'}});
+        if(url.endsWith('/me'))return res(loggedOut?401:200,loggedOut?{message:'Expired'}:{success:true,user:{userId:1,role:'customer',fullName:'Staff'}});
         if(url.endsWith('/csrf'))return res(200,{token:'csrf',headerName:'X-CSRF-TOKEN'});
         loggedOut=true;throw new Error('Lost logout response');
     });await a.events.DOMContentLoaded();await a.context.logoutAccount();assert.equal(a.calls.filter(c=>c.url.endsWith('/logout')).length,1);assert.equal(a.redirects[0],'login.html?next=%2Fpages%2Frooms.html');
     pass('lost logout response rechecks the server with GET and recognizes a session already invalidated');
 
-    let expired=false;a=accountEnv((url,options,res)=>res(expired?401:200,expired?{message:'Expired'}:{success:true,user:{userId:1,role:'staff',fullName:'Staff'}}));
+    let expired=false;a=accountEnv((url,options,res)=>res(expired?401:200,expired?{message:'Expired'}:{success:true,user:{userId:1,role:'customer',fullName:'Staff'}}));
     await a.events.DOMContentLoaded();a.el('account-old-password').value='secret';a.windowEvents.pagehide();assert.equal(a.el('account-old-password').value,'');expired=true;await a.windowEvents.pageshow({persisted:true});assert.equal(a.redirects[0],'login.html?next=%2Fpages%2Frooms.html');assert.equal(a.body.classes.has('session-pending'),true);
     assert.equal(a.calls.filter(c=>c.url.endsWith('/me')).length,2);
     pass('restored pages revalidate /me and conceal stale content when the server session has expired');
@@ -149,7 +167,7 @@ function accountEnv(handler) {
     a=accountEnv((url,options,res)=>res(503,{message:'Auth offline'}));await a.events.DOMContentLoaded();assert.equal(a.body.classes.has('session-pending'),true);assert.equal(a.el('session-retry').hidden,false);a.el('session-retry').events.click();assert.equal(a.reloads,1);
     pass('unavailable session verification leaves protected content hidden and offers a working retry');
 
-    const stale=deferred();let meCalls=0;a=accountEnv((url,options,res)=>++meCalls===1?stale.promise:res(200,{success:true,user:{userId:2,role:'staff',fullName:'New'}}));
+    const stale=deferred();let meCalls=0;a=accountEnv((url,options,res)=>++meCalls===1?stale.promise:res(200,{success:true,user:{userId:2,role:'customer',fullName:'New'}}));
     const first=a.context.checkLogin();await a.context.checkLogin(true);stale.resolve({ok:true,status:200,json:async()=>({success:true,user:{userId:1,role:'admin',fullName:'Old'}})});await first;
     assert.equal(vm.runInContext('currentUser.userId',a.context),2);
     vm.runInContext(fs.readFileSync(path.join(root,'auth.js'),'utf8'),a.context);await a.events.DOMContentLoaded();
