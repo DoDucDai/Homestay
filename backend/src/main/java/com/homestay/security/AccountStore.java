@@ -30,7 +30,9 @@ public final class AccountStore {
     // NOTE BACKEND: Dùng khóa ứng dụng SQL Server theo tài nguyên trong phạm vi giao dịch, ví dụ một email hoặc bộ đếm hạn mức.
     public static void lock(Connection connection,String resource) throws SQLException {
         // SQL Server starts a JDBC implicit transaction on a table access, not on an RPC alone.
-        try(var begin=connection.prepareStatement("SELECT user_id FROM Users WHERE user_id=-1");var ignored=begin.executeQuery()) { }
+        try(var begin=connection.prepareStatement("SELECT COUNT(*) FROM Users WHERE user_id=-1");var rows=begin.executeQuery()) {
+            if(!rows.next()) throw new SQLException("Could not start account transaction.");
+        }
         try(var statement=connection.prepareCall("{? = call sys.sp_getapplock(?,?,?,?)}")) {
             statement.registerOutParameter(1,Types.INTEGER);statement.setString(2,"account:"+hash(resource));statement.setString(3,"Exclusive");statement.setString(4,"Transaction");statement.setInt(5,10000);statement.execute();
             if(statement.getInt(1)<0)throw new ApiProblem(409,"ACCOUNT_BUSY","Tài khoản đang được cập nhật. Vui lòng thử lại.");

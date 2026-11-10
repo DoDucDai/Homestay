@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 // Body giữ thêm status để ApiExceptionHandler đặt đúng mã HTTP, thay vì trả mọi lỗi thành HTTP 200.
 public final class ApiErrors {
     public static final class Body extends LinkedHashMap<String,Object> {
+        @java.io.Serial private static final long serialVersionUID=1L;
         public final int status;
         Body(int status,String code,String message) {
             this.status=status;put("success",false);put("code",code);put("message",message);

@@ -5,7 +5,7 @@ nhận/trả phòng, dịch vụ, hóa đơn, báo cáo và trợ lý Mochi.
 
 ## Cấu trúc
 
-- `backend/src/main`: Java 17, Spring Boot, JDBC và bảo mật.
+- `backend/src/main`: Java 25, Spring Boot, JDBC và bảo mật.
 - `frontend`: giao diện HTML/CSS/JavaScript, font và ảnh phòng.
 - `database`: schema, migration và truy vấn SQL Server.
 - `ai-rag`: dịch vụ Python, dữ liệu kiến thức và giao diện Mochi.
@@ -16,7 +16,7 @@ nhận/trả phòng, dịch vụ, hóa đơn, báo cáo và trợ lý Mochi.
 
 ## Chạy local
 
-Cần JDK 17, SQL Server và Python 3.10 trở lên. Node.js dùng cho kiểm thử JavaScript.
+Cần JDK 25, SQL Server và Python 3.10 trở lên. Node.js dùng cho kiểm thử JavaScript.
 
 1. Tạo `.env` theo `.env.example` và điền cấu hình SQL Server.
 2. Khởi tạo database mới bằng `database/schema.sql`; với database hiện có,

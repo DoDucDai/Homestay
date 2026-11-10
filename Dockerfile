@@ -1,6 +1,6 @@
 # Build from the Homestay repository root (the directory containing this file).
 # NOTE TRIỂN KHAI: Stage build biên dịch Java, đóng gói frontend/AI và migration thành JAR; không đưa .env thật vào image.
-FROM maven:3.9-eclipse-temurin-17 AS build
+FROM maven:3.9-eclipse-temurin-25-noble AS build
 WORKDIR /build
 COPY backend/pom.xml backend/pom.xml
 COPY backend/src backend/src
@@ -10,7 +10,7 @@ COPY database/migrations database/migrations
 RUN mvn -B -f backend/pom.xml -DskipTests package
 
 # NOTE TRIỂN KHAI: Stage runtime chỉ chứa JRE/Python và bản build, chạy bằng user homestay có quyền hạn chế.
-FROM eclipse-temurin:17-jre-jammy AS runtime
+FROM eclipse-temurin:25-jre-jammy AS runtime
 RUN apt-get update \
     && apt-get install -y --no-install-recommends python3 ca-certificates \
     && rm -rf /var/lib/apt/lists/* \

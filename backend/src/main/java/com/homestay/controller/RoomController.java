@@ -18,17 +18,6 @@ public class RoomController {
     public RoomController() { this(RoomSchedule.CLOCK); }
     RoomController(Clock clock) { this.clock = clock; }
 
-    // NOTE BACKEND: Đọc số nguyên long chính xác, dùng giá trị dự phòng nếu giá trị không hợp lệ.
-    private long parseLong(Object val, long fallback) {
-        try { return new java.math.BigDecimal(String.valueOf(val)).longValueExact(); }
-        catch (RuntimeException e) { return fallback; }
-    }
-
-    // NOTE BACKEND: Đọc chuỗi và bỏ khoảng trắng hai đầu; dùng giá trị dự phòng nếu trường không có.
-    private String text(Map<String, Object> body, String key, String fallback) {
-        return body.get(key) == null ? fallback : body.get(key).toString().trim();
-    }
-
     public List<Map<String, Object>> getAllRooms() { return getAllRooms(null, null, null); }
 
     public List<Map<String, Object>> getAllRooms(@RequestParam(required=false) String type,

@@ -97,7 +97,14 @@ public class CustomerController {
                             booking.put("checkinAt",start==null ? null : start.toLocalDateTime().toString());
                             booking.put("checkoutAt",end==null ? null : end.toLocalDateTime().toString());
                             booking.put("nights",hourly ? null : rs.getInt("nights"));
-                            booking.put("billedHours",hourly ? HourlyStay.billedHours(start.toLocalDateTime(),end.toLocalDateTime()) : null);
+                            if(hourly) {
+                                if(start==null || end==null) {
+                                    throw new ApiProblem(409,"DATA_INCONSISTENT","Thiếu thời gian nhận hoặc trả phòng của booking theo giờ!");
+                                }
+                                booking.put("billedHours",HourlyStay.billedHours(start.toLocalDateTime(),end.toLocalDateTime()));
+                            } else {
+                                booking.put("billedHours",null);
+                            }
                             booking.put("status",rs.getString("status"));booking.put("note",rs.getString("note"));
                             int paymentId=rs.getInt("payment_id");boolean paid=!rs.wasNull();
                             java.math.BigDecimal amount=paid ? BookingInvoiceSnapshot.money(rs.getBigDecimal("grand_total")) : java.math.BigDecimal.ZERO;

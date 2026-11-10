@@ -43,7 +43,7 @@ final class NightlyPricing {
     }
     // NOTE BACKEND: Ghép danh sách ngày thành chuỗi ngăn bằng dấu phẩy để lưu vào cột weekend_days.
     static String days(Map<String,Object> config) {
-        return config==null?null:((List<?>)config.get("weekendDays")).stream().map(Object::toString).collect(java.util.stream.Collectors.joining(","));
+        return config==null?null:((List<?>)config.get("weekendDays")).stream().map(day -> day.toString()).collect(java.util.stream.Collectors.joining(","));
     }
     // NOTE BACKEND: Lưu cấu hình giá đêm dưới dạng JSON để booking không bị thay giá khi danh mục phòng đổi.
     static String encode(Map<String,Object> config) throws SQLException {

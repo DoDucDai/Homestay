@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.function.Supplier;
 
 /** Real SQL Server checks in a disposable database, never the configured database. */
 // NOTE KIỂM THỬ: Kiểm tra API từ chối dữ liệu sai, trả đúng lỗi HTTP, lọc lịch sử khách và đối chiếu doanh thu thống kê.
@@ -92,30 +91,10 @@ public class ValidationHttpSqlServerIT {
         if (!condition) throw new AssertionError(message);
     }
 
-    private static boolean success(Map<String, Object> response) {
-        return Boolean.TRUE.equals(response.get("success"));
-    }
-
     private static void pass(String name) {
         passed++;
         System.out.println("PASS " + name);
     }
-
-    private static List<Map<String, Object>> concurrent(Supplier<Map<String, Object>> a,
-                                                       Supplier<Map<String, Object>> b) throws Exception {
-        ExecutorService executor = Executors.newFixedThreadPool(2);
-        CountDownLatch start = new CountDownLatch(1);
-        try {
-            Future<Map<String, Object>> one = executor.submit(() -> { start.await(); return a.get(); });
-            Future<Map<String, Object>> two = executor.submit(() -> { start.await(); return b.get(); });
-            start.countDown();
-            return List.of(one.get(20, TimeUnit.SECONDS), two.get(20, TimeUnit.SECONDS));
-        } finally {
-            executor.shutdownNow();
-        }
-    }
-
-
 
     private static final com.fasterxml.jackson.databind.ObjectMapper JSON=new com.fasterxml.jackson.databind.ObjectMapper();
     private static String base;
@@ -148,7 +127,7 @@ public class ValidationHttpSqlServerIT {
         }
         String session() {
             return cookies.getCookieStore().getCookies().stream().filter(c -> "HOMESTAY_SESSION".equals(c.getName()))
-                    .map(java.net.HttpCookie::getValue).findFirst().orElse(null);
+                    .map(cookie -> cookie.getValue()).findFirst().orElse(null);
         }
     }
     @SuppressWarnings("unchecked")
@@ -419,7 +398,7 @@ public class ValidationHttpSqlServerIT {
         var yearly=admin.get("/api/statistics/yearly?year=2031");status(yearly,200);
         List<Number> months=JSON.readValue(yearly.body(),List.class);
         require(months.size()==12 && months.get(0).intValue()==100 && months.get(1).intValue()==200,"Yearly data has wrong month/status/year");
-        require(months.stream().mapToLong(Number::longValue).sum()==300,"Yearly total mismatch");
+        require(months.stream().mapToLong(number -> number.longValue()).sum()==300,"Yearly total mismatch");
         var empty=admin.get("/api/statistics/yearly?year=2040");status(empty,200);
         require(((List<Number>)JSON.readValue(empty.body(),List.class)).stream().allMatch(n->n.intValue()==0),"Empty year is not zero filled");
         pass("REPORT-01 yearly returns exactly 12 months, excludes unpaid/other-year amounts and zero-fills empty months");

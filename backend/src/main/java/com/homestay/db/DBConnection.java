@@ -24,7 +24,7 @@ public final class DBConnection {
                 String explicit=System.getenv(key);
                 return explicit!=null && !explicit.isBlank()?explicit:System.getProperty(key);
             }
-            String configured=environment.getProperty(key);
+            String configured=environment.getProperty(Objects.requireNonNull(key));
             return configured!=null && !configured.isBlank() ? configured : local.get(key);
         };
         if(prod && !"true".equalsIgnoreCase(value.apply("COOKIE_SECURE"))) {
@@ -91,6 +91,9 @@ public final class DBConnection {
     }
     // NOTE BACKEND: Công cụ kiểm tra mở kết nối; không đọc, sửa dữ liệu nghiệp vụ hoặc in mật khẩu.
     public static void main(String[] args) throws SQLException {
-        try(Connection conn=getConnection()) {System.out.println("Database connection verified.");}
+        try(Connection conn=getConnection()) {
+            if(!conn.isValid(5)) throw new SQLException("Database connection validation failed.");
+            System.out.println("Database connection verified.");
+        }
     }
 }

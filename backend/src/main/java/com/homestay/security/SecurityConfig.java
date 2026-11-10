@@ -5,10 +5,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.*;
 import org.springframework.http.HttpMethod;
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.*;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.*;
@@ -39,15 +39,15 @@ public class SecurityConfig {
     }
     // NOTE BACKEND: Ghép nguồn tài khoản UserAccounts với PasswordEncoder để Spring kiểm tra tên đăng nhập và mật khẩu.
     @Bean public AuthenticationManager authenticationManager(UserAccounts accounts,PasswordEncoder encoder) {
-        DaoAuthenticationProvider provider=new DaoAuthenticationProvider();
-        provider.setUserDetailsService(accounts); provider.setPasswordEncoder(encoder);
+        DaoAuthenticationProvider provider=new DaoAuthenticationProvider(accounts);
+        provider.setPasswordEncoder(encoder);
         return new ProviderManager(provider);
     }
     // NOTE BACKEND: Kiểm tra tài khoản đã dùng chuỗi băm được hỗ trợ; khi prod, từ chối mật khẩu demo trước khi cho hệ thống hoạt động.
     public ApplicationRunner checkAccountMigration() {return checkAccountMigration(new org.springframework.core.env.StandardEnvironment());}
     // NOTE BACKEND: Kiểm tra tài khoản đã dùng chuỗi băm được hỗ trợ; khi prod, từ chối mật khẩu demo trước khi cho hệ thống hoạt động.
     @Bean public ApplicationRunner checkAccountMigration(org.springframework.core.env.Environment environment) {
-        return args -> {
+        return _ -> {
             try(Connection conn=DBConnection.getConnection();PreparedStatement stmt=conn.prepareStatement(
                     "SELECT password,password_scheme FROM Users");ResultSet rs=stmt.executeQuery()) {
                 while(rs.next()) {
@@ -64,7 +64,7 @@ public class SecurityConfig {
     // NOTE BACKEND: Chỉ chấp nhận danh sách origin cụ thể khi dùng cookie xuyên origin; không cho ký tự đại diện *.
     @Bean public CorsConfigurationSource corsConfiguration(@Value("${auth.allowed-origins:}") String origins) {
         CorsConfiguration config=new CorsConfiguration();
-        List<String> allowed=Arrays.stream(origins.split(",")).map(String::trim).filter(s -> !s.isEmpty()).toList();
+        List<String> allowed=Arrays.stream(origins.split(",")).map(s -> s.trim()).filter(s -> !s.isEmpty()).toList();
         if (allowed.stream().anyMatch(s -> s.contains("*"))) throw new IllegalArgumentException("AUTH_ALLOWED_ORIGINS must contain explicit origins");
         config.setAllowedOrigins(allowed); config.setAllowCredentials(true);
         config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
@@ -75,12 +75,12 @@ public class SecurityConfig {
     @Bean public SecurityFilterChain security(HttpSecurity http,SecurityContextRepository repository,
             HttpSessionCsrfTokenRepository csrf,UserAccounts accounts,
             @org.springframework.beans.factory.annotation.Qualifier("corsConfiguration") CorsConfigurationSource cors) throws Exception {
-        http.formLogin(AbstractHttpConfigurer::disable).httpBasic(AbstractHttpConfigurer::disable).logout(AbstractHttpConfigurer::disable)
+        http.formLogin(c -> c.disable()).httpBasic(c -> c.disable()).logout(c -> c.disable())
             .cors(c -> c.configurationSource(cors))
             .csrf(c -> c.csrfTokenRepository(csrf))
             .securityContext(c -> c.securityContextRepository(repository).requireExplicitSave(true))
             .requestCache(c -> c.disable())
-            .exceptionHandling(c -> c.authenticationEntryPoint((request,response,error) -> {
+            .exceptionHandling(c -> c.authenticationEntryPoint((request,response,_) -> {
                 if (request.getServletPath().startsWith("/api/")) SecurityJson.error(response,401,"UNAUTHENTICATED","Vui lòng đăng nhập lại!");
                 else {
                     String target=request.getRequestURI()+(request.getQueryString()==null?"":"?"+request.getQueryString());
@@ -129,7 +129,7 @@ public class SecurityConfig {
         // NOTE BACKEND: Mỗi yêu cầu đã đăng nhập được kiểm tra lại phiên bản/quyền trong database.
         // Nếu đã đổi quyền hoặc mật khẩu thì hủy session; lỗi truy cập database trả 503 thay vì cho qua.
         http.addFilterAfter(new OncePerRequestFilter() {
-            @Override protected void doFilterInternal(HttpServletRequest request,HttpServletResponse response,FilterChain chain)
+            @Override protected void doFilterInternal(@NonNull HttpServletRequest request,@NonNull HttpServletResponse response,@NonNull FilterChain chain)
                     throws ServletException,IOException {
                 var auth=SecurityContextHolder.getContext().getAuthentication();
                 if (auth!=null && auth.getPrincipal() instanceof AppUser user) {

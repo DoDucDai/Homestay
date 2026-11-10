@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.function.Supplier;
 
 /** Real SQL Server checks in a disposable database, never the configured database. */
 // NOTE KIỂM THỬ: Kiểm tra qua HTTP/SQL thật: đăng nhập, cookie, CSRF, CORS, phân quyền và thu hồi phiên khi đổi mật khẩu/quyền.
@@ -92,30 +91,10 @@ public class SecurityHttpSqlServerIT {
         if (!condition) throw new AssertionError(message);
     }
 
-    private static boolean success(Map<String, Object> response) {
-        return Boolean.TRUE.equals(response.get("success"));
-    }
-
     private static void pass(String name) {
         passed++;
         System.out.println("PASS " + name);
     }
-
-    private static List<Map<String, Object>> concurrent(Supplier<Map<String, Object>> a,
-                                                       Supplier<Map<String, Object>> b) throws Exception {
-        ExecutorService executor = Executors.newFixedThreadPool(2);
-        CountDownLatch start = new CountDownLatch(1);
-        try {
-            Future<Map<String, Object>> one = executor.submit(() -> { start.await(); return a.get(); });
-            Future<Map<String, Object>> two = executor.submit(() -> { start.await(); return b.get(); });
-            start.countDown();
-            return List.of(one.get(20, TimeUnit.SECONDS), two.get(20, TimeUnit.SECONDS));
-        } finally {
-            executor.shutdownNow();
-        }
-    }
-
-
 
     private static final com.fasterxml.jackson.databind.ObjectMapper JSON=new com.fasterxml.jackson.databind.ObjectMapper();
     private static String base;
@@ -148,7 +127,7 @@ public class SecurityHttpSqlServerIT {
         }
         String session() {
             return cookies.getCookieStore().getCookies().stream().filter(c -> "HOMESTAY_SESSION".equals(c.getName()))
-                    .map(java.net.HttpCookie::getValue).findFirst().orElse(null);
+                    .map(cookie -> cookie.getValue()).findFirst().orElse(null);
         }
     }
     @SuppressWarnings("unchecked")

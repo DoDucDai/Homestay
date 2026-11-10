@@ -263,7 +263,7 @@ public class BookingScheduleSqlServerIT {
         pass("check-in only permitted from planned arrival through the day before planned departure");
 
         reset();
-        int overdue=existing(-3,-1,"CheckedIn");
+        existing(-3,-1,"CheckedIn");
         require(!available(0,2) && !success(book(0,2)),"Overdue resident not blocking today");
         require(available(5,7),"Overdue resident incorrectly blocks every future interval");
         id(book(5,7));

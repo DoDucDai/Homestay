@@ -52,13 +52,13 @@ public final class RoomCatalogMigration {
             try(var rs=st.executeQuery("SELECT room_id,room_code FROM dbo.Rooms ORDER BY room_id")) {
                 while(rs.next()) {
                     var code=rs.getString(2);var match=CODE.matcher(code.trim());
-                    if(match.matches())groups.computeIfAbsent(match.group(1),n->new ArrayList<>()).add(new Room(rs.getInt(1),code,match.group(1)));
+                    if(match.matches())groups.computeIfAbsent(match.group(1),_ -> new ArrayList<>()).add(new Room(rs.getInt(1),code,match.group(1)));
                 }
             }
             for(var entry:groups.entrySet()) {
                 var rooms=entry.getValue();
                 // Keep an existing canonical ID, then the imported poster room ID, then the oldest ID.
-                rooms.sort(Comparator.comparingInt((Room r)->r.code.equalsIgnoreCase("Room "+r.number)?0:r.code.startsWith("DEMO-")?1:2).thenComparingInt(Room::id));
+                rooms.sort(Comparator.comparingInt((Room r)->r.code.equalsIgnoreCase("Room "+r.number)?0:r.code.startsWith("DEMO-")?1:2).thenComparingInt(r -> r.id()));
                 var keep=rooms.get(0);
                 for(var old:rooms.subList(1,rooms.size())) {
                     try(var overlap=conn.prepareStatement("SELECT TOP 1 a.booking_id FROM dbo.Bookings a JOIN dbo.Bookings b ON a.room_id=? AND b.room_id=? AND a.status IN ('Confirmed','CheckedIn') AND b.status IN ('Confirmed','CheckedIn') AND COALESCE(a.checkin_at,CAST(a.checkin_date AS DATETIME2))<COALESCE(b.checkout_at,CAST(b.checkout_date AS DATETIME2)) AND COALESCE(b.checkin_at,CAST(b.checkin_date AS DATETIME2))<COALESCE(a.checkout_at,CAST(a.checkout_date AS DATETIME2))")) {

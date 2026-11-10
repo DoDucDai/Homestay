@@ -1,6 +1,8 @@
 package com.homestay.api;
 
 import org.springframework.core.MethodParameter;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.http.*;
 import org.springframework.http.converter.*;
 import org.springframework.http.server.*;
@@ -12,10 +14,10 @@ import java.util.*;
 @RestControllerAdvice
 public class ApiExceptionHandler implements ResponseBodyAdvice<Object> {
     // NOTE API: Áp dụng bước kiểm tra nội dung phản hồi cho mọi controller.
-    @Override public boolean supports(MethodParameter method,Class<? extends HttpMessageConverter<?>> converter) { return true; }
+    @Override public boolean supports(@NonNull MethodParameter method,@NonNull Class<? extends HttpMessageConverter<?>> converter) { return true; }
     // NOTE API: Trước khi gửi JSON, lấy status từ ApiErrors.Body để gắn vào phản hồi HTTP.
-    @Override public Object beforeBodyWrite(Object body,MethodParameter method,MediaType type,
-            Class<? extends HttpMessageConverter<?>> converter,ServerHttpRequest request,ServerHttpResponse response) {
+    @Override @Nullable public Object beforeBodyWrite(@Nullable Object body,@NonNull MethodParameter method,@NonNull MediaType type,
+            @NonNull Class<? extends HttpMessageConverter<?>> converter,@NonNull ServerHttpRequest request,@NonNull ServerHttpResponse response) {
         if(body instanceof ApiErrors.Body error) response.setStatusCode(HttpStatus.valueOf(error.status));
         return body;
     }

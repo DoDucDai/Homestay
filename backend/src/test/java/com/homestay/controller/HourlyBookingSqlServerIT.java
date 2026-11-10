@@ -3,7 +3,6 @@ package com.homestay.controller;
 import com.homestay.db.DBConnection;
 import com.homestay.db.HourlyPricingMigration;
 import java.nio.file.*;
-import java.sql.*;
 import java.time.*;
 import java.util.*;
 import java.util.concurrent.*;

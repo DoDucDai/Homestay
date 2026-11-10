@@ -16,16 +16,19 @@ final class RoomSchedule {
     static final Clock CLOCK = Clock.system(ZONE);
 
     static class Conflict extends ApiProblem {
+        @java.io.Serial private static final long serialVersionUID=1L;
         Conflict(String message) { super(409,"BUSINESS_CONFLICT",message); }
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     static class InvalidDates extends ApiProblem {
+        @java.io.Serial private static final long serialVersionUID=1L;
         InvalidDates(String message) { super(400,"INVALID_DATES",message); }
     }
 
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
     static class QueryFailure extends ApiProblem {
+        @java.io.Serial private static final long serialVersionUID=1L;
         QueryFailure(SQLException cause) { super(503,"DATABASE_UNAVAILABLE","Không thể đọc lịch phòng. Vui lòng thử lại!");ApiErrors.database(cause); }
     }
 

@@ -17,7 +17,7 @@ public class AccountSettings {
     public String value(String key,String fallback) {
         String explicit=System.getenv(key);
         if(explicit==null)explicit=System.getProperty(key);
-        if(explicit==null && !environment.acceptsProfiles(Profiles.of("prod")))explicit=environment.getProperty(key);
+        if(explicit==null && !environment.acceptsProfiles(Profiles.of("prod")))explicit=environment.getProperty(java.util.Objects.requireNonNull(key));
         return explicit==null || explicit.isBlank()?fallback:explicit.trim();
     }
     // NOTE BACKEND: Kiểm tra URL gốc cho liên kết đặt lại mật khẩu; prod cần HTTPS, dev chỉ cho HTTP ở localhost/127.0.0.1.

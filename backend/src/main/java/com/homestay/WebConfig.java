@@ -2,6 +2,7 @@ package com.homestay;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.*;
 import java.nio.file.*;
 
@@ -11,7 +12,7 @@ public class WebConfig implements WebMvcConfigurer {
     private final String frontendDirectory;
     public WebConfig(@Value("${FRONTEND_DIRECTORY:}") String frontendDirectory) {this.frontendDirectory=frontendDirectory;}
     // NOTE BACKEND: Ưu tiên file AI ngoài ổ đĩa và thư mục FRONTEND_DIRECTORY nếu có; dùng tài nguyên trong JAR làm nguồn dự phòng.
-    @Override public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    @Override public void addResourceHandlers(@NonNull ResourceHandlerRegistry registry) {
         Path aiDirectory=Path.of("ai-rag/web").toAbsolutePath().normalize();
         if(!Files.isDirectory(aiDirectory)) aiDirectory=Path.of("../ai-rag/web").toAbsolutePath().normalize();
         registry.addResourceHandler("/ai/**").addResourceLocations(aiDirectory.toUri().toString(),"classpath:/static/ai/");
@@ -22,5 +23,5 @@ public class WebConfig implements WebMvcConfigurer {
         } else registry.addResourceHandler("/**").addResourceLocations("classpath:/static/");
     }
     // NOTE BACKEND: Khi người dùng mở /, chuyển hướng sang /pages/landing.html.
-    @Override public void addViewControllers(ViewControllerRegistry registry) {registry.addRedirectViewController("/","/pages/landing.html");}
+    @Override public void addViewControllers(@NonNull ViewControllerRegistry registry) {registry.addRedirectViewController("/","/pages/landing.html");}
 }

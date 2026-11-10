@@ -86,16 +86,6 @@ public class BookingController {
         }
     }
 
-    // NOTE BACKEND: Đọc số nguyên chính xác, không nhận phần thập phân; trả giá trị dự phòng nếu không đọc được.
-    private int parseInt(Object val, int defaultVal) {
-        if (val == null) return defaultVal;
-        try {
-            return new BigDecimal(val.toString().trim()).intValueExact();
-        } catch (Exception e) {
-            return defaultVal;
-        }
-    }
-
     // GET /api/bookings?status=Confirmed
     public List<Map<String, Object>> getBookings(@RequestParam(required = false) String status) {
         return getBookings(status,null);
@@ -129,7 +119,7 @@ public class BookingController {
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
 
-            if (hasStatusFilter) {
+            if (hasStatusFilter && status != null) {
                 stmt.setString(1, status.trim());
             }
 

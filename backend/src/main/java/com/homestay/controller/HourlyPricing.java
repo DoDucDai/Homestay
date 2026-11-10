@@ -63,12 +63,14 @@ final class HourlyPricing {
         extraRate=BookingInvoiceSnapshot.money(extraRate);
         if(packages==null)return new Quote(0,BigDecimal.ZERO,hours,extraRate,BookingInvoiceSnapshot.money(extraRate.multiply(BigDecimal.valueOf(hours))));
         packages=validate(packages);
-        Quote best=null;
-        for(int i=0;i<3;i++) {
+        long firstExtra=Math.max(0,hours-2);
+        BigDecimal firstBase=BigDecimal.valueOf(packages.get(KEYS.get(0)));
+        Quote best=new Quote(2,firstBase,firstExtra,extraRate,firstBase.add(extraRate.multiply(BigDecimal.valueOf(firstExtra))));
+        for(int i=1;i<3;i++) {
             long included=new long[]{2,4,8}[i],extra=Math.max(0,hours-included);
             BigDecimal base=BigDecimal.valueOf(packages.get(KEYS.get(i)));
             BigDecimal total=base.add(extraRate.multiply(BigDecimal.valueOf(extra)));
-            if(best==null || total.compareTo(best.total())<0)best=new Quote(included,base,extra,extraRate,total);
+            if(total.compareTo(best.total())<0)best=new Quote(included,base,extra,extraRate,total);
         }
         BookingInvoiceSnapshot.money(best.total());return best;
     }

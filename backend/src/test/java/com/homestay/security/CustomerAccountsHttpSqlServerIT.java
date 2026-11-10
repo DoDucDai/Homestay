@@ -3,6 +3,7 @@ package com.homestay.security;
 import com.homestay.HomestayApplication;
 import com.homestay.db.DBConnection;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
 import org.springframework.beans.factory.support.RootBeanDefinition;
@@ -20,6 +21,7 @@ import java.util.concurrent.*;
 // File này thuộc src/test, không phải endpoint và không nằm trong mã nghiệp vụ chạy phục vụ người dùng.
 public class CustomerAccountsHttpSqlServerIT {
     static final ObjectMapper JSON=new ObjectMapper();
+    static final TypeReference<Map<String,Object>> JSON_OBJECT=new TypeReference<>() {};
     static final CapturedMail MAIL=new CapturedMail();
     static String base;
     static class CapturedMail implements MailGateway {
@@ -38,7 +40,7 @@ public class CustomerAccountsHttpSqlServerIT {
     }
     static void sql(String text)throws Exception {try(var c=DBConnection.getConnection();var s=c.createStatement()){execute(s,text);}}
     static String value(String text)throws Exception {try(var c=DBConnection.getConnection();var s=c.createStatement();var rows=s.executeQuery(text)){require(rows.next(),"Missing SQL result");return rows.getString(1);}}
-    static Map<String,Object> data(HttpResponse<String> response)throws Exception {return JSON.readValue(response.body(),Map.class);}
+    static Map<String,Object> data(HttpResponse<String> response)throws Exception {return JSON.readValue(response.body(),JSON_OBJECT);}
     static void status(HttpResponse<String> response,int expected){require(response.statusCode()==expected,"Expected HTTP "+expected+" got "+response.statusCode()+": "+response.body());}
     static class Client {
         final HttpClient http=HttpClient.newBuilder().cookieHandler(new CookieManager(null,CookiePolicy.ACCEPT_ALL)).followRedirects(HttpClient.Redirect.NEVER).build();
@@ -54,7 +56,7 @@ public class CustomerAccountsHttpSqlServerIT {
         HttpResponse<String> put(String path,Object body)throws Exception{return send("PUT",path,body,true);}
         void csrf()throws Exception {var response=get("/api/auth/csrf");status(response,200);csrf=(String)data(response).get("token");}
         void login(String username,String password)throws Exception {csrf();status(post("/api/auth/login",Map.of("username",username,"password",password)),200);csrf();}
-        Map<String,Object> me()throws Exception {var response=get("/api/auth/me");status(response,200);return (Map<String,Object>)data(response).get("user");}
+        Map<String,Object> me()throws Exception {var response=get("/api/auth/me");status(response,200);return JSON.convertValue(data(response).get("user"),JSON_OBJECT);}
     }
     static ServletWebServerApplicationContext start() {
         var application=new SpringApplication(HomestayApplication.class);

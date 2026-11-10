@@ -39,8 +39,7 @@ final class BookingInvoiceSnapshot {
         BigDecimal price;
         long nights;
         boolean estimated;
-        BigDecimal capturedHourlyTotal=null;
-        BigDecimal capturedNightlyTotal=null;
+        BigDecimal roomTotal;
         String query = """
                 SELECT b.checkin_date,b.checkout_date,b.price_per_night,b.snapshot_estimated,b.billing_unit,b.checkin_at,b.checkout_at,b.price_per_hour,b.hourly_packages_snapshot,b.nightly_pricing_snapshot,
                        c.full_name,c.cccd,c.phone,c.address,r.room_code,r.room_name
@@ -63,13 +62,13 @@ final class BookingInvoiceSnapshot {
                     invoice.put("billingUnit","Hour");invoice.put("billedHours",nights);invoice.put("pricePerHour",price);
                     var packages=HourlyPricing.decode(rs.getString("hourly_packages_snapshot"));
                     invoice.put("hourlyPackages",packages);
-                    capturedHourlyTotal=HourlyPricing.quote(price,packages,nights).total();
+                    roomTotal=HourlyPricing.quote(price,packages,nights).total();
                     invoice.put("checkinAt",start.toString());invoice.put("checkoutAt",end.toString());
                 } else {
                     invoice.put("billingUnit","Night");
                     var nightly=NightlyPricing.decode(rs.getString("nightly_pricing_snapshot"));
                     invoice.put("nightlyPricing",nightly);
-                    capturedNightlyTotal=NightlyPricing.quote(price,nightly,rs.getDate("checkin_date").toLocalDate(),rs.getDate("checkout_date").toLocalDate()).total();
+                    roomTotal=NightlyPricing.quote(price,nightly,rs.getDate("checkin_date").toLocalDate(),rs.getDate("checkout_date").toLocalDate()).total();
                 }
                 estimated = rs.getBoolean("snapshot_estimated");
                 invoice.put("bookingId", bookingId);
@@ -114,7 +113,6 @@ final class BookingInvoiceSnapshot {
                 }
             }
         }
-        BigDecimal roomTotal = capturedHourlyTotal!=null ? capturedHourlyTotal : capturedNightlyTotal;
         invoice.put("nights", "Hour".equals(invoice.get("billingUnit")) ? 0 : nights);
         invoice.put("pricePerNight", "Hour".equals(invoice.get("billingUnit")) ? BigDecimal.ZERO : price);
         invoice.put("roomTotal", roomTotal);
